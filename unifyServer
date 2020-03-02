@@ -182,6 +182,7 @@ launchcontainerSHELL(){
   echo Launching container ${SecondaryParam}
   green
   echo "${pbadge} 🌟 Have fun 🌟"
+  bash start-ubuntu.sh screenfetch
   bash start-ubuntu.sh "fish --login"
   exit
 }
@@ -211,12 +212,16 @@ fi
 name=$(cat ${importedcontainer}/name)
 packages=$(cat ${importedcontainer}/packages)
 init=$(cat ${importedcontainer}/init)
+setuproutines=$(cat ${importedcontainer}/setup)
 cd ${origindir}
 bash ${0} add ${name}
 echo "${packages}" > ${containersLair}/${name}/rootfs/packages
 bash ${0} exec ${name} "apt install < /packages"
 echo "${SecondaryParam}" > ${containersLair}/${name}/origin
 echo "${init}" > ${containersLair}/${name}/rootfs/init
+echo "${setuproutines}" > ${containersLair}/${name}/rootfs/setup
+echo "${pbadge} ✨Container Finishing touch✨"
+bash ${0} exec ${name} "bash /setup"
 green
 echo "${pbadge} ✨import done✨"
 exit
@@ -237,6 +242,7 @@ mkdir ${containerExport}/${name}
 echo "${name}" > ${containerExport}/${name}/name
 echo "${packages}" > ${containerExport}/${name}/packages
 echo "${init}" > ${containerExport}/${name}/init
+echo "apt-get update; apt-get upgrade; echo Default setup done" > ${containerExport}/${name}/setup
 green
 echo "${pbadge} ✨export done✨"
 exit
@@ -729,7 +735,7 @@ EOM
 
 echo "${pbadge} 🧳 Doing some initial Setup"
 bash ${bin} "apt-get update"
-bash ${bin} "apt-get install fish -y"
+bash ${bin} "apt-get install screenfetch fish -y"
 echo "fixing shebang of $bin"
 if [ ${packmanager} == "pkg" ]; then
 termux-fix-shebang $bin
