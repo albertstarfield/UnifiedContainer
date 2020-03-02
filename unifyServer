@@ -627,6 +627,8 @@ if [ "$first" != 1 ];then
 			archurl="arm64" ;;
 		arm)
 			archurl="armhf" ;;
+    armv7*)
+  		archurl="armhf" ;;
 		amd64)
 			archurl="amd64" ;;
 		i*86)
