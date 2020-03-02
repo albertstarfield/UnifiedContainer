@@ -251,7 +251,7 @@ containerManagerAdd(){
   else
     yellow
     echo "${pbadge} 📦 Creating Container"
-    proot --link2symlink -0 cp -ruaH "${defaultContainer}" "${containersLair}/${SecondaryParam}" >> ${logs}/rootfsCopyOperation.log 2>&1 
+    proot --link2symlink -0 cp -ruaH "${defaultContainer}" "${containersLair}/${SecondaryParam}" >> ${logs}/rootfsCopyOperation.log 2>&1
     echo "$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 32 | head -n 1)" > ${containersLair}/${SecondaryParam}/containerID
     green
     echo "${pbadge} ${SecondaryParam} ✔️ Container done"
@@ -747,10 +747,10 @@ folderInit
 intro
 yellow
 echo "${pbadge} 🚒 Checking dependencies"
-dependencies >> ${logs}/dependenciesPrep.log
+dependencies
 yellow
 echo "${pbadge} 💽 Checking Default Container"
-defaultContainerSetup >> ${logs}/masterContainerSetup.log
+defaultContainerSetup
 paramCheck
 paramintrepreter
 exit
