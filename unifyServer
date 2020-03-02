@@ -740,7 +740,7 @@ chmod +x $bin
 
 
 fetchUpdateManager(){
-git fetch
+git pull
 }
 
 
