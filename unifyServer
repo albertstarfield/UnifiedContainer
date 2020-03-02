@@ -742,6 +742,8 @@ chmod +x $bin
 fetchUpdateManager(){
 git reset --hard
 git pull
+echo ${origindir}/${0}
+chmod +x ${0}
 }
 
 
