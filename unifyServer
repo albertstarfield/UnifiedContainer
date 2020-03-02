@@ -251,7 +251,7 @@ containerManagerAdd(){
   else
     yellow
     echo "${pbadge} 📦 Creating Container"
-    cp -rua "${defaultContainer}" "${containersLair}/${SecondaryParam}"
+    proot --link2symlink -0 cp -ruaH "${defaultContainer}" "${containersLair}/${SecondaryParam}" >> ${logs}/rootfsCopyOperation.log 2>&1 
     echo "$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 32 | head -n 1)" > ${containersLair}/${SecondaryParam}/containerID
     green
     echo "${pbadge} ${SecondaryParam} ✔️ Container done"
@@ -279,7 +279,7 @@ containerManagerReset(){
     else
       echo "${pbadge} 📦 Resetting Local Container"
     rm -rf "${containersLair}/${SecondaryParam}"
-    cp -rua "${defaultContainer}" "${containersLair}/${SecondaryParam}"
+    proot --link2symlink -0 cp -ruaH "${defaultContainer}" "${containersLair}/${SecondaryParam}" >> ${logs}/rootfsCopyOperation.log  2>&1
   fi
     green
     echo "${pbadge} ${SecondaryParam} ✔️ Container done"
@@ -742,15 +742,15 @@ chmod +x $bin
 #_________Main_________
 intro
 yellow
-echo "${pbadge} 📁 Checking Container Folder"
+echo "${pbadge} 📁 Checking Folders"
 folderInit
 intro
 yellow
 echo "${pbadge} 🚒 Checking dependencies"
-dependencies
+dependencies >> ${logs}/dependenciesPrep.log
 yellow
 echo "${pbadge} 💽 Checking Default Container"
-defaultContainerSetup
+defaultContainerSetup >> ${logs}/masterContainerSetup.log
 paramCheck
 paramintrepreter
 exit
