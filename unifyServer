@@ -739,6 +739,10 @@ chmod +x $bin
 }
 
 
+fetchUpdateManager(){
+git fetch
+}
+
 
 
 #_________Main_________
@@ -750,6 +754,9 @@ intro
 yellow
 echo "${pbadge} 🚒 Checking dependencies"
 dependencies
+yellow
+echo "${pbadge} 💽 Updating Manager"
+fetchUpdateManager
 yellow
 echo "${pbadge} 💽 Checking Default Container"
 defaultContainerSetup
