@@ -1,0 +1,757 @@
+#!/bin/bash
+echo Ver 010
+export PrimaryParam=${1}
+export SecondaryParam=${2}
+export TertiaryParam=${3}
+set +xe
+#echo DEBUG PARAM CHECK ${PrimaryParam} ${SecondaryParam}
+export pbadge="[unifiedContainer]"
+export initDir="$(pwd)"
+
+
+red(){
+printf '\e[38;5;210m ' > /dev/tty
+}
+
+yellow(){
+printf '\e[38;5;221m ' > /dev/tty
+}
+green(){
+printf '\e[38;5;042m ' > /dev/tty
+}
+blue(){
+printf '\e[38;5;039m ' > /dev/tty
+}
+
+intro(){
+
+if [ ${newInstall} == '1' ]; then
+  clear
+blue
+echo "==================================================================="
+green
+echo "😊 Warm welcome from questandachievement7Developer 😊"
+echo "🎆✨ Welcome to unifiedContainer Project✨🎆"
+echo "👉 Heavily Inspired by docker, multipass, termuxarch sdrausty, and neoOli Ubuntu 👍"
+echo "👉 Code sourced from MFDGaming NeoOli and Stackoverflow 👍"
+blue
+echo "==================================================================="
+
+sleep 4
+fi
+}
+
+paramCheck(){
+#echo DEBUG PARAM CHECK ${PrimaryParam} ${SecondaryParam}
+if [ -z ${PrimaryParam} ]; then
+  red
+  echo "${pbadge} 🤔 Invalid Sub command please refer help for manual 🤷"
+  help_unifyServer
+  exit
+fi
+
+if [ -z ${SecondaryParam} ]; then
+  red
+  echo "${pbadge} 🤔 no parameter detected please refer help for manual 🤷"
+  help_unifyServer
+  exit
+fi
+
+if [ ${SecondaryParam} == "default" ]; then
+  clear
+  red
+  echo "${pbadge} Welco.. wait thats illegal! "
+  exit
+fi
+
+}
+
+
+help_unifyServer(){
+echo "${pbadge} Here are the commands"
+echo "To launch container"
+echo "${0} launch <containerName>"
+echo .
+echo "To Stop container"
+echo "${0} stop <containerName>"
+echo .
+echo "To Grant local storage for the container"
+echo "${0} exposeStorage <containerName>"
+echo .
+echo "To isolate local storage from the container"
+echo "${0} deexposeStorage <containerName>"
+echo .
+echo "Export Container Configuration"
+echo "${0} exportCont <containerName>"
+echo .
+echo "Import Container Configuration from github"
+echo "${0} import <containerName>"
+echo .
+echo "reset container to default configuration"
+echo "${0} reset <containerName>"
+echo .
+echo "List all the container and its status"
+echo "${0} list All"
+echo .
+echo "reset Everything"
+echo "${0} nuke yes"
+echo .
+echo "to enter the container Shell"
+echo "${0} shell <containerName>"
+echo .
+echo "To execute a command on a container"
+echo "${0} exec <containerName> <command>"
+echo .
+echo "To add container"
+echo "${0} add <containerName>"
+echo .
+echo "To remove Container"
+echo "${0} remove <containerName>"
+echo .
+echo "To edit exec Routines container"
+echo "${0} edit_routines <containerName>"
+exit
+}
+
+confirmation(){
+  randcode=$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 32 | head -n 1)
+  randcode="iwilltaketheresponsibilityofmyaction"
+  yellow
+  echo "${pbadge} ⚠️ Are you sure that you want to do this ?⚠️"
+  echo "${pbadge} if you do please type this token"
+  echo "${randcode}"
+  echo "Your input: "
+  read input
+  echo "debug ${input}"
+  if [ $input == $randcode ] ; then
+    yellow
+    echo "${pbadge} 🚀 Initiating dangerous code"
+  else
+    red
+    echo "${pbadge} ❌ WRONG CODE CANCELLING ❌"
+  exit
+fi
+}
+
+nuke(){
+confirmation
+red
+echo "${pbadge} 💣 Nuking the installation 💣"
+rm -rf ${maindir}
+green
+echo "${pbadge} ✔️  Nuking complete ✔️ "
+exit
+}
+
+launchcontainerSvc(){
+  if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
+    red
+    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
+    exit
+  fi
+  cd "${containersLair}/${SecondaryParam}"
+  green
+  echo "⏳ Launching container ${SecondaryParam}"
+  bash start-ubuntu.sh bash /init > "${logs}/containers_${SecondaryParam}.log" 2>&1 &
+  echo $! > svcID
+  cat "${logs}/containers_${SecondaryParam}.log"
+  exit
+}
+
+launchcontainerKill(){
+  if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
+    red
+    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
+    exit
+  fi
+  yellow
+  echo "${pbadge} 🛑 Stopping Container"
+  kill -9 $(cat ${containersLair}/${SecondaryParam}/svcID)
+  green
+  echo "${pbadge} ✔️ Container Stopped"
+  exit
+}
+
+launchcontainerSHELL(){
+  if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
+    red
+    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
+    exit
+  fi
+  cd "${containersLair}/${SecondaryParam}"
+  echo Launching container ${SecondaryParam}
+  green
+  echo "${pbadge} 🌟 Have fun 🌟"
+  bash start-ubuntu.sh "fish --login"
+  exit
+}
+
+executeContainerCMD(){
+  if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
+    red
+    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
+    exit
+  fi
+  cd "${containersLair}/${SecondaryParam}"
+  yellow
+  echo "${pbadge} 🏃‍ Executing ${TertiaryParam} on ${SecondaryParam}"
+  bash start-ubuntu.sh "${TertiaryParam}"
+  exit
+}
+
+containerManagerImport(){
+containerID=$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 32 | head -n 1)
+export importedcontainer="${TMPFolder}/${containerID}"
+git clone ${SecondaryParam} ${TMPFolder}/${containerID}
+if [ ! -d "${TMPFolder}/${containerID}" ]; then
+  red
+  echo "${pbadge} ❌ Imported Container does not exists ❌"
+  exit
+fi
+name=$(cat ${importedcontainer}/name)
+packages=$(cat ${importedcontainer}/packages)
+init=$(cat ${importedcontainer}/init)
+cd ${origindir}
+bash ${0} add ${name}
+echo "${packages}" > ${containersLair}/${name}/rootfs/packages
+bash ${0} exec ${name} "apt install < /packages"
+echo "${SecondaryParam}" > ${containersLair}/${name}/origin
+echo "${init}" > ${containersLair}/${name}/rootfs/init
+green
+echo "${pbadge} ✨import done✨"
+exit
+}
+
+containerManagerExport(){
+  if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
+    red
+    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
+    exit
+  fi
+name=${SecondaryParam}
+bash ${0} exec ${SecondaryParam} "apt list --installed > /packages" #https://askubuntu.com/questions/9135/how-to-backup-settings-and-list-of-installed-packages
+packages=$(cat ${containersLair}/${SecondaryParam}/rootfs/packages)
+init=$(cat ${containersLair}/${SecondaryParam}/rootfs/init)
+
+mkdir ${containerExport}/${name}
+echo "${name}" > ${containerExport}/${name}/name
+echo "${packages}" > ${containerExport}/${name}/packages
+echo "${init}" > ${containerExport}/${name}/init
+green
+echo "${pbadge} ✨export done✨"
+exit
+}
+
+
+containerManagerAdd(){
+  if [ -d "${containersLair}/${SecondaryParam}" ]; then
+    red
+    echo "${pbadge} Container Exists"
+    exit
+  else
+    yellow
+    echo "${pbadge} 📦 Creating Container"
+    cp -rua "${defaultContainer}" "${containersLair}/${SecondaryParam}"
+    echo "$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 32 | head -n 1)" > ${containersLair}/${SecondaryParam}/containerID
+    green
+    echo "${pbadge} ${SecondaryParam} ✔️ Container done"
+    echo "${SecondaryParam}" >> ${containerFilesList}
+    exit
+  fi
+
+}
+
+containerManagerReset(){
+  if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
+    red
+    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
+    exit
+  else
+    confirmation
+    yellow
+    echo "${pbadge} 📦 Resetting Container"
+    if [ -f "${containersLair}/${SecondaryParam}/origin" ]; then
+      echo "${pbadge} 📦 Resetting Remote Container"
+      originLink="$(cat ${containersLair}/${SecondaryParam}/origin)"
+      cd ${origindir}
+      rm -rf "${containersLair}/${SecondaryParam}"
+      bash ${0} import "${originLink}"
+    else
+      echo "${pbadge} 📦 Resetting Local Container"
+    rm -rf "${containersLair}/${SecondaryParam}"
+    cp -rua "${defaultContainer}" "${containersLair}/${SecondaryParam}"
+  fi
+    green
+    echo "${pbadge} ${SecondaryParam} ✔️ Container done"
+    exit
+  fi
+
+}
+
+
+containerManagerrm(){
+  confirmation
+  if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
+    red
+    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
+    exit
+  else
+    yellow
+    echo "${pbadge} 🗑️ Removing Container ${SecondaryParam}"
+    rm -rf "${containersLair}/${SecondaryParam}"
+    green
+    echo "${pbadge} ✔️ Removing Finished"
+    sed "s/${SecondaryParam}//" ${containerFilesList} > "${containersFilesList}_tmp"
+    rm -rf ${containersFilesList}
+    mv ${containersFilesList}_tmp ${containerFilesList}
+    exit
+  fi
+
+}
+
+editroutinesContainer(){
+if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
+    red
+    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
+    exit
+else
+    nano ${containersLair}/${SecondaryParam}/rootfs/init
+    exit
+fi
+
+
+}
+
+paramintrepreter(){
+case ${PrimaryParam} in
+  launch)
+    launchcontainerSvc ;;
+  import)
+    containerManagerImport ;;
+  exportCont)
+    containerManagerExport ;;
+  exposeStorage)
+    containerManagerExposeStorage ;;
+  deexposeStorage)
+    containerManagerDeExposeStorage ;;
+  reset)
+    containerManagerReset ;;
+  list)
+    containerManagerList ;;
+  stop)
+      launchcontainerKill ;;
+  nuke)
+    nuke ;;
+  shell)
+    launchcontainerSHELL ;;
+  exec)
+    executeContainerCMD ;;
+  add)
+    containerManagerAdd ;;
+  remove)
+    containerManagerrm ;;
+  edit_routines)
+    editroutinesContainer ;;
+  *)
+    help_unifyServer ;;
+esac
+
+}
+
+containerManagerDeExposeStorage(){
+  if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
+    red
+    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
+    exit
+  else
+rm ${containersLair}/${SecondaryParam}/grantStorage
+green
+echo "${pbadge} ✔️ Local Storage Denied "
+exit
+fi
+
+}
+
+containerManagerExposeStorage(){
+  if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
+    red
+    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
+    exit
+  else
+echo a > ${containersLair}/${SecondaryParam}/grantStorage
+green
+echo "${pbadge} ✔️ Local Storage Granted "
+exit
+fi
+
+}
+
+containerManagerList(){
+list=$(cat ${containerFilesList})
+clear
+yellow
+echo "=============[ Containers Status ]=============="
+for a in ${list}; do
+  blue
+echo "================================================"
+green
+echo "----💽 Container: ${a}"
+echo "Container ID : $(cat ${containersLair}/${a}/containerID)"
+if [ -f ${containersLair}/${a}/origin ];then
+echo "🗺️ Origin : $(cat ${containersLair}/${a}/origin)"
+else
+echo "🗺️ Origin : Created Locally"
+fi
+yellow
+echo "----ℹ️ Status:"
+echo "Disk Info: "
+echo $(du -s ${containersLair}/${a}/rootfs)
+echo "Local Data Access Permission :"
+if [ -f ${containersLair}/${a}/grantStorage ]; then
+  green
+echo "✔️ Container have a local storage Access"
+else
+  red
+echo "❌The Container is isolated from the local storage"
+fi
+yellow
+echo "----📜 Container Boot status : "
+if [ -f ${containersLair}/${a}/boot ]; then
+  green
+echo "✔️ Container is booted up"
+echo "✔️ Container init ID : $(cat ${containersLair}/${a}/svcID)"
+else
+  red
+echo "❌Container is Not booted up"
+fi
+blue
+echo "================================================"
+done
+exit
+}
+
+folderInit(){
+export origindir=$(pwd)
+export maindir="${initDir}/containersys"
+export containersLair="${maindir}/containers"
+export defaultContainer="${containersLair}/default"
+export Loader="${maindir}/loader"
+export TMPFolder="${maindir}/tmp"
+export logs="${maindir}/logs"
+export containerExport=${maindir}/containerExport
+export containerFilesList="${maindir}/containers.txt"
+if [ ! -d ${maindir} ]; then
+  mkdir ${maindir}
+fi
+
+if [ ! -d ${containerExport} ]; then
+  mkdir ${containerExport}
+fi
+
+if [ ! -d ${TMPFolder} ]; then
+  mkdir ${TMPFolder}
+fi
+
+if [ ! -d ${logs} ]; then
+  mkdir ${logs}
+fi
+
+if [ ! -d ${containersLair} ]; then
+  mkdir ${containersLair}
+fi
+
+if [ ! -d ${defaultContainer} ]; then
+  mkdir ${defaultContainer}
+  export newInstall=1
+else
+  export newInstall=0
+fi
+
+if [ ! -d ${loader} ]; then
+  mkdir ${loader}
+fi
+
+}
+
+defaultContainerSetup(){
+if [ ${newInstall} == "1" ]; then
+if [ -d ${defaultContainer} ]; then
+cd ${defaultContainer}
+ubuntuSetup
+else
+  red
+echo "${pbadge} FATAL ERROR wowza What happened to the default container folder??"
+exit
+fi
+else
+  red
+echo "${pbadge} default container is installed"
+fi
+}
+
+
+SUrequest(){
+echo Must be root
+if [ $(whoami) != "root" ]; then
+if [ -z $(which sudo) ];then
+echo Restarting...
+export rootRequested=1
+su -c "sh ${0}"
+else
+echo Restarting...
+export rootRequested=1
+sudo env rootRequested=1 sh "${0}"
+fi
+exit
+fi
+}
+
+
+dependencies(){
+if [ ${newInstall} == "1" ]; then
+  if [ ! -z $(which add-apt-repository) ]; then
+  export packmanager=apt-get
+  export installParameter="install -y"
+  echo Apt detected doing some special treatment
+  add-apt-repository universe
+  echo Refreshing Repo
+  apt-get update
+  fi
+
+
+  if [ ! -z $(which pkg) ]; then
+  export packmanager=pkg
+  export installParameter="install -y"
+  echo Termux Detected
+
+  fi
+
+  if [ ! -z $(which yum) ]; then
+  export packmanager=yum
+  export installParameter="install -y"
+  fi
+
+
+  if [ ! -z $(which pacman) ]; then
+  export packmanager=pacman
+  export installParameter="-Sy --noconfirm"
+  echo Redownloading Databases
+  pacman -Syy
+  fi
+
+  if [ ! -z $(which easy_install) ]; then
+  export pyPacman=easy_install
+  export pyInstallParam=""
+  fi
+
+  if [ ! -z $(which pip) ]; then
+  export pyPacman=pip
+  export pyInstallParam="install"
+  fi
+
+  if [ ${packmanager} != "pkg" ] && [ -z ${rootRequested} ]; then
+  SUrequest
+  exit
+  fi
+
+  export distComplete="$(uname -a)"
+
+  requirements="chroot busybox wget git proot"
+
+  for i in ${requirements}; do
+    green
+    echo "${pbadge} Installing 🔧 ${i}"
+    ${packmanager} ${installParameter} ${i}
+  done
+
+#alternative for proot
+  if [ -z $(which proot) ]; then
+    echo "proot not available?"
+    case $(checkArch) in
+		aarch64)
+			archurl="arm64" ;;
+		arm)
+			archurl="arm" ;;
+		amd64)
+			archurl="x86_64" ;;
+		i*86)
+			archurl="x86" ;;
+		x86_64)
+			archurl="x86_64" ;;
+		*)
+			echo "unknown architecture"; exit 1 ;;
+		esac
+  if [ ! -f ${loader}/proot ]; then
+  wget "https://github.com/proot-me/proot-static-build/blob/master/static/proot-${archurl}"
+  chmod +x proot-${archurl}
+  cp proot-${archurl} ${loader}/proot
+  fi
+  export PATH=${PATH}:${loader}
+  fi
+
+else
+echo Does not need dependencies install
+fi
+
+}
+
+checkArch(){
+currarch=$(uname -m)
+echo ${currarch}
+}
+
+
+
+
+
+
+
+
+
+ubuntuSetup(){
+  #!/data/data/com.termux/files/usr/bin/bash
+folder=rootfs
+if [ -d "$folder" ]; then
+	first=1
+  green
+	echo "${pbadge} ⏭️ skipping downloading"
+fi
+tarball="ubuntu.tar.gz"
+if [ "$first" != 1 ];then
+	if [ ! -f $tarball ]; then
+    yellow
+		echo "${pbadge} ⌛ downloading ubuntu-image"
+		#case `dpkg --print-architecture` in
+    case `checkArch` in
+		aarch64)
+			archurl="arm64" ;;
+		arm)
+			archurl="armhf" ;;
+		amd64)
+			archurl="amd64" ;;
+		i*86)
+			archurl="i386" ;;
+		x86_64)
+			archurl="amd64" ;;
+		*)
+			echo "❌ unknown architecture ❌"; exit 1 ;;
+		esac
+    #https://github.com/MFDGaming/ubuntu-in-termux/blob/master/ubuntu.sh
+    export UBUNTU_VERSION=19.10
+    wget "http://cdimage.ubuntu.com/ubuntu-base/releases/${UBUNTU_VERSION}/release/ubuntu-base-${UBUNTU_VERSION}-base-${archurl}.tar.gz" -O ${tarball}
+		#wget "https://partner-images.canonical.com/core/disco/current/ubuntu-disco-core-cloudimg-${archurl}-root.tar.gz" -O $tarball
+	fi
+	cur=`pwd`
+	mkdir -p "$folder"
+	cd "$folder"
+  yellow
+	echo "${pbadge} 🗜️ decompressing ubuntu image"
+	proot --link2symlink tar -xf ${cur}/${tarball} --exclude='dev'||:
+  stubs=()
+  stubs+=('usr/bin/groups')
+  green
+  for f in ${stubs[@]};do
+    printf "⌛ Writing Stubs (MFDGaming Version Fixes) \n"
+    echo -e "#!/bin/sh\nexit" > "$f"
+  done
+  #proot --link2symlink tar -xf ${cur}/${tarball} --exclude='dev'||:
+  yellow
+	echo "${pbadge} 🌐 fixing nameserver, otherwise it can't connect to the internet \n "
+	echo "nameserver 1.1.1.1" > etc/resolv.conf
+  printf "⌛ Creating Mount Points \n"
+  mkdir exposed data
+	cd "$cur"
+fi
+mkdir -p binds
+
+
+
+bin=start-ubuntu.sh
+
+echo "${pbadge} 🚀 writing launch script"
+cat > $bin <<- EOM
+#!/bin/bash
+cd \$(dirname \$0)
+## unset LD_PRELOAD in case termux-exec is installed
+unset LD_PRELOAD
+command="proot"
+command+=" --link2symlink"
+command+=" -0"
+command+=" -r $folder"
+if [ -n "\$(ls -A binds)" ]; then
+    for f in binds/* ;do
+      . \$f
+    done
+fi
+command+=" -b /dev"
+if [ -d /sdcard ] && [ -f grantStorage ]; then
+command+=" -b /sdcard:/exposed"
+fi
+if [ -d /home ] && [ -f grantStorage ]; then
+  command+=" -b /home:/exposed"
+fi
+command+=" -b /proc"
+## uncomment the following line to have access to the home directory of termux
+#command+=" -b /data/data/com.termux/files/home:/root"
+############ uncomment the following line to mount /sdcard directly to /
+#command+=" -b /sdcard"
+command+=" -w /root"
+command+=" /usr/bin/env -i"
+command+=" HOME=/root"
+command+=" PATH=/usr/local/sbin:/usr/local/bin:/bin:/usr/bin:/sbin:/usr/sbin:/usr/games:/usr/local/games"
+command+=" TERM=\$TERM"
+command+=" LANG=C.UTF-8"
+command+=" /bin/bash --login"
+com="\$@"
+
+if [ "\$2" == "/init" ]; then
+echo a > boot
+fi
+
+if [ -z "\$1" ];then
+    exec \$command
+else
+    \$command -c "\$com"
+fi
+if [ "\$2" == "/init" ]; then
+rm boot
+fi
+EOM
+execroutines=${folder}/init
+cat > $execroutines <<- EOM
+## This is a execution Routines that changes how the container behaves
+## you can start a script or anything you want in here
+echo "Hello world"
+uname -a
+EOM
+
+echo "${pbadge} 🧳 Doing some initial Setup"
+bash ${bin} "apt-get update"
+bash ${bin} "apt-get install fish -y"
+echo "fixing shebang of $bin"
+if [ ${packmanager} == "pkg" ]; then
+termux-fix-shebang $bin
+fi
+echo "${pbadge} 🧳 making $bin executable"
+chmod +x $bin
+}
+
+
+
+
+#_________Main_________
+intro
+yellow
+echo "${pbadge} 📁 Checking Container Folder"
+folderInit
+intro
+yellow
+echo "${pbadge} 🚒 Checking dependencies"
+dependencies
+yellow
+echo "${pbadge} 💽 Checking Default Container"
+defaultContainerSetup
+paramCheck
+paramintrepreter
+exit
+#______END______
