@@ -640,60 +640,6 @@ echo ${currarch}
 
 
 
-bootloaderSetup(){
-  bin=start-ubuntu.sh
-  echo "${pbadge} 🚀 writing launch script"
-  cat > $bin <<- EOM
-  #!/bin/bash
-  echo BOOTLOADER revision 011
-  cd \$(dirname \$0)
-  ## unset LD_PRELOAD in case termux-exec is installed
-  unset LD_PRELOAD
-  command="proot"
-  command+=" --link2symlink"
-  command+=" -0"
-  command+=" -r $folder"
-  if [ -n "\$(ls -A binds)" ]; then
-      for f in binds/* ;do
-        . \$f
-      done
-  fi
-  command+=" -b /dev"
-  if [ -d /sdcard ] && [ -f grantStorage ]; then
-  command+=" -b /sdcard:/exposed"
-  fi
-  if [ -d /home ] && [ -f grantStorage ]; then
-    command+=" -b /home:/exposed"
-  fi
-  command+=" -b /proc"
-  ## uncomment the following line to have access to the home directory of termux
-  #command+=" -b /data/data/com.termux/files/home:/root"
-  ############ uncomment the following line to mount /sdcard directly to /
-  #command+=" -b /sdcard"
-  command+=" -w /root"
-  command+=" /usr/bin/env -i"
-  command+=" HOME=/root"
-  command+=" PATH=/usr/local/sbin:/usr/local/bin:/bin:/usr/bin:/sbin:/usr/sbin:/usr/games:/usr/local/games"
-  command+=" TERM=\$TERM"
-  command+=" LANG=C.UTF-8"
-  command+=" /bin/bash --login"
-  com="\$@"
-
-  if [ "\$2" == "/init" ]; then
-  echo a > boot
-  fi
-
-  if [ -z "\$1" ];then
-      exec \$command
-  else
-      \$command -c "\$com"
-  fi
-  if [ "\$2" == "/init" ]; then
-  rm boot
-  fi
-  EOM
-}
-
 
 
 
@@ -753,7 +699,61 @@ if [ "$first" != 1 ];then
 	cd "$cur"
 fi
 mkdir -p binds
-bootloaderSetup
+bin=start-ubuntu.sh
+echo "${pbadge} 🚀 writing launch script"
+cat > $bin <<- EOM
+#!/bin/bash
+echo BOOTLOADER revision 011
+cd \$(dirname \$0)
+## unset LD_PRELOAD in case termux-exec is installed
+unset LD_PRELOAD
+command="proot"
+command+=" --link2symlink"
+command+=" -0"
+command+=" -r $folder"
+if [ -n "\$(ls -A binds)" ]; then
+    for f in binds/* ;do
+      . \$f
+    done
+fi
+command+=" -b /dev"
+if [ -d /sdcard ] && [ -f grantStorage ]; then
+command+=" -b /sdcard:/exposed"
+fi
+if [ -d /home ] && [ -f grantStorage ]; then
+  command+=" -b /home:/exposed"
+fi
+command+=" -b /proc"
+## uncomment the following line to have access to the home directory of termux
+#command+=" -b /data/data/com.termux/files/home:/root"
+############ uncomment the following line to mount /sdcard directly to /
+#command+=" -b /sdcard"
+command+=" -w /root"
+command+=" /usr/bin/env -i"
+command+=" HOME=/root"
+command+=" PATH=/usr/local/sbin:/usr/local/bin:/bin:/usr/bin:/sbin:/usr/sbin:/usr/games:/usr/local/games"
+command+=" TERM=\$TERM"
+command+=" LANG=C.UTF-8"
+command+=" /bin/bash --login"
+com="\$@"
+
+if [ "\$2" == "/init" ]; then
+echo a > boot
+fi
+
+if [ -z "\$1" ];then
+    exec \$command
+else
+    \$command -c "\$com"
+fi
+if [ "\$2" == "/init" ]; then
+rm boot
+fi
+EOM
+echo "${pbadge} Writing done"
+
+
+
 execroutines=${folder}/init
 
 ##### INITIAL INIT EXEC ROUTINES ####
@@ -767,10 +767,11 @@ EOM
 echo "${pbadge} 🧳 Doing some initial Setup"
 bash ${bin} "apt-get update"
 bash ${bin} "apt-get install dialog busybox screenfetch perl fish -y"
-#ash ${bin} "busybox install /usr/bin"
-#echo "${pbadge} 🧳 Fixing Perl"
-#bash ${bin} 'rm -f /usr/bin/perl ; cp /usr/bin/perl5f* /usr/bin/perl' #replacing symlinks perl into real perl
-#echo "fixing shebang of $bin"
+ash ${bin} "busybox install /usr/bin"
+echo "${pbadge} 🧳 Fixing Perl"
+bash ${bin} 'rm -f /usr/bin/perl ; cp /usr/bin/perl5f* /usr/bin/perl'
+#replacing symlinks perl into real perl
+echo "fixing shebang of $bin"
 if [ ${packmanager} == "pkg" ]; then
 termux-fix-shebang $bin
 fi
