@@ -199,7 +199,7 @@ launchcontainerSHELL(){
   green
   echo "${pbadge} 🌟 Have fun 🌟"
   bash start-ubuntu.sh screenfetch
-  bash start-ubuntu.sh "tmux fish --login"
+  bash start-ubuntu.sh "fish --login"
   exit
 }
 
@@ -232,7 +232,7 @@ setuproutines=$(cat ${importedcontainer}/setup)
 cd ${origindir}
 bash ${0} add ${name}
 echo "${packages}" > ${containersLair}/${name}/rootfs/packages
-bash ${0} exec ${name} "apt install < /packages"
+bash ${0} exec ${name} "apt install -y < /packages"
 echo "${SecondaryParam}" > ${containersLair}/${name}/origin
 echo "${init}" > ${containersLair}/${name}/rootfs/init
 echo "${setuproutines}" > ${containersLair}/${name}/rootfs/setup
@@ -779,7 +779,7 @@ EOM
 
 echo "${pbadge} 🧳 Doing some initial Setup"
 bash ${bin} "apt-get update"
-bash ${bin} "apt-get install screenfetch tmux fish -y"
+bash ${bin} "apt-get install screenfetch fish -y"
 echo "fixing shebang of $bin"
 if [ ${packmanager} == "pkg" ]; then
 termux-fix-shebang $bin
