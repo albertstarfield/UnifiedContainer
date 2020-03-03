@@ -698,7 +698,7 @@ bootloaderSetup(){
 
 
 ubuntuSetup(){
-  #!/data/data/com.termux/files/usr/bin/bash
+#!/data/data/com.termux/files/usr/bin/bash
 folder=rootfs
 if [ -d "$folder" ]; then
 	first=1
@@ -783,6 +783,12 @@ chmod +x $bin
 }
 
 
+
+ubuntuSetup(){
+
+  echo Stub
+  exit
+}
 
 
 defaultContainerSetup(){
