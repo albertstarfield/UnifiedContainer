@@ -42,14 +42,14 @@ intro(){
 if [ ${newInstall} == '1' ]; then
   clear
 blue
-echo "==================================================================="
+printf "==================================================================="
 green
-echo "😊 Warm welcome from questandachievement7Developer 😊"
-echo "🎆✨ Welcome to unifiedContainer Project✨🎆"
-echo "👉 Heavily Inspired by docker, multipass, termuxarch sdrausty, and neoOli Ubuntu 👍"
-echo "👉 Code sourced from MFDGaming NeoOli and Stackoverflow 👍"
+printf "😊 Warm welcome from questandachievement7Developer 😊"
+printf "🎆✨ Welcome to unifiedContainer Project✨🎆"
+printf "👉 Heavily Inspired by docker, multipass, termuxarch sdrausty, and neoOli Ubuntu 👍"
+printf "👉 Code sourced from MFDGaming NeoOli and Stackoverflow 👍"
 blue
-echo "==================================================================="
+printf "==================================================================="
 
 sleep 4
 fi
@@ -59,14 +59,14 @@ paramCheck(){
 #echo DEBUG PARAM CHECK ${PrimaryParam} ${SecondaryParam}
 if [ -z ${PrimaryParam} ]; then
   red
-  echo "${pbadge} 🤔 Invalid Sub command please refer help for manual 🤷"
+  printf "${pbadge} 🤔 Invalid Sub command please refer help for manual 🤷"
   help_unifyServer
   exit
 fi
 
 if [ -z ${SecondaryParam} ]; then
   red
-  echo "${pbadge} 🤔 no parameter detected please refer help for manual 🤷"
+  printf "${pbadge} 🤔 no parameter detected please refer help for manual 🤷"
   help_unifyServer
   exit
 fi
@@ -74,7 +74,7 @@ fi
 if [ ${SecondaryParam} == "default" ]; then
   clear
   red
-  echo "${pbadge} Welco.. wait thats illegal! "
+  printf "${pbadge} Welco.. wait thats illegal! "
   exit
 fi
 
@@ -83,46 +83,46 @@ fi
 
 help_unifyServer(){
 yellow
-echo "${pbadge} Here are the commands"
-echo "To launch container"
-echo "${0} launch <containerName>"
+printf "${pbadge} Here are the commands"
+printf "To launch container"
+printf "${0} launch <containerName>"
 echo .
-echo "To Stop container"
-echo "${0} stop <containerName>"
+printf "To Stop container"
+printf "${0} stop <containerName>"
 echo .
-echo "To Grant local storage for the container"
-echo "${0} exposeStorage <containerName>"
+printf "To Grant local storage for the container"
+printf "${0} exposeStorage <containerName>"
 echo .
-echo "To isolate local storage from the container"
-echo "${0} deexposeStorage <containerName>"
+printf "To isolate local storage from the container"
+printf "${0} deexposeStorage <containerName>"
 echo .
-echo "Export Container Configuration "
-echo "${0} exportCont <containerName>"
+printf "Export Container Configuration "
+printf "${0} exportCont <containerName>"
 echo .
-echo "reset container to default configuration"
-echo "${0} reset <containerName>"
+printf "reset container to default configuration"
+printf "${0} reset <containerName>"
 echo .
-echo "List all the container and its status"
-echo "${0} list All"
+printf "List all the container and its status"
+printf "${0} list All"
 echo .
-echo "reset Everything"
-echo "DO THIS ONLY WHEN YOU HAVE A PROBLEM LIKE CORRUPTED INSTALLATION"
-echo "${0} nuke yes"
+printf "reset Everything"
+printf "DO THIS ONLY WHEN YOU HAVE A PROBLEM LIKE CORRUPTED INSTALLATION"
+printf "${0} nuke yes"
 echo .
-echo "to enter the container Shell"
-echo "${0} shell <containerName>"
+printf "to enter the container Shell"
+printf "${0} shell <containerName>"
 echo .
-echo "To execute a command on a container"
-echo "${0} exec <containerName> <command>"
+printf "To execute a command on a container"
+printf "${0} exec <containerName> <command>"
 echo .
-echo "To add container"
-echo "${0} add <containerName>"
+printf "To add container"
+printf "${0} add <containerName>"
 echo .
-echo "To remove Container"
-echo "${0} remove <containerName>"
+printf "To remove Container"
+printf "${0} remove <containerName>"
 echo .
-echo "To edit exec Routines container"
-echo "${0} edit_routines <containerName>"
+printf "To edit exec Routines container"
+printf "${0} edit_routines <containerName>"
 exit
 }
 
@@ -130,18 +130,18 @@ confirmation(){
   randcode=$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 32 | head -n 1)
   randcode="iwilltaketheresponsibilityofmyaction"
   yellow
-  echo "${pbadge} ⚠️ Are you sure that you want to do this ?⚠️"
-  echo "${pbadge} if you do please type this token"
-  echo "${randcode}"
-  echo "Your input: "
+  printf "${pbadge} ⚠️ Are you sure that you want to do this ?⚠️"
+  printf "${pbadge} if you do please type this token"
+  printf "${randcode}"
+  printf "Your input: "
   read input
-  echo "debug ${input}"
+  printf "debug ${input}"
   if [ $input == $randcode ] ; then
     yellow
-    echo "${pbadge} 🚀 Initiating dangerous code"
+    printf "${pbadge} 🚀 Initiating dangerous code"
   else
     red
-    echo "${pbadge} ❌ WRONG CODE CANCELLING ❌"
+    printf "${pbadge} ❌ WRONG CODE CANCELLING ❌"
   exit
 fi
 }
@@ -149,22 +149,22 @@ fi
 nuke(){
 confirmation
 red
-echo "${pbadge} 💣 Nuking the installation 💣"
+printf "${pbadge} 💣 Nuking the installation 💣"
 rm -rf ${maindir}
 green
-echo "${pbadge} ✔️  Nuking complete ✔️ "
+printf "${pbadge} ✔️  Nuking complete ✔️ "
 exit
 }
 
 launchcontainerSvc(){
   if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
     red
-    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
+    printf "${pbadge} ❌ Container does not exists please create the container first ❌"
     exit
   fi
   cd "${containersLair}/${SecondaryParam}"
   green
-  echo "⏳ Launching container ${SecondaryParam}"
+  printf "⏳ Launching container ${SecondaryParam}"
   bash start-ubuntu.sh bash /init > "${logs}/containers_${SecondaryParam}.log" 2>&1 &
   echo $! > svcID
   cat "${logs}/containers_${SecondaryParam}.log"
@@ -174,27 +174,27 @@ launchcontainerSvc(){
 launchcontainerKill(){
   if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
     red
-    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
+    printf "${pbadge} ❌ Container does not exists please create the container first ❌"
     exit
   fi
   yellow
-  echo "${pbadge} 🛑 Stopping Container"
+  printf "${pbadge} 🛑 Stopping Container"
   kill -9 $(cat ${containersLair}/${SecondaryParam}/svcID)
   green
-  echo "${pbadge} ✔️ Container Stopped"
+  printf "${pbadge} ✔️ Container Stopped"
   exit
 }
 
 launchcontainerSHELL(){
   if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
     red
-    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
+    printf "${pbadge} ❌ Container does not exists please create the container first ❌"
     exit
   fi
   cd "${containersLair}/${SecondaryParam}"
   echo Launching container ${SecondaryParam}
   green
-  echo "${pbadge} 🌟 Have fun 🌟"
+  printf "${pbadge} 🌟 Have fun 🌟"
   bash start-ubuntu.sh screenfetch
   bash start-ubuntu.sh "fish --login"
   exit
@@ -203,12 +203,12 @@ launchcontainerSHELL(){
 executeContainerCMD(){
   if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
     red
-    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
+    printf "${pbadge} ❌ Container does not exists please create the container first ❌"
     exit
   fi
   cd "${containersLair}/${SecondaryParam}"
   yellow
-  echo "${pbadge} 🏃‍ Executing ${TertiaryParam} on ${SecondaryParam}"
+  printf "${pbadge} 🏃‍ Executing ${TertiaryParam} on ${SecondaryParam}"
   bash start-ubuntu.sh "${TertiaryParam}"
   exit
 }
@@ -219,7 +219,7 @@ export importedcontainer="${TMPFolder}/${containerID}"
 git clone ${SecondaryParam} ${TMPFolder}/${containerID}
 if [ ! -d "${TMPFolder}/${containerID}" ]; then
   red
-  echo "${pbadge} ❌ Imported Container does not exists ❌"
+  printf "${pbadge} ❌ Imported Container does not exists ❌"
   exit
 fi
 name=$(cat ${importedcontainer}/name)
@@ -228,22 +228,22 @@ init=$(cat ${importedcontainer}/init)
 setuproutines=$(cat ${importedcontainer}/setup)
 cd ${origindir}
 bash ${0} add ${name}
-echo "${packages}" > ${containersLair}/${name}/rootfs/packages
+printf "${packages}" > ${containersLair}/${name}/rootfs/packages
 bash ${0} exec ${name} "apt install < /packages"
-echo "${SecondaryParam}" > ${containersLair}/${name}/origin
-echo "${init}" > ${containersLair}/${name}/rootfs/init
-echo "${setuproutines}" > ${containersLair}/${name}/rootfs/setup
-echo "${pbadge} ✨Container Finishing touch✨"
+printf "${SecondaryParam}" > ${containersLair}/${name}/origin
+printf "${init}" > ${containersLair}/${name}/rootfs/init
+printf "${setuproutines}" > ${containersLair}/${name}/rootfs/setup
+printf "${pbadge} ✨Container Finishing touch✨"
 bash ${0} exec ${name} "bash /setup"
 green
-echo "${pbadge} ✨import done✨"
+printf "${pbadge} ✨import done✨"
 exit
 }
 
 containerManagerExport(){
   if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
     red
-    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
+    printf "${pbadge} ❌ Container does not exists please create the container first ❌"
     exit
   fi
 name=${SecondaryParam}
@@ -252,12 +252,12 @@ packages=$(cat ${containersLair}/${SecondaryParam}/rootfs/packages)
 init=$(cat ${containersLair}/${SecondaryParam}/rootfs/init)
 
 mkdir ${containerExport}/${name}
-echo "${name}" > ${containerExport}/${name}/name
-echo "${packages}" > ${containerExport}/${name}/packages
-echo "${init}" > ${containerExport}/${name}/init
-echo "apt-get update; apt-get upgrade; echo Default setup done" > ${containerExport}/${name}/setup
+printf "${name}" > ${containerExport}/${name}/name
+printf "${packages}" > ${containerExport}/${name}/packages
+printf "${init}" > ${containerExport}/${name}/init
+printf "apt-get update; apt-get upgrade; echo Default setup done" > ${containerExport}/${name}/setup
 green
-echo "${pbadge} ✨export done✨"
+printf "${pbadge} ✨export done✨"
 exit
 }
 
@@ -265,16 +265,16 @@ exit
 containerManagerAdd(){
   if [ -d "${containersLair}/${SecondaryParam}" ]; then
     red
-    echo "${pbadge} Container Exists"
+    printf "${pbadge} Container Exists"
     exit
   else
     yellow
-    echo "${pbadge} 📦 Creating Container"
+    printf "${pbadge} 📦 Creating Container"
     proot --link2symlink -0 cp -ruaH "${defaultContainer}" "${containersLair}/${SecondaryParam}" >> ${logs}/rootfsCopyOperation.log 2>&1
-    echo "$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 32 | head -n 1)" > ${containersLair}/${SecondaryParam}/containerID
+    printf "$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 32 | head -n 1)" > ${containersLair}/${SecondaryParam}/containerID
     green
-    echo "${pbadge} ${SecondaryParam} ✔️ Container done"
-    echo "${SecondaryParam}" >> ${containerFilesList}
+    printf "${pbadge} ${SecondaryParam} ✔️ Container done"
+    printf "${SecondaryParam}" >> ${containerFilesList}
     exit
   fi
 
@@ -283,25 +283,25 @@ containerManagerAdd(){
 containerManagerReset(){
   if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
     red
-    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
+    printf "${pbadge} ❌ Container does not exists please create the container first ❌"
     exit
   else
     confirmation
     yellow
-    echo "${pbadge} 📦 Resetting Container"
+    printf "${pbadge} 📦 Resetting Container"
     if [ -f "${containersLair}/${SecondaryParam}/origin" ]; then
-      echo "${pbadge} 📦 Resetting Remote Container"
+      printf "${pbadge} 📦 Resetting Remote Container"
       originLink="$(cat ${containersLair}/${SecondaryParam}/origin)"
       cd ${origindir}
       rm -rf "${containersLair}/${SecondaryParam}"
       bash ${0} import "${originLink}"
     else
-      echo "${pbadge} 📦 Resetting Local Container"
+      printf "${pbadge} 📦 Resetting Local Container"
     rm -rf "${containersLair}/${SecondaryParam}"
     proot --link2symlink -0 cp -ruaH "${defaultContainer}" "${containersLair}/${SecondaryParam}" >> ${logs}/rootfsCopyOperation.log  2>&1
   fi
     green
-    echo "${pbadge} ${SecondaryParam} ✔️ Container done"
+    printf "${pbadge} ${SecondaryParam} ✔️ Container done"
     exit
   fi
 
@@ -312,14 +312,14 @@ containerManagerrm(){
   confirmation
   if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
     red
-    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
+    printf "${pbadge} ❌ Container does not exists please create the container first ❌"
     exit
   else
     yellow
-    echo "${pbadge} 🗑️ Removing Container ${SecondaryParam}"
+    printf "${pbadge} 🗑️ Removing Container ${SecondaryParam}"
     rm -rf "${containersLair}/${SecondaryParam}"
     green
-    echo "${pbadge} ✔️ Removing Finished"
+    printf "${pbadge} ✔️ Removing Finished"
     sed "s/${SecondaryParam}//" ${containerFilesList} > "${containersFilesList}_tmp"
     rm -rf ${containersFilesList}
     mv ${containersFilesList}_tmp ${containerFilesList}
@@ -331,7 +331,7 @@ containerManagerrm(){
 editroutinesContainer(){
 if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
     red
-    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
+    printf "${pbadge} ❌ Container does not exists please create the container first ❌"
     exit
 else
     nano ${containersLair}/${SecondaryParam}/rootfs/init
@@ -380,12 +380,12 @@ esac
 containerManagerDeExposeStorage(){
   if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
     red
-    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
+    printf "${pbadge} ❌ Container does not exists please create the container first ❌"
     exit
   else
 rm ${containersLair}/${SecondaryParam}/grantStorage
 green
-echo "${pbadge} ✔️ Local Storage Denied "
+printf "${pbadge} ✔️ Local Storage Denied "
 exit
 fi
 
@@ -394,12 +394,12 @@ fi
 containerManagerExposeStorage(){
   if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
     red
-    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
+    printf "${pbadge} ❌ Container does not exists please create the container first ❌"
     exit
   else
 echo a > ${containersLair}/${SecondaryParam}/grantStorage
 green
-echo "${pbadge} ✔️ Local Storage Granted "
+printf "${pbadge} ✔️ Local Storage Granted "
 exit
 fi
 
@@ -409,42 +409,42 @@ containerManagerList(){
 list=$(cat ${containerFilesList})
 clear
 yellow
-echo "=============[ Containers Status ]=============="
+printf "=============[ Containers Status ]=============="
 for a in ${list}; do
   blue
-echo "================================================"
+printf "================================================"
 green
-echo "----💽 Container: ${a}"
-echo "Container ID : $(cat ${containersLair}/${a}/containerID)"
+printf "----💽 Container: ${a}"
+printf "Container ID : $(cat ${containersLair}/${a}/containerID)"
 if [ -f ${containersLair}/${a}/origin ];then
-echo "🗺️ Origin : $(cat ${containersLair}/${a}/origin)"
+printf "🗺️ Origin : $(cat ${containersLair}/${a}/origin)"
 else
-echo "🗺️ Origin : Created Locally"
+printf "🗺️ Origin : Created Locally"
 fi
 yellow
-echo "----ℹ️ Status:"
-echo "Disk Info: "
+printf "----ℹ️ Status:"
+printf "Disk Info: "
 echo $(du -s ${containersLair}/${a}/rootfs)
-echo "Local Data Access Permission :"
+printf "Local Data Access Permission :"
 if [ -f ${containersLair}/${a}/grantStorage ]; then
   green
-echo "✔️ Container have a local storage Access"
+printf "✔️ Container have a local storage Access"
 else
   red
-echo "❌The Container is isolated from the local storage"
+printf "❌The Container is isolated from the local storage"
 fi
 yellow
-echo "----📜 Container Boot status : "
+printf "----📜 Container Boot status : "
 if [ -f ${containersLair}/${a}/boot ]; then
   green
-echo "✔️ Container is booted up"
-echo "✔️ Container init ID : $(cat ${containersLair}/${a}/svcID)"
+printf "✔️ Container is booted up"
+printf "✔️ Container init ID : $(cat ${containersLair}/${a}/svcID)"
 else
   red
-echo "❌Container is Not booted up"
+printf "❌Container is Not booted up"
 fi
 blue
-echo "================================================"
+printf "================================================"
 done
 exit
 }
@@ -499,12 +499,12 @@ cd ${defaultContainer}
 ubuntuSetup
 else
   red
-echo "${pbadge} FATAL ERROR wowza What happened to the default container folder??"
+printf "${pbadge} FATAL ERROR wowza What happened to the default container folder??"
 exit
 fi
 else
   red
-echo "${pbadge} default container is installed"
+printf "${pbadge} default container is installed"
 fi
 }
 
@@ -579,13 +579,13 @@ if [ ${newInstall} == "1" ]; then
 
   for i in ${requirements}; do
     green
-    echo "${pbadge} Installing 🔧 ${i}"
+    printf "${pbadge} Installing 🔧 ${i}"
     ${packmanager} ${installParameter} ${i}
   done
 
 #alternative for proot
   if [ -z $(which proot) ]; then
-    echo "proot not available?"
+    printf "proot not available?"
     case $(checkArch) in
 		aarch64)
 			archurl="arm64" ;;
@@ -598,7 +598,7 @@ if [ ${newInstall} == "1" ]; then
 		x86_64)
 			archurl="x86_64" ;;
 		*)
-			echo "unknown architecture"; exit 1 ;;
+			printf "unknown architecture"; exit 1 ;;
 		esac
   if [ ! -f ${loader}/proot ]; then
   wget "https://github.com/proot-me/proot-static-build/blob/master/static/proot-${archurl}"
@@ -633,13 +633,13 @@ folder=rootfs
 if [ -d "$folder" ]; then
 	first=1
   green
-	echo "${pbadge} ⏭️ skipping downloading"
+	printf "${pbadge} ⏭️ skipping downloading"
 fi
 tarball="ubuntu.tar.gz"
 if [ "$first" != 1 ];then
 	if [ ! -f $tarball ]; then
     yellow
-		echo "${pbadge} ⌛ downloading ubuntu-image"
+		printf "${pbadge} ⌛ downloading ubuntu-image"
 		#case `dpkg --print-architecture` in
     case `checkArch` in
 		aarch64)
@@ -655,7 +655,7 @@ if [ "$first" != 1 ];then
 		x86_64)
 			archurl="amd64" ;;
 		*)
-			echo "❌ unknown architecture ❌"; exit 1 ;;
+			printf "❌ unknown architecture ❌"; exit 1 ;;
 		esac
     #https://github.com/MFDGaming/ubuntu-in-termux/blob/master/ubuntu.sh
     export UBUNTU_VERSION=19.10
@@ -666,7 +666,7 @@ if [ "$first" != 1 ];then
 	mkdir -p "$folder"
 	cd "$folder"
   yellow
-	echo "${pbadge} 🗜️ decompressing ubuntu image"
+	printf "${pbadge} 🗜️ decompressing ubuntu image"
 	proot --link2symlink tar -xf ${cur}/${tarball} --exclude='dev'||:
   stubs=()
   stubs+=('usr/bin/groups')
@@ -677,8 +677,8 @@ if [ "$first" != 1 ];then
   done
   #proot --link2symlink tar -xf ${cur}/${tarball} --exclude='dev'||:
   yellow
-	echo "${pbadge} 🌐 fixing nameserver, otherwise it can't connect to the internet \n "
-	echo "nameserver 1.1.1.1" > etc/resolv.conf
+	printf "${pbadge} 🌐 fixing nameserver, otherwise it can't connect to the internet \n "
+	printf "nameserver 1.1.1.1" > etc/resolv.conf
   printf "⌛ Creating Mount Points \n"
   mkdir exposed data
 	cd "$cur"
@@ -689,7 +689,7 @@ mkdir -p binds
 
 bin=start-ubuntu.sh
 
-echo "${pbadge} 🚀 writing launch script"
+printf "${pbadge} 🚀 writing launch script"
 cat > $bin <<- EOM
 #!/bin/bash
 cd \$(dirname \$0)
@@ -742,18 +742,18 @@ execroutines=${folder}/init
 cat > $execroutines <<- EOM
 ## This is a execution Routines that changes how the container behaves
 ## you can start a script or anything you want in here
-echo "Hello world"
+printf "Hello world"
 uname -a
 EOM
 
-echo "${pbadge} 🧳 Doing some initial Setup"
+printf "${pbadge} 🧳 Doing some initial Setup"
 bash ${bin} "apt-get update"
 bash ${bin} "apt-get install screenfetch fish -y"
-echo "fixing shebang of $bin"
+printf "fixing shebang of $bin"
 if [ ${packmanager} == "pkg" ]; then
 termux-fix-shebang $bin
 fi
-echo "${pbadge} 🧳 making $bin executable"
+printf "${pbadge} 🧳 making $bin executable"
 chmod +x $bin
 }
 
@@ -771,17 +771,17 @@ chmod +x ${0}
 #_________Main_________
 intro
 yellow
-echo "${pbadge} 📁 Checking Folders"
+printf "${pbadge} 📁 Checking Folders"
 folderInit
 intro
 yellow
-echo "${pbadge} 🚒 Checking dependencies"
+printf "${pbadge} 🚒 Checking dependencies"
 dependencies
 yellow
-echo "${pbadge} 💽 Updating Manager"
+printf "${pbadge} 💽 Updating Manager"
 fetchUpdateManager
 yellow
-echo "${pbadge} 💽 Checking Default Container"
+printf "${pbadge} 💽 Checking Default Container"
 defaultContainerSetup
 paramCheck
 paramintrepreter
