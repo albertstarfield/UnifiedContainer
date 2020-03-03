@@ -75,6 +75,7 @@ fi
 
 
 help_unifyServer(){
+yellow
 echo "${pbadge} Here are the commands"
 echo "To launch container"
 echo "${0} launch <containerName>"
@@ -88,11 +89,8 @@ echo .
 echo "To isolate local storage from the container"
 echo "${0} deexposeStorage <containerName>"
 echo .
-echo "Export Container Configuration"
+echo "Export Container Configuration "
 echo "${0} exportCont <containerName>"
-echo .
-echo "Import Container Configuration from github"
-echo "${0} import <containerName>"
 echo .
 echo "reset container to default configuration"
 echo "${0} reset <containerName>"
@@ -101,6 +99,7 @@ echo "List all the container and its status"
 echo "${0} list All"
 echo .
 echo "reset Everything"
+echo "DO THIS ONLY WHEN YOU HAVE A PROBLEM LIKE CORRUPTED INSTALLATION"
 echo "${0} nuke yes"
 echo .
 echo "to enter the container Shell"
