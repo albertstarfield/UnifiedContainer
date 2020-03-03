@@ -196,7 +196,7 @@ launchcontainerSHELL(){
   green
   echo "${pbadge} 🌟 Have fun 🌟"
   bash start-ubuntu.sh screenfetch
-  bash start-ubuntu.sh "fish --login"
+  bash start-ubuntu.sh "tmux fish --login"
   exit
 }
 
@@ -748,7 +748,7 @@ EOM
 
 echo "${pbadge} 🧳 Doing some initial Setup"
 bash ${bin} "apt-get update"
-bash ${bin} "apt-get install screenfetch fish -y"
+bash ${bin} "apt-get install screenfetch tmux fish -y"
 echo "fixing shebang of $bin"
 if [ ${packmanager} == "pkg" ]; then
 termux-fix-shebang $bin
