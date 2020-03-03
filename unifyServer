@@ -5,23 +5,30 @@ export SecondaryParam=${2}
 export TertiaryParam=${3}
 set +xe
 #echo DEBUG PARAM CHECK ${PrimaryParam} ${SecondaryParam}
-export pbadge="[unifiedContainer]"
+
 export initDir="$(pwd)"
 
 
 red(){
-printf '\e[38;5;210m ' > /dev/tty
+printf '\e[38;5;210m' > /dev/tty
 }
 
 yellow(){
-printf '\e[38;5;221m ' > /dev/tty
+printf '\e[38;5;221m' > /dev/tty
 }
 green(){
-printf '\e[38;5;042m ' > /dev/tty
+printf '\e[38;5;042m' > /dev/tty
 }
 blue(){
-printf '\e[38;5;039m ' > /dev/tty
+printf '\e[38;5;039m' > /dev/tty
 }
+
+gray(){
+printf '\e[38;5;037m' > /dev/tty
+}
+
+export pbadge="$(blue)[$(yellow)unifiedContainer $(blue)]: $(gray)"
+
 
 intro(){
 
