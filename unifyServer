@@ -86,9 +86,14 @@ yellow
 echo "${pbadge} Here are the commands"
 echo "To launch container"
 echo "${0} launch <containerName>"
+echo "To Launch container in foreground"
+echo "${0} launchfg <containerName>"
 echo .
 echo "To Stop container"
 echo "${0} stop <containerName>"
+echo .
+echo "To Read Container Log"
+echo "${0} logs <containerName>"
 echo .
 echo "To Grant local storage for the container"
 echo "${0} exposeStorage <containerName>"
@@ -157,6 +162,21 @@ rm -rf ${maindir}
 green
 echo "${pbadge} ✔️  Nuking complete ✔️ "
 exit
+}
+
+launchcontainerSvcFG(){
+  if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
+    red
+    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
+    exit
+  fi
+  cd "${containersLair}/${SecondaryParam}"
+  green
+  echo "⏳ Launching container ${SecondaryParam}"
+  bash start-ubuntu.sh bash /init
+  echo $! > svcID
+  cat "${logs}/containers_${SecondaryParam}.log"
+  exit
 }
 
 launchcontainerSvc(){
@@ -347,14 +367,26 @@ else
     nano ${containersLair}/${SecondaryParam}/rootfs/init
     exit
 fi
+}
 
-
+containerManagerLogs(){
+if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
+    red
+    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
+    exit
+else
+    less "${logs}/containers_${SecondaryParam}.log"
+fi
 }
 
 paramintrepreter(){
 case ${PrimaryParam} in
   launch)
     launchcontainerSvc ;;
+  launch)
+    containerManagerLogs ;;
+  launchfg)
+    launchcontainerSvcFG ;;
   import)
     containerManagerImport ;;
   exportCont)
