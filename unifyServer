@@ -699,7 +699,7 @@ if [ "$first" != 1 ];then
 			archurl="amd64" ;;
 		i*86)
 			archurl="i386" ;;
-		x86_64)
+		*86_64)
 			archurl="amd64" ;;
 		*)
 			echo "❌ unknown architecture ❌"; exit 1 ;;
@@ -801,7 +801,7 @@ bash ${bin} "apt-get update"
 bash ${bin} "apt-get install dialog busybox screenfetch perl fish -y"
 ash ${bin} "busybox install /usr/bin"
 echo "${pbadge} 🧳 Fixing Perl"
-bash ${bin} 'rm -f /usr/bin/perl ; cp /usr/bin/perl5f* /usr/bin/perl'
+bash ${bin} 'rm -f /usr/bin/perl ; cp /usr/bin/perl5* /usr/bin/perl'
 #replacing symlinks perl into real perl
 echo "fixing shebang of $bin"
 if [ ${packmanager} == "pkg" ]; then
