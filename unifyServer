@@ -232,7 +232,10 @@ setuproutines=$(cat ${importedcontainer}/setup)
 cd ${origindir}
 bash ${0} add ${name}
 echo "${packages}" > ${containersLair}/${name}/rootfs/packages
-bash ${0} exec ${name} "apt install -y < /packages"
+for a in ${packages}; do
+#bash ${0} exec ${name} "apt install -y < /packages"
+bash ${0} exec ${name} "apt install -y ${a}"
+done
 echo "${SecondaryParam}" > ${containersLair}/${name}/origin
 echo "${init}" > ${containersLair}/${name}/rootfs/init
 echo "${setuproutines}" > ${containersLair}/${name}/rootfs/setup
