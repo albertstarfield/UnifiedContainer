@@ -767,10 +767,10 @@ EOM
 echo "${pbadge} 🧳 Doing some initial Setup"
 bash ${bin} "apt-get update"
 bash ${bin} "apt-get install dialog busybox screenfetch perl fish -y"
-bash ${bin} "busybox install /usr/bin"
-echo "${pbadge} 🧳 Fixing Perl"
-bash ${bin} 'rm -f /usr/bin/perl ; cp /usr/bin/perl5f* /usr/bin/perl' #replacing symlinks perl into real perl
-echo "fixing shebang of $bin"
+#ash ${bin} "busybox install /usr/bin"
+#echo "${pbadge} 🧳 Fixing Perl"
+#bash ${bin} 'rm -f /usr/bin/perl ; cp /usr/bin/perl5f* /usr/bin/perl' #replacing symlinks perl into real perl
+#echo "fixing shebang of $bin"
 if [ ${packmanager} == "pkg" ]; then
 termux-fix-shebang $bin
 fi
