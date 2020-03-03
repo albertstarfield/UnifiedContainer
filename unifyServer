@@ -234,7 +234,11 @@ bash ${0} add ${name}
 echo "${packages}" > ${containersLair}/${name}/rootfs/packages
 for a in ${packages}; do
 #bash ${0} exec ${name} "apt install -y < /packages"
-bash ${0} exec ${name} "apt install -y ${a}"
+yellow
+echo "${pbadge} ⌛ Installing ${a} "
+bash ${0} exec ${name} "apt install -y ${a}" >> ${logs}/unifyServerPackageInstaller.log 2>&1
+green
+echo "${pbadge} ✔️ Done Installing ${a} "
 done
 echo "${SecondaryParam}" > ${containersLair}/${name}/origin
 echo "${init}" > ${containersLair}/${name}/rootfs/init
@@ -782,7 +786,10 @@ EOM
 
 echo "${pbadge} 🧳 Doing some initial Setup"
 bash ${bin} "apt-get update"
-bash ${bin} "apt-get install screenfetch fish -y"
+bash ${bin} "apt-get install dialog busybox screenfetch perl fish -y"
+bash ${bin} "busybox install /usr/bin"
+echo "${pbadge} 🧳 Fixing Perl"
+bash ${bin} "rm -f /usr/bin/perl ; cp /usr/bin/perl* /usr/bin/perl" #replacing symlinks perl into real perl
 echo "fixing shebang of $bin"
 if [ ${packmanager} == "pkg" ]; then
 termux-fix-shebang $bin
