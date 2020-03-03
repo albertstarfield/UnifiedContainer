@@ -27,7 +27,14 @@ gray(){
 printf '\e[38;5;037m' > /dev/tty
 }
 
-export pbadge="$(blue)[$(yellow)unifiedContainer $(blue)]: $(gray)"
+export red='\e[38;5;210m'
+export yellow='\e[38;5;221m'
+export green='\e[38;5;042m'
+export blue='\e[38;5;039m'
+export gray='\e[38;5;037m'
+
+
+export pbadge="${blue}[${yellow}unifiedContainer${blue}]:${gray}"
 
 
 intro(){
