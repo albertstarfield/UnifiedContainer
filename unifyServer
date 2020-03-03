@@ -698,7 +698,6 @@ bootloaderSetup(){
 
 
 ubuntuSetup(){
-#!/data/data/com.termux/files/usr/bin/bash
 folder=rootfs
 if [ -d "$folder" ]; then
 	first=1
@@ -754,9 +753,6 @@ if [ "$first" != 1 ];then
 	cd "$cur"
 fi
 mkdir -p binds
-
-
-
 bootloaderSetup
 execroutines=${folder}/init
 
@@ -783,12 +779,6 @@ chmod +x $bin
 }
 
 
-
-ubuntuSetup(){
-
-  echo Stub
-  exit
-}
 
 
 defaultContainerSetup(){
