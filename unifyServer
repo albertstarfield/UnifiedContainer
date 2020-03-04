@@ -445,10 +445,17 @@ case ${PrimaryParam} in
     help_unifyServer ;;
 esac
 
+# if the bash is recognized this one rather the real one
+# then it have a big problem
+linkManagerPath(){
+  echo " This is a wrong function allocation "
+  exit
+}
 
+# bash does not recognize this function
 linkManagerPath(){
 echo ${PATH}
-if [ ! -z ${PREFIX}]; then
+if [ ! -z ${PREFIX} ]; then
 yellow
 echo "${pbadge} PREFIX VARIABLE IS DETECTED WE ARE GOING TO INSTALL THERE"
 installTarget=${PREFIX}/bin
