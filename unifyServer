@@ -878,6 +878,9 @@ chmod +x $bin
 
 
 defaultContainerSetup(){
+if [ ${newInstall} == "0" ] && [ ! -f ${defaultContainer}/success ]; then
+echo 1 > ${defaultContainer}/success
+fi
 if [ ${newInstall} == "1" ]; then
 if [ -d ${defaultContainer} ]; then
 cd ${defaultContainer}
