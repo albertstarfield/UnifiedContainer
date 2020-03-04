@@ -406,7 +406,7 @@ case ${PrimaryParam} in
   launch)
     launchcontainerSvc ;;
   install)
-    linkManager2Path ;;
+    linkManagerPath ;;
   refresh)
     upgradeMainContainer ;;
   logs)
@@ -446,7 +446,7 @@ case ${PrimaryParam} in
 esac
 
 
-linkManager2Path(){
+linkManagerPath(){
 echo ${PATH}
 if [ ! -z ${PREFIX}]; then
 yellow
