@@ -81,59 +81,6 @@ fi
 }
 
 
-help_unifyServer(){
-yellow
-echo "${pbadge} Here are the commands"
-echo "To launch container"
-echo "${0} launch <containerName>"
-echo "To Launch container in foreground"
-echo "${0} launchfg <containerName>"
-echo .
-echo "To Stop container"
-echo "${0} stop <containerName>"
-echo .
-echo "To Read Container Log"
-echo "${0} logs <containerName>"
-echo .
-echo "To Grant local storage for the container"
-echo "${0} exposeStorage <containerName>"
-echo .
-echo "To isolate local storage from the container"
-echo "${0} deexposeStorage <containerName>"
-echo .
-echo "Export Container Configuration "
-echo "${0} exportCont <containerName>"
-echo .
-echo "reset container to default configuration"
-echo "${0} reset <containerName>"
-echo .
-echo "List all the container and its status"
-echo "${0} list All"
-echo .
-echo "reset Everything"
-echo "DO THIS ONLY WHEN YOU HAVE A PROBLEM LIKE CORRUPTED INSTALLATION"
-echo "${0} nuke yes"
-echo .
-echo "to enter the container Shell"
-echo "${0} shell <containerName>"
-echo .
-echo "upgrade Container to newer version"
-echo "${0} upgrade <containerName>"
-echo .
-echo "To execute a command on a container"
-echo "${0} exec <containerName> <command>"
-echo .
-echo "To add container"
-echo "${0} add <containerName>"
-echo .
-echo "To remove Container"
-echo "${0} remove <containerName>"
-echo .
-echo "To edit exec Routines container"
-echo "${0} edit_routines <containerName>"
-exit
-}
-
 confirmation(){
   randcode=$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 32 | head -n 1)
   randcode="iwilltaketheresponsibilityofmyaction"
@@ -379,11 +326,88 @@ else
 fi
 }
 
+installBin(){
+echo ${PATH}
+
+
+
+
+}
+
+
+
+help_unifyServer(){
+yellow
+echo "${pbadge} Here are the commands"
+echo "To launch container"
+echo "${0} launch <containerName>"
+echo "To Launch container in foreground"
+echo "${0} launchfg <containerName>"
+echo .
+echo "To Stop container"
+echo "${0} stop <containerName>"
+echo .
+echo "To Read Container Log"
+echo "${0} logs <containerName>"
+echo .
+echo "To Grant local storage for the container"
+echo "${0} exposeStorage <containerName>"
+echo .
+echo "To isolate local storage from the container"
+echo "${0} deexposeStorage <containerName>"
+echo .
+echo "Export Container Configuration "
+echo "${0} exportCont <containerName>"
+echo .
+echo "reset container to default configuration"
+echo "${0} reset <containerName>"
+echo .
+echo "List all the container and its status"
+echo "${0} list All"
+echo .
+echo "reset Everything"
+echo "DO THIS ONLY WHEN YOU HAVE A PROBLEM LIKE CORRUPTED INSTALLATION"
+echo "${0} nuke yes"
+echo .
+echo "refresh main container"
+echo "refresh main container to upgrade new bootloader version or fix unpredicter errors"
+echo "${0} refresh yes"
+echo .
+echo "install program"
+echo "This allows the unifiedContainer Technology to be installed and called easily "
+echo "When program is installed it can be called \$bay param param"
+echo "${0} install yes"
+echo .
+echo "to enter the container Shell"
+echo "${0} shell <containerName>"
+echo .
+echo "upgrade Container to newer version"
+echo "${0} upgrade <containerName>"
+echo .
+echo "To execute a command on a container"
+echo "${0} exec <containerName> <command>"
+echo .
+echo "To add container"
+echo "${0} add <containerName>"
+echo .
+echo "To remove Container"
+echo "${0} remove <containerName>"
+echo .
+echo "To edit exec Routines container"
+echo "${0} edit_routines <containerName>"
+exit
+}
+
+
 paramintrepreter(){
 case ${PrimaryParam} in
   launch)
     launchcontainerSvc ;;
-  launch)
+  install)
+    linkManager2Path ;;
+  refresh)
+    upgradeMainContainer ;;
+  logs)
     containerManagerLogs ;;
   launchfg)
     launchcontainerSvcFG ;;
@@ -397,8 +421,6 @@ case ${PrimaryParam} in
     containerManagerDeExposeStorage ;;
   reset)
     containerManagerReset ;;
-  reinstallMaster)
-    triggerReinstall ;;
   list)
     containerManagerList ;;
   stop)
@@ -422,10 +444,28 @@ case ${PrimaryParam} in
 esac
 
 
-triggerReinstall(){
-echo "${pbadge} Triggering Reinstall"
+linkManager2Path(){
+echo ${PATH}
+if [ ! -z ${PREFIX}]; then
+yellow
+echo "${pbadge} PREFIX VARIABLE IS DETECTED WE ARE GOING TO INSTALL THERE"
+installTarget=${PREFIX}/bin
+else
+installTarget=/usr/local/bin
+fi
+managerExec=bay
+cat > ${bay} <<- EOM
+cd ${origindir} ; bash ./unifyServer \$@
+EOM
+green
+echo "${pbadge} Installation is successfull"
+exit
+}
 
-
+upgradeMainContainer(){
+rm -rf ${defaultContainer}
+export newInstall=1
+defaultContainerSetup
 }
 
 }
@@ -436,7 +476,11 @@ containerManagerUpgrade(){
     exit
   else
 cd ${containersLair}/${SecondaryParam}
-bootloaderSetup
+yellow
+echo "${pbadge} ⌛ Upgrading container"
+proot --link2symlink -0 cp -ruaH "${defaultContainer}/*" "${containersLair}/${SecondaryParam}" >> ${logs}/rootfsCopyOperation.log 2>&1
+green
+echo "${pbadge} ✔️ Container has been upgraded "
 exit
   fi
 }
@@ -676,6 +720,7 @@ echo ${currarch}
 
 
 ubuntuSetup(){
+
 folder=rootfs
 if [ -d "$folder" ]; then
 	first=1
@@ -784,10 +829,16 @@ fi
 EOM
 echo "${pbadge} Writing done"
 
-
+echo "${pbadge} Creating rootfs Success Test "
+verifyInstallation=${folder}/verifier
+cat > "${verifyInstallation}" <<- EOM
+## This is a installation Verifier which will test multiple dependencies
+if [ ! -z \$(which fish) ] && [ ! -z \$(which busybox) ] && [ ! -z \$(which screenfetch) ]; then
+echo 1 > /installationSuccessfull
+fi
+EOM
 
 execroutines=${folder}/init
-
 ##### INITIAL INIT EXEC ROUTINES ####
 cat > "$execroutines" <<- EOM
 ## This is a execution Routines that changes how the container behaves
@@ -803,11 +854,22 @@ ash ${bin} "busybox install /usr/bin"
 echo "${pbadge} 🧳 Fixing Perl"
 bash ${bin} "rm -f /usr/bin/perl"
 bash ${bin} "cp /usr/bin/perl5* /usr/bin/perl"
+bash ${bin} "bash /verifier"
 #replacing symlinks perl into real perl
 echo "fixing shebang of $bin"
 if [ ${packmanager} == "pkg" ]; then
 termux-fix-shebang $bin
 fi
+echo "${pbadge} Checking whether the installation is successful"
+if [ -f ${folder}/installationSuccessfull ]; then
+green
+echo "${pbadge} 😄Yippie yay your installation is successfull😄"
+echo a > success
+else
+  red
+echo "${pbadge} 🥺Aww that sucks your installation didnt pass the verifier test🥺"
+fi
+
 echo "${pbadge} 🧳 making $bin executable"
 chmod +x $bin
 }
@@ -827,7 +889,16 @@ exit
 fi
 else
   red
+if [ -f ${defaultContainer}/success ]; then
+green
 echo "${pbadge} default container is installed"
+else
+red
+echo "${pbadge} retrying Install due to the corrupted install"
+cd ${origindir}
+rm -rf ${defaultContainer}
+defaultContainerSetup
+fi
 fi
 }
 
