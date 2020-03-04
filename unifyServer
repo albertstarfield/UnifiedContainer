@@ -447,10 +447,6 @@ esac
 
 # if the bash is recognized this one rather the real one
 # then it have a big problem
-linkManagerPath(){
-  echo " This is a wrong function allocation "
-  exit
-}
 
 # bash does not recognize this function
 linkManagerPath(){
@@ -463,7 +459,7 @@ else
 installTarget="/usr/local/bin"
 fi
 managerExec="${installTarget}/bay"
-echo "cd ${origindir} ; bash ./unifyServer \$@" > "${managerExec}"
+echo "cd ${origindir} ; bash ./unifyServer \$1 \$2 \$3 " > "${managerExec}"
 chmod 777 "${managerExec}"
 green
 echo "${pbadge} Installation is successfull"
