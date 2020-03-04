@@ -812,7 +812,7 @@ if [ -n "\$(ls -A binds)" ]; then
     done
 fi
 command+=" -b /dev"
-command+=" -b /presistent_storage"
+command+=" -b \${presistentStorage}/\${containerID}:/presistent_storage"
 if [ -d /sdcard ] && [ -f grantStorage ]; then
 command+=" -b /sdcard:/exposed"
 fi
