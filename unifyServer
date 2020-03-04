@@ -456,9 +456,7 @@ else
 installTarget=/usr/local/bin
 fi
 managerExec=${installTarget}/bay
-cat > ${managerExec} <<- EOM
-cd ${origindir} ; bash ./unifyServer \$@
-EOM
+echo "cd ${origindir} ; bash ./unifyServer \$@" > ${managerExec}
 chmod 777 ${managerExec}
 green
 echo "${pbadge} Installation is successfull"
