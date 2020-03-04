@@ -450,7 +450,6 @@ esac
 
 # bash does not recognize this function
 linkManagerPath(){
-echo "${PATH}"
 if [ ! -z "${PREFIX}" ]; then
 yellow
 echo "${pbadge} PREFIX VARIABLE IS DETECTED WE ARE GOING TO INSTALL THERE"
@@ -459,7 +458,7 @@ else
 installTarget="/usr/local/bin"
 fi
 managerExec="${installTarget}/bay"
-echo "cd ${origindir} ; bash ./unifyServer \$1 \$2 \$3 " > "${managerExec}"
+echo "cd ${origindir} ; bash ./unifyServer $1 \$2 \$3 " > "${managerExec}"
 chmod 777 "${managerExec}"
 green
 echo "${pbadge} Installation is successfull"
