@@ -249,6 +249,8 @@ containerManagerAdd(){
     echo "${pbadge} 📦 Creating Container"
     proot --link2symlink -0 cp -ruaH "${defaultContainer}" "${containersLair}/${SecondaryParam}" >> ${logs}/rootfsCopyOperation.log 2>&1
     echo "$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 32 | head -n 1)" > ${containersLair}/${SecondaryParam}/containerID
+    echo "${pbadge} 📦 Creating Presistent data"
+    mkdir "${presistentStorage}/$(cat ${containersLair}/${SecondaryParam}/containerID)"
     green
     echo "${pbadge} ${SecondaryParam} ✔️ Container done"
     echo "${SecondaryParam}" >> ${containerFilesList}
@@ -541,6 +543,16 @@ else
   red
 echo "❌The Container is isolated from the local storage"
 fi
+if [ -d ${presistentStorage}/$(cat ${containersLair}/${a}/containerID) ]; then
+  red
+echo "❌The Container does not support presistent storage yet"
+yellow
+echo "ALERT WITHOUT THE SUPPORT OF PRESISTENT STORAGE THE CONTAINER WHEN RESET or REMOVED WILL NOT SAVE DATA"
+echo "Please upgrade as soon as possible"
+else
+green
+echo "✔️ The container supports presistent storage"
+fi
 yellow
 echo "----📜 Container Boot status : "
 if [ -f ${containersLair}/${a}/boot ]; then
@@ -560,6 +572,7 @@ exit
 folderInit(){
 export origindir=$(pwd)
 export maindir="${initDir}/containersys"
+export presistentStorage="${maindir}/presistent_storage"
 export containersLair="${maindir}/containers"
 export defaultContainer="${containersLair}/default"
 export Loader="${maindir}/loader"
@@ -569,6 +582,10 @@ export containerExport=${maindir}/containerExport
 export containerFilesList="${maindir}/containers.txt"
 if [ ! -d ${maindir} ]; then
   mkdir ${maindir}
+fi
+
+if [ ! -d ${presistentStorage} ]; then
+  mkdir ${presistentStorage}
 fi
 
 if [ ! -d ${containerExport} ]; then
@@ -772,7 +789,7 @@ if [ "$first" != 1 ];then
 	echo "${pbadge} 🌐 fixing nameserver, otherwise it can't connect to the internet \n "
 	echo "nameserver 1.1.1.1" > etc/resolv.conf
   printf "⌛ Creating Mount Points \n"
-  mkdir exposed data
+  mkdir exposed data presistent_storage
 	cd "$cur"
 fi
 mkdir -p binds
@@ -780,7 +797,8 @@ bin=start-ubuntu.sh
 echo "${pbadge} 🚀 writing launch script"
 cat > $bin <<- EOM
 #!/bin/bash
-echo BOOTLOADER revision 011
+echo BOOTLOADER revision 014
+containerID=\$(cat containerID)
 cd \$(dirname \$0)
 ## unset LD_PRELOAD in case termux-exec is installed
 unset LD_PRELOAD
@@ -794,6 +812,7 @@ if [ -n "\$(ls -A binds)" ]; then
     done
 fi
 command+=" -b /dev"
+command+=" -b /presistent_storage"
 if [ -d /sdcard ] && [ -f grantStorage ]; then
 command+=" -b /sdcard:/exposed"
 fi
@@ -830,6 +849,8 @@ EOM
 echo "${pbadge} Writing done"
 
 echo "${pbadge} Creating rootfs Success Test "
+# This is used for testing installation rootfs whether the packages were installed successfully or not
+# by chacking if the variable is available or none
 verifyInstallation=${folder}/verifier
 cat > "${verifyInstallation}" <<- EOM
 ## This is a installation Verifier which will test multiple dependencies
@@ -898,6 +919,7 @@ echo "${pbadge} default container is installed"
 else
 red
 echo "${pbadge} retrying Install due to the corrupted install"
+# This will forces the program to retry until the program output the flag ( success flag ) from the verifier test ( See ubuntuSetup verifier test )
 cd ${origindir}
 rm -rf ${defaultContainer}
 defaultContainerSetup
