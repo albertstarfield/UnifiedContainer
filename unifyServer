@@ -623,7 +623,7 @@ if [ $(whoami) != "root" ]; then
 if [ -z $(which sudo) ];then
 echo Restarting...
 export rootRequested=1
-su -c "sh ${0}"
+su -c "bash ${0}"
 else
 echo Restarting...
 export rootRequested=1
