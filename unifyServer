@@ -776,8 +776,9 @@ if [ "$first" != 1 ];then
   yellow
 	echo "${pbadge} 🗜️ decompressing ubuntu image"
 	proot --link2symlink tar -xf ${cur}/${tarball} --exclude='dev'||:
-  stubs=()
-  stubs+=('usr/bin/groups')
+  #stubs=()
+  #stubs+=('usr/bin/groups')
+  stubs=('usr/bin/groups')
   green
   for f in ${stubs[@]};do
     printf "⌛ Writing Stubs (MFDGaming Version Fixes) \n"
