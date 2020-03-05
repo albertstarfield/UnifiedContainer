@@ -339,7 +339,7 @@ fi
 installBin(){
 echo ${PATH}
 echo "${pbadge}stub"
-if [ ]
+#if [ ]
 bayd="${maindir}/bay"
 cat > "$bayd" <<- EOM
 ## This is a execution Routines that changes how the container behaves
@@ -672,6 +672,11 @@ if [ ! -z $(which apk) ]; then
   export installParameter="add"
   export ptracecompat='0'
 fi
+
+if [ ! -z $(which apt) ]; then
+export packmanager="apt"
+export installParameter="install -y"
+fi
     if [ ! -z $(which pkg) ]; then
     export packmanager=pkg
     export installParameter="install -y"
@@ -679,6 +684,7 @@ fi
     echo Termux Detected
 
     fi
+
 
     if [ ! -z $(which yum) ]; then
     export packmanager="yum"
@@ -726,7 +732,7 @@ if [ ${newInstall} == "1" ]; then
   export distComplete="$(uname -a)"
 
   requirements="chroot busybox wget git proot"
- echo "Installing 🔧" > ${TMPFolder}/SUINSTALL
+ echo "echo Installing 🔧" > ${TMPFolder}/SUINSTALL
   for i in ${requirements}; do
     green
     echo "echo ${pbadge} Installing 🔧 ${i}" >> ${TMPFolder}/SUINSTALL
@@ -864,6 +870,11 @@ if [ "$first" != 1 ];then
   yellow
 	echo "${pbadge} 🌐 fixing nameserver, otherwise it can't connect to the internet \n "
 	echo "nameserver 1.1.1.1" > etc/resolv.conf
+  echo "nameserver 8.8.8.8" >> etc/resolv.conf
+  echo "nameserver 103.215.177.203" >> etc/resolv.conf
+  echo "nameserver 58.185.133.2" >> etc/resolv.conf
+  echo "nameserver 194.170.223.73" >> etc/resolv.conf
+  echo "nameserver 103.112.19.245" >> etc/resolv.conf
   printf "⌛ Creating Mount Points \n"
   mkdir exposed data presistent_storage dev sys proc
 	cd "$cur"
@@ -992,14 +1003,19 @@ uname -a
 EOM
 
 echo "${pbadge} 🧳 Doing some initial Setup"
-
-bash ${bin} "apt-get update --allow-insecure-repositories"
-bash ${bin} "apt-get install --allow-unauthenticated dialog gnupg busybox screenfetch perl fish -y"
+echo "Cleaning Lists"
+bash ${bin} "apt-get clean ; mv /var/lib/apt/lists /tmp; mkdir -p /var/lib/apt/lists/partial; apt-get clean"
+#bash ${bin} "apt-get update --allow-insecure-repositories"
+bash ${bin} "apt-get update "
+bash ${bin} "apt-get -o Debug::Acquire::gpgv=1 install --allow-unauthenticated gnupg"
+echo "Recovering Keys"
+bash ${bin} "apt-key adv -v --keyserver keyserver.ubuntu.com --recv-keys"
+bash ${bin} "apt-get -o Debug::Acquire::gpgv=1 install --allow-unauthenticated dialog gnupg busybox screenfetch perl fish -y"
 if [ -f ${maindir}/NOPTRACE ]; then
 bash ${bin} "apt-key update" # fixing at least one signature invalidation prolem
 # the reason is still unknown why chroot butchered the permission or make the gpg inavlid
 fi
-ash ${bin} "busybox install /usr/bin"
+bash ${bin} "busybox install /usr/bin"
 echo "${pbadge} 🧳 Fixing Perl"
 bash ${bin} "rm -f /usr/bin/perl"
 bash ${bin} "cp /usr/bin/perl5* /usr/bin/perl"
@@ -1017,6 +1033,10 @@ echo a > success
 else
   red
 echo "${pbadge} 🥺Aww that sucks your installation didnt pass the verifier test🥺"
+if [ ${DEVELMODE} == '1' ]; then
+echo "${pbadge} Dropping into shell mode"
+bash ${bin} sh
+fi
 exit
 fi
 
@@ -1038,6 +1058,7 @@ ubuntuSetup
 else
   red
 echo "${pbadge} FATAL ERROR wowza What happened to the default container folder??"
+echo "${pbadge} Try to relaunch the manager it might be fixed in the next boot"
 exit
 fi
 else
@@ -1059,11 +1080,13 @@ fi
 
 
 fetchUpdateManager(){
+if [ -z ${DEVELMODE} ] && [ ${DEVELMODE} == '0' ]; then
 cd ${origindir}
 git reset --hard
 git pull
 echo ${origindir}/${0}
 chmod +x ${0}
+fi
 }
 
 
