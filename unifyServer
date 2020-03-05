@@ -1,5 +1,5 @@
 #!/bin/bash
-echo Ver 010
+echo "Manager Update codename: Tracing the bulk"
 export PrimaryParam=${1}
 export SecondaryParam=${2}
 export TertiaryParam=${3}
@@ -8,7 +8,7 @@ export TertiaryParam=${3}
 
 
 #proot Seccomp Acceleration SEGFAULT CRASHES FIX
-export PROOT_NO_SECCOMP=1
+#export PROOT_NO_SECCOMP=1
 
 
 
@@ -338,10 +338,29 @@ fi
 
 installBin(){
 echo ${PATH}
+echo "${pbadge}stub"
+if [ ]
+bayd="${maindir}/bay"
+cat > "$bayd" <<- EOM
+## This is a execution Routines that changes how the container behaves
+## you can start a script or anything you want in here
+export binloc="../${maindir}/unifyServer"
+bash ${binloc} \$@
+EOM
+}
 
-
-
-
+daemonCreate(){
+echo "${pbadge}stub"
+bayd="${maindir}/bayd"
+cat > "$bayd" <<- EOM
+## This is a execution Routines that changes how the container behaves
+## you can start a script or anything you want in here
+export binloc="../${maindir}/unifyServer"
+cd ${maindir}
+for a in \$(cat ${containerFilesList}); do
+  bash ${binloc} launch ${a}
+done
+EOM
 }
 
 
@@ -1029,6 +1048,7 @@ echo "${pbadge} default container is installed"
 else
 red
 echo "${pbadge} retrying Install due to the corrupted install"
+export newInstall=1
 # This will forces the program to retry until the program output the flag ( success flag ) from the verifier test ( See ubuntuSetup verifier test )
 cd ${origindir}
 rm -rf ${defaultContainer}
