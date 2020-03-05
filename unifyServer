@@ -3,8 +3,16 @@ echo Ver 010
 export PrimaryParam=${1}
 export SecondaryParam=${2}
 export TertiaryParam=${3}
-set +xe
+#set -x
 #echo DEBUG PARAM CHECK ${PrimaryParam} ${SecondaryParam}
+
+
+#proot Seccomp Acceleration SEGFAULT CRASHES FIX
+export PROOT_NO_SECCOMP=1
+
+
+
+
 
 export initDir="$(pwd)"
 
@@ -247,7 +255,7 @@ containerManagerAdd(){
   else
     yellow
     echo "${pbadge} 📦 Creating Container"
-    proot --link2symlink -0 cp -ruaH "${defaultContainer}" "${containersLair}/${SecondaryParam}" >> ${logs}/rootfsCopyOperation.log 2>&1
+    ${userspacebackend} ${symlinkfix} cp -ruaH "${defaultContainer}" "${containersLair}/${SecondaryParam}" >> ${logs}/rootfsCopyOperation.log 2>&1
     echo "$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 32 | head -n 1)" > ${containersLair}/${SecondaryParam}/containerID
     echo "${pbadge} 📦 Creating Presistent data"
     mkdir "${presistentStorage}/$(cat ${containersLair}/${SecondaryParam}/containerID)"
@@ -277,7 +285,7 @@ containerManagerReset(){
     else
       echo "${pbadge} 📦 Resetting Local Container"
     rm -rf "${containersLair}/${SecondaryParam}"
-    proot --link2symlink -0 cp -ruaH "${defaultContainer}" "${containersLair}/${SecondaryParam}" >> ${logs}/rootfsCopyOperation.log  2>&1
+    ${userspacebackend} ${symlinkfix} cp -ruaH "${defaultContainer}" "${containersLair}/${SecondaryParam}" >> ${logs}/rootfsCopyOperation.log  2>&1
   fi
     green
     echo "${pbadge} ${SecondaryParam} ✔️ Container done"
@@ -479,13 +487,13 @@ containerManagerUpgrade(){
 cd ${containersLair}/${SecondaryParam}
 yellow
 echo "${pbadge} ⌛ Upgrading container"
-proot --link2symlink -0 cp -ruaH "${defaultContainer}/*" "${containersLair}/${SecondaryParam}" >> ${logs}/rootfsCopyOperation.log 2>&1
+${userspacebackend} ${symlinkfix} cp -ruaH "${defaultContainer}/*" "${containersLair}/${SecondaryParam}" >> ${logs}/rootfsCopyOperation.log 2>&1
 green
 echo "${pbadge} ✔️ Container has been upgraded "
 exit
   fi
 }
-
+userspa
 containerManagerDeExposeStorage(){
   if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
     red
@@ -634,62 +642,83 @@ fi
 }
 
 
+distroDetection(){
+# DISTRO MANAGER DETECTION IS ALSO USED TO DETERMINE WHERE DOES THE SCRIPT RUN
+export ptracecompat='1' #flag ptrace compatibility based on the distro or kernel that its running
+export linktosymlinkActivated=0
+
+if [ ! -z $(which apk) ]; then
+  echo "THIS MIGHT BE RUNNING ON iSH which Does not support Ptrace"
+  export packmanager=apk
+  export installParameter="add"
+  export ptracecompat='0'
+fi
+    if [ ! -z $(which pkg) ]; then
+    export packmanager=pkg
+    export installParameter="install -y"
+    export linktosymlinkActivated=1
+    echo Termux Detected
+
+    fi
+
+    if [ ! -z $(which yum) ]; then
+    export packmanager="yum"
+    export installParameter="install -y"
+    fi
+
+    if [[ $(grep Microsoft /proc/version) ]]; then
+      echo "Bash is running on WSL"
+      echo "PTRACE ON WSL 1 IS NOT SUPPORTED"
+      export ptracecompat='0'
+    fi
+
+    if [ ! -z $(which pacman) ]; then
+    export packmanager="pacman"
+    export installParameter="-Sy --noconfirm"
+    echo Redownloading Databases
+    pacman -Syy
+    fi
+
+    if [ ! -z $(which easy_install) ]; then
+    export pyPacman="easy_install"
+    export pyInstallParam=""
+    fi
+
+    if [ ! -z $(which pip) ]; then
+    export pyPacman="pip"
+    export pyInstallParam="install"
+    fi
+
+
+}
+
+
 dependencies(){
 if [ ${newInstall} == "1" ]; then
   if [ ! -z $(which add-apt-repository) ]; then
-  export packmanager=apt-get
+  export packmanager="apt-get"
   export installParameter="install -y"
   echo Apt detected doing some special treatment
   add-apt-repository universe
   echo Refreshing Repo
   apt-get update
   fi
-
-
-  if [ ! -z $(which pkg) ]; then
-  export packmanager=pkg
-  export installParameter="install -y"
-  echo Termux Detected
-
-  fi
-
-  if [ ! -z $(which yum) ]; then
-  export packmanager=yum
-  export installParameter="install -y"
-  fi
-
-
-  if [ ! -z $(which pacman) ]; then
-  export packmanager=pacman
-  export installParameter="-Sy --noconfirm"
-  echo Redownloading Databases
-  pacman -Syy
-  fi
-
-  if [ ! -z $(which easy_install) ]; then
-  export pyPacman=easy_install
-  export pyInstallParam=""
-  fi
-
-  if [ ! -z $(which pip) ]; then
-  export pyPacman=pip
-  export pyInstallParam="install"
-  fi
-
-  if [ ${packmanager} != "pkg" ] && [ -z ${rootRequested} ]; then
-  SUrequest
-  exit
-  fi
-
+  distroDetection
   export distComplete="$(uname -a)"
 
   requirements="chroot busybox wget git proot"
-
+ echo "Installing 🔧" > ${TMPFolder}/SUINSTALL
   for i in ${requirements}; do
     green
-    echo "${pbadge} Installing 🔧 ${i}"
-    ${packmanager} ${installParameter} ${i}
+    echo "echo ${pbadge} Installing 🔧 ${i}" >> ${TMPFolder}/SUINSTALL
+    echo "${packmanager} ${installParameter} ${i}" >> ${TMPFolder}/SUINSTALL
   done
+# This installation scheme were changed due to the fact old SU request created a unresolvable and wierd bug like Missing (Expected fi) from intrepretation
+if [ ${packmanager} != "pkg" ] && [ -z ${rootRequested} ]; then
+su -c "bash ${TMPFolder}/SUINSTALL"
+else
+bash ${TMPFolder}/SUINSTALL
+fi
 
 #alternative for proot
   if [ -z $(which proot) ]; then
@@ -717,8 +746,23 @@ if [ ${newInstall} == "1" ]; then
   fi
 
 else
+  distroDetection
 echo Does not need dependencies install
 fi
+
+
+
+if [ -z $(which proot) ] && [ ${ptracecompat} == '1' ]; then
+  echo "${pbadge} NO PROOT BUT SUPPORT PTRACE"
+  exit
+fi
+
+if [ -z $(which git) ] || [ -z $(which busybox) ] || [ -z $(which chroot) ]; then
+echo "${pbadge} DEPENDENCIES ARE NOT INSTALLED ABORTING LAUNCH"
+exit
+fi
+
+
 
 }
 
@@ -728,8 +772,21 @@ echo ${currarch}
 }
 
 
-
-
+# This fucntion will attempt to stop booting if the non supported linux ptrace is currently running
+ptraceCompatibilityPolice(){
+  if [ ${ptracecompat} == '0' ]; then
+  userspacebackend=''
+    red
+  echo "${pbadge} ❌ This UnifiedContainer currently running on a non ptrace kernel ❌"
+  echo a > ${maindir}/NOPTRACE
+    if [ $(whoami) != "root" ]; then
+      echo "${pbadge} ❌ Non ptrace kernel need to launch the manager using superuser previledges ❌"
+      exit
+    fi
+  else
+    userspacebackend='proot -0'
+  fi
+}
 
 
 
@@ -775,21 +832,21 @@ if [ "$first" != 1 ];then
 	cd "$folder"
   yellow
 	echo "${pbadge} 🗜️ decompressing ubuntu image"
-	proot --link2symlink tar -xf ${cur}/${tarball} --exclude='dev'||:
-  #stubs=()
-  #stubs+=('usr/bin/groups')
-  stubs=('usr/bin/groups')
+	${userspacebackend} ${symlinkfix} tar -xf ${cur}/${tarball} --exclude='dev'||:
+  stubs=()
+  stubs+=('usr/bin/groups')
+  #stubs=('usr/bin/groups')
   green
   for f in ${stubs[@]};do
     printf "⌛ Writing Stubs (MFDGaming Version Fixes) \n"
     echo -e "#!/bin/sh\nexit" > "$f"
   done
-  #proot --link2symlink tar -xf ${cur}/${tarball} --exclude='dev'||:
+  #proot ${symlinkfix} tar -xf ${cur}/${tarball} --exclude='dev'||:
   yellow
 	echo "${pbadge} 🌐 fixing nameserver, otherwise it can't connect to the internet \n "
 	echo "nameserver 1.1.1.1" > etc/resolv.conf
   printf "⌛ Creating Mount Points \n"
-  mkdir exposed data presistent_storage
+  mkdir exposed data presistent_storage dev sys proc
 	cd "$cur"
 fi
 mkdir -p binds
@@ -797,13 +854,47 @@ bin=start-ubuntu.sh
 echo "${pbadge} 🚀 writing launch script"
 cat > $bin <<- EOM
 #!/bin/bash
-echo BOOTLOADER revision 014
+echo BOOTLOADER revision 020
 containerID=\$(cat containerID)
 cd \$(dirname \$0)
 ## unset LD_PRELOAD in case termux-exec is installed
 unset LD_PRELOAD
+
+
+
+
+
+
+
+###############################ROOT MANAGER ##########################
+
+
+
+if [ -f \${maindir}/NOPTRACE ]; then
+#chroot version
+echo "Sanitizing Mount points"
+mount --bind /dev ${folder}/dev
+mount --bind /proc ${folder}/proc
+mount --bind /sys ${folder}/sys
+if [ -d /sdcard ] && [ -f grantStorage ]; then
+mount --bind /sdcard ${folder}/exposed"
+fi
+if [ -d /home ] && [ -f grantStorage ]; then
+mount --bind /home ${folder}/exposed"
+fi
+command="chroot"
+command+=" ${folder}"
+command+=" /usr/bin/env -i"
+command+=" HOME=/root"
+command+=" TERM=\$TERM"
+command+=" PATH=/usr/local/sbin:/usr/local/bin:/bin:/usr/bin:/sbin:/usr/sbin:/usr/games:/usr/local/games"
+command+=" LANG=C.UTF-8"
+command+=" HOME=/root"
+command+=" /bin/bash --login"
+else
+  #proot version
 command="proot"
-command+=" --link2symlink"
+command+=" ${symlinkfix}"
 command+=" -0"
 command+=" -r $folder"
 if [ -n "\$(ls -A binds)" ]; then
@@ -831,12 +922,15 @@ command+=" PATH=/usr/local/sbin:/usr/local/bin:/bin:/usr/bin:/sbin:/usr/sbin:/us
 command+=" TERM=\$TERM"
 command+=" LANG=C.UTF-8"
 command+=" /bin/bash --login"
+fi
+
+###################################ROOT MANAGER #######################################
+
 com="\$@"
 
 if [ "\$2" == "/init" ]; then
 echo a > boot
 fi
-
 if [ -z "\$1" ];then
     exec \$command
 else
@@ -845,6 +939,16 @@ fi
 if [ "\$2" == "/init" ]; then
 rm boot
 fi
+#unmounting for non ptrace version
+if [ -f \${maindir}/NOPTRACE ]; then
+umount -lf ${folder}/dev
+umount -lf ${folder}/sys
+umount -lf ${folder}/proc
+if [ -f grantStorage ]; then
+umount -lf ${folder}/exposed
+fi
+fi
+
 EOM
 echo "${pbadge} Writing done"
 
@@ -869,8 +973,13 @@ uname -a
 EOM
 
 echo "${pbadge} 🧳 Doing some initial Setup"
-bash ${bin} "apt-get update"
-bash ${bin} "apt-get install dialog busybox screenfetch perl fish -y"
+
+bash ${bin} "apt-get update --allow-insecure-repositories"
+bash ${bin} "apt-get install --allow-unauthenticated dialog gnupg busybox screenfetch perl fish -y"
+if [ -f ${maindir}/NOPTRACE ]; then
+bash ${bin} "apt-key update" # fixing at least one signature invalidation prolem
+# the reason is still unknown why chroot butchered the permission or make the gpg inavlid
+fi
 ash ${bin} "busybox install /usr/bin"
 echo "${pbadge} 🧳 Fixing Perl"
 bash ${bin} "rm -f /usr/bin/perl"
@@ -889,6 +998,7 @@ echo a > success
 else
   red
 echo "${pbadge} 🥺Aww that sucks your installation didnt pass the verifier test🥺"
+exit
 fi
 
 echo "${pbadge} 🧳 making $bin executable"
@@ -899,7 +1009,7 @@ chmod +x $bin
 
 
 defaultContainerSetup(){
-if [ ${newInstall} == "0" ] && [ ! -f ${defaultContainer}/success ]; then
+if [ ${newInstall} == "0" ] && [ -f ${defaultContainer}/success ]; then
 echo 1 > ${defaultContainer}/success
 fi
 if [ ${newInstall} == "1" ]; then
@@ -938,20 +1048,33 @@ chmod +x ${0}
 
 
 
+symlinksFix(){
+if [ ${linktosymlinkActivated} == '1' ]; then
+  export symlinkfix='--link2symlink'
+else
+  export symlinkfix=''
+fi
+}
+
 #_________Main_________
 intro
 yellow
-echo "${pbadge} 📁 Checking Folders"
+echo "${pbadge} 📁 [1/6] Checking Folders"
 folderInit
 intro
 yellow
-echo "${pbadge} 🚒 Checking dependencies"
+echo "${pbadge} 🚒 [2/6] Checking dependencies"
 dependencies
 yellow
-echo "${pbadge} 💽 Updating Manager"
+echo "${pbadge} 🌳 [3/6] Checking ptrace compatibility"
+ptraceCompatibilityPolice
+yellow
+echo "${pbadge} 💽 [4/6] Checking symlinks compatibility"
+symlinksFix
+echo "${pbadge} 💽 [5/6] Updating Manager"
 fetchUpdateManager
 yellow
-echo "${pbadge} 💽 Checking Default Container"
+echo "${pbadge} 💽 [6/6] Checking Default Container"
 defaultContainerSetup
 paramCheck
 paramintrepreter
