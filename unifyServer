@@ -870,9 +870,8 @@ if [ "$first" != 1 ];then
 	${userspacebackend} ${symlinkfix} tar -vxf ${cur}/${tarball} --exclude='dev'||:
   if [ ! -z ${subfolder} ]; then
   ${userspacebackend} ${symlinkfix} cp -rua ${subfolder}*/* .
-    rm -rf *${subfolder}*
+  rm -rf *${subfolder}*
 fi
-
   stubs=()
   stubs+=('usr/bin/groups')
   #stubs=('usr/bin/groups')
@@ -1861,7 +1860,10 @@ echo "${pbadge} 🧳 Doing some initial Setup"
 echo "Cleaning Lists"
 sed -i "s/^[[:space:]]*\(CheckSpace\)/# \1/" "${folder}/etc/pacman.conf"
 export installmode=1 #this flag is to disable env before updating the glibc
-bash ${bin} "pacman-key --init"
+threadGPG=$(bash ${bin} "pacman-key --init") &
+echo "Waiting for 15 seconds"
+sleep 15
+kill -9 ${threadPID}
 echo disable-scdaemon > ${folder}/etc/pacman.d/gnupg/gpg-agent.conf #https://github.com/sdrausty/TermuxArch/issues/33
 echo "${pbadge} Initiating GPG key signing phase 1"
 threadGPG=$(bash ${bin} "pacman-key --populate archlinux${specialarchtype}") &
