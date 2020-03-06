@@ -842,9 +842,9 @@ if [ "$first" != 1 ];then
     armv7*)
   		archurl="armhf" ;specialarchtype="arm" ; downloadcompass="http://os.archlinuxarm.org/os/ArchLinuxARM-armv7-latest.tar.gz" ;;
 		amd64)
-			archurl="amd64" ; specialarchtype="" ; downloadcompass="http://github.com/Questandachievement7Developer/UnifiedContainer/releases/download/ArchrootfsDownloadamd64/archlinux-bootstrap-2020.03.01-x86_64.tar.gz" ;;
+			archurl="amd64" ; specialarchtype="" ; downloadcompass="https://github.com/Questandachievement7Developer/UnifiedContainer/releases/download/ArchrootfsDownloadamd64/archlinux-bootstrap-2020.03.01-x86_64.tar.gz" ;;
 		*86_64)
-			archurl="amd64" ; specialarchtype='' ; downloadcompass='http://github.com/Questandachievement7Developer/UnifiedContainer/releases/download/ArchrootfsDownloadamd64/archlinux-bootstrap-2020.03.01-x86_64.tar.gz' ;;
+			archurl="amd64" ; specialarchtype='' ; downloadcompass='https://github.com/Questandachievement7Developer/UnifiedContainer/releases/download/ArchrootfsDownloadamd64/archlinux-bootstrap-2020.03.01-x86_64.tar.gz' ;;
 		*)
 			echo "❌ Unsupported architecture ❌"; exit 1 ;;
 		esac
@@ -853,7 +853,14 @@ if [ "$first" != 1 ];then
     #export UBUNTU_VERSION=19.10
     echo "${downloadcompass}"
     #wget "https://github.com/Questandachievement7Developer/UnifiedContainer/releases/download/downloadableRootfs/${archurl}.gz" -O ${tarball}
-    wget "${downloadcompass}" -o "${tarball}"
+    #
+    #
+    #Running wget directly inside of the script will make the wget froze with no output even on verbose
+    #therefore to compensate this problem we need to output the wget to a external script
+
+
+    #Well the problem is actually i put the o lowercase rather than the O capital
+    wget ${downloadcompass} -O ${tarball}
 		#wget "https://partner-images.canonical.com/core/disco/current/bootstrap-disco-core-cloudimg-${archurl}-root.tar.gz" -O $tarball
 	fi
 	cur=`pwd`
