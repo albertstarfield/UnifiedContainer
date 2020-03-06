@@ -930,7 +930,7 @@ mount --bind /home ${folder}/exposed"
 fi
 command="chroot"
 command+=" ${folder}"
-command+=" /usr/bin/env -i"
+command+=" /bin/env -i"
 command+=" HOME=/root"
 command+=" TERM=\$TERM"
 command+=" PATH=/usr/local/sbin:/usr/local/bin:/bin:/usr/bin:/sbin:/usr/sbin:/usr/games:/usr/local/games"
@@ -962,7 +962,7 @@ command+=" -b /proc"
 ############ uncomment the following line to mount /sdcard directly to /
 #command+=" -b /sdcard"
 command+=" -w /root"
-command+=" /usr/bin/env -i"
+command+=" /bin/env -i"
 command+=" HOME=/root"
 command+=" PATH=/usr/local/sbin:/usr/local/bin:/bin:/usr/bin:/sbin:/usr/sbin:/usr/games:/usr/local/games"
 command+=" TERM=\$TERM"
@@ -1051,8 +1051,8 @@ bash ${bin} "pacman-key --populate archlinux${specialarchtype}" # fixing at leas
 fi
 bash ${bin} "busybox install /usr/bin"
 echo "${pbadge} 🧳 Fixing Perl"
-bash ${bin} "rm -f /usr/bin/perl"
-bash ${bin} "cp /usr/bin/perl5* /usr/bin/perl"
+#bash ${bin} "rm -f /usr/bin/perl"
+#bash ${bin} "cp /usr/bin/perl5* /usr/bin/perl"
 bash ${bin} "bash /verifier"
 #replacing symlinks perl into real perl
 echo "fixing shebang of $bin"
@@ -1107,6 +1107,7 @@ export newInstall=1
 # This will forces the program to retry until the program output the flag ( success flag ) from the verifier test ( See bootstrapSetup verifier test )
 cd ${origindir}
 ${userspacebackend} ${symlinksFix} rm -rf ${defaultContainer}
+folderInit
 defaultContainerSetup
 fi
 fi
