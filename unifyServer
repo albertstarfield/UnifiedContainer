@@ -842,9 +842,9 @@ if [ "$first" != 1 ];then
     armv7*)
   		archurl="armhf" ;specialarchtype="arm" ; downloadcompass="http://os.archlinuxarm.org/os/ArchLinuxARM-armv7-latest.tar.gz" ;;
 		amd64)
-			archurl="amd64" ; specialarchtype="" ; downloadcompass="https://github.com/Questandachievement7Developer/UnifiedContainer/releases/download/ArchrootfsDownloadamd64/archlinux-bootstrap-2020.03.01-x86_64.tar.gz" ;;
+			archurl="amd64" ; subfolder="root.x86_64" ;  specialarchtype="" ; downloadcompass="https://github.com/Questandachievement7Developer/UnifiedContainer/releases/download/ArchrootfsDownloadamd64/archlinux-bootstrap-2020.03.01-x86_64.tar.gz" ;;
 		*86_64)
-			archurl="amd64" ; specialarchtype='' ; downloadcompass='https://github.com/Questandachievement7Developer/UnifiedContainer/releases/download/ArchrootfsDownloadamd64/archlinux-bootstrap-2020.03.01-x86_64.tar.gz' ;;
+			archurl="amd64"; subfolder="root.x86_64" ; specialarchtype='' ; downloadcompass='https://github.com/Questandachievement7Developer/UnifiedContainer/releases/download/ArchrootfsDownloadamd64/archlinux-bootstrap-2020.03.01-x86_64.tar.gz' ;;
 		*)
 			echo "❌ Unsupported architecture ❌"; exit 1 ;;
 		esac
@@ -869,8 +869,10 @@ if [ "$first" != 1 ];then
   yellow
 	echo "${pbadge} 🗜️ decompressing bootstrap image"
 	${userspacebackend} ${symlinkfix} tar -xf ${cur}/${tarball} --exclude='dev'||:
-  ${userspacebackend} ${symlinkfix} cp -ruaH ${archurl}*/* .
-  rm -rf ${archurl}*
+  if [ ! -z ${subfolder} ]; then
+  ${userspacebackend} ${symlinkfix} cp -ruaH ${subfolder}*/* .
+fi
+  rm -rf *${subfolder}*
   stubs=()
   stubs+=('usr/bin/groups')
   #stubs=('usr/bin/groups')
