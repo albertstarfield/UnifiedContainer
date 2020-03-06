@@ -1860,19 +1860,19 @@ echo "${pbadge} 🧳 Doing some initial Setup"
 echo "Cleaning Lists"
 sed -i "s/^[[:space:]]*\(CheckSpace\)/# \1/" "${folder}/etc/pacman.conf"
 export installmode=1 #this flag is to disable env before updating the glibc
-threadGPG=$(bash ${bin} "pacman-key --init") &
+threadGPG=$(bash ${bin} "pacman-key --init" > ${logs}/gpgInit 2>&1 ) &
 echo "Waiting for 15 seconds"
 sleep 15
 kill -9 ${threadPID}
 echo disable-scdaemon > ${folder}/etc/pacman.d/gnupg/gpg-agent.conf #https://github.com/sdrausty/TermuxArch/issues/33
 echo "${pbadge} Initiating GPG key signing phase 1"
-threadGPG=$(bash ${bin} "pacman-key --populate archlinux${specialarchtype}") &
+threadGPG=$(bash ${bin} "pacman-key --populate archlinux${specialarchtype}" > ${logs}/gpgInit 2>&1 ) &
 threadPID=$!
 echo "Waiting for 10 seconds"
 sleep 10
 kill -9 ${threadPID}
 echo "${pbadge} Initiating GPG key signing phase 2"
-threadGPG=$(bash ${bin} "pacman-key --populate archlinux${specialarchtype}") &
+threadGPG=$(bash ${bin} "pacman-key --populate archlinux${specialarchtype}" > ${logs}/gpgInit 2>&1 ) &
 threadPID=$!
 echo "Waiting for 60 seconds"
 sleep 60
