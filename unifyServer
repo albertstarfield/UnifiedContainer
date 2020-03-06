@@ -1953,7 +1953,7 @@ fi
 
 
 fetchUpdateManager(){
-if [ -z ${DEVELMODE} ] && [ ${DEVELMODE} == '0' ]; then
+if [ -z ${DEVELMODE} ]; then
 cd ${origindir}
 git reset --hard
 git pull
