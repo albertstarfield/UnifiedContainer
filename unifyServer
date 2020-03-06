@@ -257,7 +257,7 @@ containerManagerAdd(){
   else
     yellow
     echo "${pbadge} 📦 Creating Container"
-    ${userspacebackend} ${symlinkfix} cp -rua "${defaultContainer}" "${containersLair}/${SecondaryParam}" >> ${logs}/rootfsCopyOperation.log 2>&1
+    ${userspacebackend} ${symlinkfix} cp -ruaH "${defaultContainer}" "${containersLair}/${SecondaryParam}" >> ${logs}/rootfsCopyOperation.log 2>&1
     echo "$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 32 | head -n 1)" > ${containersLair}/${SecondaryParam}/containerID
     echo "${pbadge} 📦 Creating Presistent data"
     mkdir "${presistentStorage}/$(cat ${containersLair}/${SecondaryParam}/containerID)"
@@ -287,7 +287,7 @@ containerManagerReset(){
     else
       echo "${pbadge} 📦 Resetting Local Container"
     rm -rf "${containersLair}/${SecondaryParam}"
-    ${userspacebackend} ${symlinkfix} cp -rua "${defaultContainer}" "${containersLair}/${SecondaryParam}" >> ${logs}/rootfsCopyOperation.log  2>&1
+    ${userspacebackend} ${symlinkfix} cp -ruaH "${defaultContainer}" "${containersLair}/${SecondaryParam}" >> ${logs}/rootfsCopyOperation.log  2>&1
   fi
     green
     echo "${pbadge} ${SecondaryParam} ✔️ Container done"
@@ -508,7 +508,7 @@ containerManagerUpgrade(){
 cd ${containersLair}/${SecondaryParam}
 yellow
 echo "${pbadge} ⌛ Upgrading container"
-${userspacebackend} ${symlinkfix} cp -rua "${defaultContainer}/*" "${containersLair}/${SecondaryParam}" >> ${logs}/rootfsCopyOperation.log 2>&1
+${userspacebackend} ${symlinkfix} cp -ruaH "${defaultContainer}/*" "${containersLair}/${SecondaryParam}" >> ${logs}/rootfsCopyOperation.log 2>&1
 green
 echo "${pbadge} ✔️ Container has been upgraded "
 exit
@@ -766,7 +766,7 @@ fi
   if [ ! -f ${loader}/proot ]; then
   wget "https://github.com/proot-me/proot-static-build/blob/master/static/proot-${archurl}"
   chmod +x proot-${archurl}
-  cp proot-${archurl} ${loader}/proot
+  mv proot-${archurl} ${loader}/proot
   fi
   export PATH=${PATH}:${loader}
   fi
