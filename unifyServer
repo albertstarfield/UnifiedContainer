@@ -867,7 +867,7 @@ if [ "$first" != 1 ];then
 	cd "$folder"
   yellow
 	echo "${pbadge} 🗜️ decompressing bootstrap image"
-	${userspacebackend} ${symlinkfix} tar -vxf ${cur}/${tarball} --exclude='dev'||:
+	${userspacebackend} ${symlinkfix} tar -vxf ${cur}/${tarball} --exclude='dev' --exclude='firmware' --exclude='kernel' ||:
   if [ ! -z ${subfolder} ]; then
   ${userspacebackend} ${symlinkfix} cp -rua ${subfolder}*/* .
   rm -rf *${subfolder}*
@@ -1112,8 +1112,8 @@ Include = /etc/pacman.d/mirrorlist
 [aur]
 #SigLevel = PackageOptional
 Include = /etc/pacman.d/mirrorlist
-[olinuxino]
-Server = http://1024.cjb.net/archlinux/olinuxino
+#[olinuxino]
+#Server = http://1024.cjb.net/archlinux/olinuxino
 # An example of a custom package repository.  See the pacman manpage for
 # tips on creating your own repositories.
 #[custom]
