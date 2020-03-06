@@ -883,6 +883,7 @@ if [ "$first" != 1 ];then
   yellow
 	echo "${pbadge} 🌐 fixing nameserver, otherwise it can't connect to the internet \n "
   echo disable-scdaemon > etc/pacman.d/gnupg/gpg-agent.conf #https://github.com/sdrausty/TermuxArch/issues/33
+  rm -rf etc/resolv.conf
 	echo "nameserver 1.1.1.1" > etc/resolv.conf
   echo "nameserver 8.8.8.8" >> etc/resolv.conf
   echo "nameserver 103.215.177.203" >> etc/resolv.conf
@@ -1090,7 +1091,7 @@ echo "${pbadge} retrying Install due to the corrupted install"
 export newInstall=1
 # This will forces the program to retry until the program output the flag ( success flag ) from the verifier test ( See bootstrapSetup verifier test )
 cd ${origindir}
-rm -rf ${defaultContainer}
+${userspacebackend} ${symlinksFix} rm -rf ${defaultContainer}
 defaultContainerSetup
 fi
 fi
