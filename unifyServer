@@ -54,7 +54,7 @@ echo "==================================================================="
 green
 echo "😊 Warm welcome from questandachievement7Developer 😊"
 echo "🎆✨ Welcome to unifiedContainer Project✨🎆"
-echo "👉 Heavily Inspired by docker, multipass, termuxarch sdrausty, and neoOli Ubuntu 👍"
+echo "👉 Heavily Inspired by docker, multipass, termuxarch sdrausty, and neoOli bootstrap 👍"
 echo "👉 Code sourced from MFDGaming NeoOli and Stackoverflow 👍"
 blue
 echo "==================================================================="
@@ -128,7 +128,7 @@ launchcontainerSvcFG(){
   cd "${containersLair}/${SecondaryParam}"
   green
   echo "⏳ Launching container ${SecondaryParam}"
-  bash start-ubuntu.sh bash /init
+  bash start-bootstrap.sh bash /init
   echo $! > svcID
   cat "${logs}/containers_${SecondaryParam}.log"
   exit
@@ -143,7 +143,7 @@ launchcontainerSvc(){
   cd "${containersLair}/${SecondaryParam}"
   green
   echo "⏳ Launching container ${SecondaryParam}"
-  bash start-ubuntu.sh bash /init > "${logs}/containers_${SecondaryParam}.log" 2>&1 &
+  bash start-bootstrap.sh bash /init > "${logs}/containers_${SecondaryParam}.log" 2>&1 &
   echo $! > svcID
   cat "${logs}/containers_${SecondaryParam}.log"
   exit
@@ -173,8 +173,8 @@ launchcontainerSHELL(){
   echo Launching container ${SecondaryParam}
   green
   echo "${pbadge} 🌟 Have fun 🌟"
-  bash start-ubuntu.sh screenfetch
-  bash start-ubuntu.sh "fish --login"
+  bash start-bootstrap.sh screenfetch
+  bash start-bootstrap.sh "fish --login"
   exit
 }
 
@@ -187,7 +187,7 @@ executeContainerCMD(){
   cd "${containersLair}/${SecondaryParam}"
   yellow
   echo "${pbadge} 🏃‍ Executing ${TertiaryParam} on ${SecondaryParam}"
-  bash start-ubuntu.sh "${TertiaryParam}"
+  bash start-bootstrap.sh "${TertiaryParam}"
   exit
 }
 
@@ -211,7 +211,7 @@ for a in ${packages}; do
 #bash ${0} exec ${name} "apt install -y < /packages"
 yellow
 echo "${pbadge} ⌛ Installing ${a} "
-bash ${0} exec ${name} "apt install -y ${a}" >> ${logs}/unifyServerPackageInstaller.log 2>&1
+bash ${0} exec ${name} "pacman -Sy --noconfirm ${a}" >> ${logs}/unifyServerPackageInstaller.log 2>&1
 green
 echo "${pbadge} ✔️ Done Installing ${a} "
 done
@@ -232,7 +232,8 @@ containerManagerExport(){
     exit
   fi
 name=${SecondaryParam}
-bash ${0} exec ${SecondaryParam} "apt list --installed > /packages" #https://askubuntu.com/questions/9135/how-to-backup-settings-and-list-of-installed-packages
+#bash ${0} exec ${SecondaryParam} "apt list --installed > /packages" #https://askubuntu.com/questions/9135/how-to-backup-settings-and-list-of-installed-packages
+bash ${0} exec ${SecondaryParam} "pacman -Qqe > /packages"
 packages=$(cat ${containersLair}/${SecondaryParam}/rootfs/packages)
 init=$(cat ${containersLair}/${SecondaryParam}/rootfs/init)
 
@@ -240,7 +241,8 @@ mkdir ${containerExport}/${name}
 echo "${name}" > ${containerExport}/${name}/name
 echo "${packages}" > ${containerExport}/${name}/packages
 echo "${init}" > ${containerExport}/${name}/init
-echo "apt-get update; apt-get upgrade; echo Default setup done" > ${containerExport}/${name}/setup
+#echo "apt-get update; apt-get upgrade; echo Default setup done" > ${containerExport}/${name}/setup
+echo "pacman -Syu --noconfirm ; echo Default setup done" > ${containerExport}/${name}/setup
 green
 echo "${pbadge} ✨export done✨"
 exit
@@ -817,7 +819,7 @@ ptraceCompatibilityPolice(){
 
 
 
-ubuntuSetup(){
+bootstrapSetup(){
 
 folder=rootfs
 if [ -d "$folder" ]; then
@@ -825,45 +827,49 @@ if [ -d "$folder" ]; then
   green
 	echo "${pbadge} ⏭️ skipping downloading"
 fi
-tarball="ubuntu.tar.gz"
+tarball="bootstrap.tar.gz"
 if [ "$first" != 1 ];then
 	if [ ! -f $tarball ]; then
     yellow
-		echo "${pbadge} ⌛ downloading ubuntu-image"
+		echo "${pbadge} ⌛ downloading bootstrap-image"
 		#case `dpkg --print-architecture` in
-    case `checkArch` in
+    #wget -r --no-parent -A 'bar.*.tar.gz' http://url/dir/ #https://unix.stackexchange.com/questions/117988/wget-with-wildcards-in-http-downloads
+    case `checkArch` in #since Archlinux have a variable download link so we have to define each download link for each architechture
 		aarch64)
-			archurl="arm64" ;;
+			archurl="arm64" ; specialarchtype="arm" ; downloadcompass="http://os.archlinuxarm.org/os/ArchLinuxARM-aarch64-latest.tar.gz"  ;;
 		arm)
-			archurl="armhf" ;;
+			archurl="armhf" ;specialarchtype="arm" ; downloadcompass="http://os.archlinuxarm.org/os/ArchLinuxARM-armv7-latest.tar.gz" ;;
     armv7*)
-  		archurl="armhf" ;;
+  		archurl="armhf" ;specialarchtype="arm" ; downloadcompass="http://os.archlinuxarm.org/os/ArchLinuxARM-armv7-latest.tar.gz" ;;
 		amd64)
-			archurl="amd64" ;;
-		i*86)
-			archurl="i386" ;;
+			archurl="amd64" ; specialarchtype="" ; downloadcompass="http://github.com/Questandachievement7Developer/UnifiedContainer/releases/download/ArchrootfsDownloadamd64/archlinux-bootstrap-2020.03.01-x86_64.tar.gz" ;;
 		*86_64)
-			archurl="amd64" ;;
+			archurl="amd64" ; specialarchtype='' ; downloadcompass='http://github.com/Questandachievement7Developer/UnifiedContainer/releases/download/ArchrootfsDownloadamd64/archlinux-bootstrap-2020.03.01-x86_64.tar.gz' ;;
 		*)
-			echo "❌ unknown architecture ❌"; exit 1 ;;
+			echo "❌ Unsupported architecture ❌"; exit 1 ;;
 		esac
-    #https://github.com/MFDGaming/ubuntu-in-termux/blob/master/ubuntu.sh
-    export UBUNTU_VERSION=19.10
-    wget "http://cdimage.ubuntu.com/ubuntu-base/releases/${UBUNTU_VERSION}/release/ubuntu-base-${UBUNTU_VERSION}-base-${archurl}.tar.gz" -O ${tarball}
-		#wget "https://partner-images.canonical.com/core/disco/current/ubuntu-disco-core-cloudimg-${archurl}-root.tar.gz" -O $tarball
+    echo exec
+    #https://github.com/MFDGaming/bootstrap-in-termux/blob/master/bootstrap.sh
+    #export UBUNTU_VERSION=19.10
+    echo "${downloadcompass}"
+    #wget "https://github.com/Questandachievement7Developer/UnifiedContainer/releases/download/downloadableRootfs/${archurl}.gz" -O ${tarball}
+    wget "${downloadcompass}" -o "${tarball}"
+		#wget "https://partner-images.canonical.com/core/disco/current/bootstrap-disco-core-cloudimg-${archurl}-root.tar.gz" -O $tarball
 	fi
 	cur=`pwd`
 	mkdir -p "$folder"
 	cd "$folder"
   yellow
-	echo "${pbadge} 🗜️ decompressing ubuntu image"
+	echo "${pbadge} 🗜️ decompressing bootstrap image"
 	${userspacebackend} ${symlinkfix} tar -xf ${cur}/${tarball} --exclude='dev'||:
+  ${userspacebackend} ${symlinkfix} cp -ruaH ${archurl}*/* .
+  rm -rf ${archurl}*
   stubs=()
   stubs+=('usr/bin/groups')
   #stubs=('usr/bin/groups')
   green
   for f in ${stubs[@]};do
-    printf "⌛ Writing Stubs (MFDGaming Version Fixes) \n"
+    printf "⌛ Writing Stubs (MFDGaming ubuntu Version Fixes) \n"
     echo -e "#!/bin/sh\nexit" > "$f"
   done
   #proot ${symlinkfix} tar -xf ${cur}/${tarball} --exclude='dev'||:
@@ -880,7 +886,7 @@ if [ "$first" != 1 ];then
 	cd "$cur"
 fi
 mkdir -p binds
-bin=start-ubuntu.sh
+bin=start-bootstrap.sh
 echo "${pbadge} 🚀 writing launch script"
 cat > $bin <<- EOM
 #!/bin/bash
@@ -1004,15 +1010,19 @@ EOM
 
 echo "${pbadge} 🧳 Doing some initial Setup"
 echo "Cleaning Lists"
-bash ${bin} "apt-get clean ; mv /var/lib/apt/lists /tmp; mkdir -p /var/lib/apt/lists/partial; apt-get clean"
+sed -i "s/^[[:space:]]*\(CheckSpace\)/# \1/" "${folder}/etc/pacman.conf"
+bash ${bin} "pacman-key --init"
+bash ${bin} "pacman-key --populate archlinux${specialarchtype}"
+bash ${bin} "pacman -Syu busybox screenfetch perl fish --noconfirm"
+#bash ${bin} "rm -rf /tmp/*;apt-get clean ; mv /var/lib/apt/lists /tmp; mkdir -p /var/lib/apt/lists/partial; apt-get clean;chown -R root:root /var/lib/apt/lists/partial"
 #bash ${bin} "apt-get update --allow-insecure-repositories"
-bash ${bin} "apt-get update "
-bash ${bin} "apt-get -o Debug::Acquire::gpgv=1 install --allow-unauthenticated gnupg -y"
-echo "Recovering Keys"
-bash ${bin} "apt-key adv -v --keyserver keyserver.ubuntu.com --recv-keys"
-bash ${bin} "apt-get -o Debug::Acquire::gpgv=1 install --allow-unauthenticated dialog gnupg busybox screenfetch perl fish -y"
+#bash ${bin} "apt-get update --allow-insecure-repositories --allow-unauthenticated"
+#bash ${bin} "apt-get -o Debug::Acquire::gpgv=1 install --allow-unauthenticated gnupg -y"
+#echo "Recovering Keys"
+#bash ${bin} "apt-key adv -v --keyserver keyserver.bootstrap.com --recv-keys"
+#bash ${bin} "apt-get -o Debug::Acquire::gpgv=1 install --allow-unauthenticated dialog gnupg busybox screenfetch perl fish -y"
 if [ -f ${maindir}/NOPTRACE ]; then
-bash ${bin} "apt-key update" # fixing at least one signature invalidation prolem
+bash ${bin} "pacman-key --populate archlinux${specialarchtype}" # fixing at least one signature invalidation prolem
 # the reason is still unknown why chroot butchered the permission or make the gpg inavlid
 fi
 bash ${bin} "busybox install /usr/bin"
@@ -1033,7 +1043,7 @@ echo a > success
 else
   red
 echo "${pbadge} 🥺Aww that sucks your installation didnt pass the verifier test🥺"
-if [ ${DEVELMODE} == '1' ]; then
+if [ ${DEVELMODE}=="1" ]; then
 echo "${pbadge} Dropping into shell mode"
 bash ${bin} sh
 fi
@@ -1054,7 +1064,7 @@ fi
 if [ ${newInstall} == "1" ]; then
 if [ -d ${defaultContainer} ]; then
 cd ${defaultContainer}
-ubuntuSetup
+bootstrapSetup
 else
   red
 echo "${pbadge} FATAL ERROR wowza What happened to the default container folder??"
@@ -1070,7 +1080,7 @@ else
 red
 echo "${pbadge} retrying Install due to the corrupted install"
 export newInstall=1
-# This will forces the program to retry until the program output the flag ( success flag ) from the verifier test ( See ubuntuSetup verifier test )
+# This will forces the program to retry until the program output the flag ( success flag ) from the verifier test ( See bootstrapSetup verifier test )
 cd ${origindir}
 rm -rf ${defaultContainer}
 defaultContainerSetup
