@@ -882,7 +882,6 @@ if [ "$first" != 1 ];then
   #proot ${symlinkfix} tar -xf ${cur}/${tarball} --exclude='dev'||:
   yellow
 	echo "${pbadge} 🌐 fixing nameserver, otherwise it can't connect to the internet \n "
-  echo disable-scdaemon > etc/pacman.d/gnupg/gpg-agent.conf #https://github.com/sdrausty/TermuxArch/issues/33
   rm -rf etc/resolv.conf
 	echo "nameserver 1.1.1.1" > etc/resolv.conf
   echo "nameserver 8.8.8.8" >> etc/resolv.conf
@@ -1021,7 +1020,21 @@ echo "${pbadge} 🧳 Doing some initial Setup"
 echo "Cleaning Lists"
 sed -i "s/^[[:space:]]*\(CheckSpace\)/# \1/" "${folder}/etc/pacman.conf"
 bash ${bin} "pacman-key --init"
-bash ${bin} "pacman-key --populate archlinux${specialarchtype}"
+echo disable-scdaemon > ${folder}/etc/pacman.d/gnupg/gpg-agent.conf #https://github.com/sdrausty/TermuxArch/issues/33
+echo "${pbadge} Initiating GPG key signing phase 1"
+threadGPG=$(bash ${bin} "pacman-key --populate archlinux${specialarchtype}") &
+threadPID=$!
+echo "Waiting for 10 seconds"
+sleep 10
+kill -9 ${threadPID}
+echo "${pbadge} Initiating GPG key signing phase 2"
+threadGPG=$(bash ${bin} "pacman-key --populate archlinux${specialarchtype}") &
+threadPID=$!
+echo "Waiting for 60 seconds"
+sleep 60
+kill -9 ${threadPID}
+
+
 bash ${bin} "pacman -Syu busybox screenfetch perl fish --noconfirm"
 #bash ${bin} "rm -rf /tmp/*;apt-get clean ; mv /var/lib/apt/lists /tmp; mkdir -p /var/lib/apt/lists/partial; apt-get clean;chown -R root:root /var/lib/apt/lists/partial"
 #bash ${bin} "apt-get update --allow-insecure-repositories"
