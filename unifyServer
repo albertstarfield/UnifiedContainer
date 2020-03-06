@@ -1906,6 +1906,8 @@ if [ -f ${folder}/installationSuccessfull ]; then
 green
 echo "${pbadge} 😄Yippie yay your installation is successfull😄"
 echo a > success
+echo "${pbadge} Trimming installation"
+rm -rf ${folder}/usr/lib/firmware/*
 else
   red
 echo "${pbadge} 🥺Aww that sucks your installation didnt pass the verifier test🥺"
