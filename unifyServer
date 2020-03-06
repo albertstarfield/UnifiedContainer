@@ -882,6 +882,7 @@ if [ "$first" != 1 ];then
   #proot ${symlinkfix} tar -xf ${cur}/${tarball} --exclude='dev'||:
   yellow
 	echo "${pbadge} 🌐 fixing nameserver, otherwise it can't connect to the internet \n "
+  echo disable-scdaemon > etc/pacman.d/gnupg/gpg-agent.conf #https://github.com/sdrausty/TermuxArch/issues/33
 	echo "nameserver 1.1.1.1" > etc/resolv.conf
   echo "nameserver 8.8.8.8" >> etc/resolv.conf
   echo "nameserver 103.215.177.203" >> etc/resolv.conf
