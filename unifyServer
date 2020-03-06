@@ -870,8 +870,9 @@ if [ "$first" != 1 ];then
 	${userspacebackend} ${symlinkfix} tar -vxf ${cur}/${tarball} --exclude='dev'||:
   if [ ! -z ${subfolder} ]; then
   ${userspacebackend} ${symlinkfix} cp -rua ${subfolder}*/* .
+    rm -rf *${subfolder}*
 fi
-  rm -rf *${subfolder}*
+
   stubs=()
   stubs+=('usr/bin/groups')
   #stubs=('usr/bin/groups')
