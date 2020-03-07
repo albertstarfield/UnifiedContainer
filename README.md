@@ -32,5 +32,7 @@
 | ------- | ------ | 
 | Samsung Galaxy Tab S2  (Termux) (armv7l) | Works really well | 
 | Samsung Galaxy Note 8 (Termux) (aarch64) | Works really well |
+| Asus X505Z Windows 10 Ubuntu WSL (x86_64) (NOPTRACE) | Works and crashed the whole system ( Because its windows ) |
+| ASROCK DESKTOP Windows 10 Ubuntu WSL (x86_64) (NOPTRACE) | Works stable  |
 
 
