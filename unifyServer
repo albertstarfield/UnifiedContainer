@@ -211,7 +211,8 @@ for a in ${packages}; do
 #bash ${0} exec ${name} "apt install -y < /packages"
 yellow
 echo "${pbadge} ⌛ Installing ${a} "
-bash ${0} exec ${name} "pacman -Sy --noconfirm ${a}" >> ${logs}/unifyServerPackageInstaller.log 2>&1
+bash ${0} exec ${name} "pacman -Syy" >> ${logs}/unifyServerPackageInstaller.log 2>&1
+bash ${0} exec ${name} "pacman -S --needed --noconfirm ${a}" >> ${logs}/unifyServerPackageInstaller.log 2>&1
 green
 echo "${pbadge} ✔️ Done Installing ${a} "
 done
