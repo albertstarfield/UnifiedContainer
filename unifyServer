@@ -710,6 +710,15 @@ fi
     export pyInstallParam=""
     fi
 
+    if [ ! -z $(which add-apt-repository) ]; then
+    export packmanager="apt-get"
+    export installParameter="install -y"
+    echo Apt detected doing some special treatment
+    add-apt-repository universe
+    echo Refreshing Repo
+    apt-get update
+    fi
+
     if [ ! -z $(which pip) ]; then
     export pyPacman="pip"
     export pyInstallParam="install"
@@ -721,14 +730,7 @@ fi
 
 dependencies(){
 if [ ${newInstall} == "1" ]; then
-  if [ ! -z $(which add-apt-repository) ]; then
-  export packmanager="apt-get"
-  export installParameter="install -y"
-  echo Apt detected doing some special treatment
-  add-apt-repository universe
-  echo Refreshing Repo
-  apt-get update
-  fi
+
   distroDetection
   export distComplete="$(uname -a)"
 
