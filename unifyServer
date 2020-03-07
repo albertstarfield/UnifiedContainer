@@ -651,7 +651,8 @@ if [ $(whoami) != "root" ]; then
 if [ -z $(which sudo) ];then
 echo Restarting...
 export rootRequested=1
-su -c "bash ${0}"
+#su -c "bash ${0}"
+sudo bash ${0}
 else
 echo Restarting...
 export rootRequested=1
@@ -741,7 +742,7 @@ if [ ${newInstall} == "1" ]; then
   done
 # This installation scheme were changed due to the fact old SU request created a unresolvable and wierd bug like Missing (Expected fi) from intrepretation
 if [ ${packmanager} != "pkg" ] && [ -z ${rootRequested} ]; then
-su -c "bash ${TMPFolder}/SUINSTALL"
+sudo "bash ${TMPFolder}/SUINSTALL"
 else
 bash ${TMPFolder}/SUINSTALL
 fi
