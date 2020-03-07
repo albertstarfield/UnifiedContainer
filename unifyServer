@@ -785,7 +785,8 @@ if [ -z $(which proot) ] && [ ${ptracecompat} == '1' ]; then
 fi
 
 if [ -z $(which git) ] || [ -z $(which busybox) ] || [ -z $(which chroot) ]; then
-echo "${pbadge} DEPENDENCIES ARE NOT INSTALLED ABORTING LAUNCH"
+echo "${pbadge} DEPENDENCIES ARE NOT INSTALLED NUKING IS REQUIRED"
+nuke
 exit
 fi
 
