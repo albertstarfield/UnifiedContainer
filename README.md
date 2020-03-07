@@ -9,13 +9,17 @@
 4. Faster error troubleshooting since you can simply flick reset switch for every container
 5. Structured Workflow
 ## Where can it be installed?
+PTrace Capable Kernel machines
 1. Termux ( Originally built for )
 2. Ubuntu
 3. Debian
 4. Archlinux
 5. Manjaro
 6. CentOS
-7. iSH coming soon
+NON PTRACE Machines
+1. WSL Distro
+2. iSH ( iOS shell )
+
 ## How to install
 ```
 1. git clone https://github.com/Questandachievement7Developer/UnifiedContainer .
