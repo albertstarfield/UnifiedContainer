@@ -1893,7 +1893,7 @@ if [ -f ${maindir}/NOPTRACE ]; then
 bash ${bin} "pacman-key --populate archlinux${specialarchtype}" # fixing at least one signature invalidation prolem
 # the reason is still unknown why chroot butchered the permission or make the gpg inavlid
 fi
-bash ${bin} "busybox install /usr/bin"
+#bash ${bin} "busybox install /usr/bin"
 echo "${pbadge} 🧳 Fixing Perl"
 #bash ${bin} "rm -f /usr/bin/perl"
 #bash ${bin} "cp /usr/bin/perl5* /usr/bin/perl"
