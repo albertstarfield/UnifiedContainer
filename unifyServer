@@ -706,6 +706,20 @@ fi
     pacman -Syy
     fi
 
+if [ ! -z $(which apt-get) ]; then
+  export packmanager="apt-get"
+  export installParameter="install -y"
+  fi
+  if [ ! -z $(which add-apt-repository) ]; then
+  export packmanager="apt-get"
+  export installParameter="install -y"
+  echo Apt detected doing some special treatment
+  add-apt-repository universe
+  echo Refreshing Repo
+  apt-get update
+  fi
+
+
     if [ ! -z $(which easy_install) ]; then
     export pyPacman="easy_install"
     export pyInstallParam=""
@@ -722,18 +736,7 @@ fi
 
 dependencies(){
 if [ ${newInstall} == "1" ]; then
-if [ ! -z $(which apt-get) ]; then
-  export packmanager="apt-get"
-  export installParameter="install -y"
-  fi
-  if [ ! -z $(which add-apt-repository) ]; then
-  export packmanager="apt-get"
-  export installParameter="install -y"
-  echo Apt detected doing some special treatment
-  add-apt-repository universe
-  echo Refreshing Repo
-  apt-get update
-  fi
+
   distroDetection
   export distComplete="$(uname -a)"
 
