@@ -1945,6 +1945,7 @@ else
 if [ -f ${defaultContainer}/success ]; then
 green
 echo "${pbadge} default container is installed"
+rm -rf ${defaultContainer}/bootstrap.tar.gz
 else
 red
 echo "${pbadge} retrying Install due to the corrupted install"
