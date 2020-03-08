@@ -61,4 +61,9 @@ you can clone it and modify to get started quickly
 | Asus X505Z Windows 10 Ubuntu WSL (x86_64) (NOPTRACE) | Works and crashed the whole system ( Because its windows ) |
 | ASROCK DESKTOP Windows 10 Ubuntu WSL (x86_64) (NOPTRACE) | Works stable  |
 
-
+## Feels confused about the installation setup or anything wanted to implemented in this version?
+Feel free to contact to these: <br>
+:email: questandachievement@gmail.com  <br>
+Personal Discord Yuuta kun#5097 <br>
+Our community discord [Discord group](https://discord.gg/krVd2b9)
+> Don't hestitate to ask we will help you and we won't kill you if you ask so many questions xd
