@@ -41,6 +41,9 @@
 add Container $ ./unifyServer add <container name>
 launchContainerService $ ./unifyServer launch <container name>
 Import container $ ./unifyServer import "<git repo link>"
+enter the container shell $ ./unifyServer shell <container name>
+
+for further help do $ ./unifyServer help
 ```
 
 ## :heartpulse: How to share Container configuration?
