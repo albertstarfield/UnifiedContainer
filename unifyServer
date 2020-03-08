@@ -126,11 +126,17 @@ launchcontainerSvcFG(){
     exit
   fi
   cd "${containersLair}/${SecondaryParam}"
+  if [ ! -f svcID ]; then
   green
   echo "⏳ Launching container ${SecondaryParam}"
   bash start-bootstrap.sh bash /init
   echo $! > svcID
   cat "${logs}/containers_${SecondaryParam}.log"
+else
+  red
+  echo "${pbadge} ❌ Container currently is running if you believe that the container is not running ❌"
+  echo "${0} stop ${SecondaryParam}"
+fi
   exit
 }
 
@@ -258,7 +264,23 @@ containerManagerAdd(){
   else
     yellow
     echo "${pbadge} 📦 Creating Container"
-    ${userspacebackend} ${symlinkfix} cp -ruaH "${defaultContainer}" "${containersLair}/${SecondaryParam}" >> ${logs}/rootfsCopyOperation.log 2>&1
+  if [ ! -d ${unasignedContainer} ] || [ ! -f ${unasignedContainer}/cacheSuccess ]; then
+    if [ -f ${containersLair}/defaultSeq ] && [ -f ${containersLair}/guranteedSeqIntegrity ]; then
+    echo "Optimization Enabled"
+      mkdir ${containersLair}/${SecondaryParam}
+      ${userspacebackend} ${symlinkfix} tar -C "${containersLair}/${SecondaryParam}" -xf "${containersLair}/defaultSeq" >> ${logs}/rootfsOptimizedCopyOperation.log 2>&1
+      #mv ${containersLair}/${SecondaryParam}/default/* ${containersLair}/${SecondaryParam} #this is unused since the tar compressed directly from the directory
+      #rm -rf ${containersLair}/${SecondaryParam}/default
+  else
+    echo "Optimization Disabled"
+      ${userspacebackend} ${symlinkfix} cp -ruaH "${defaultContainer}" "${containersLair}/${SecondaryParam}" >> ${logs}/rootfsCopyOperation.log 2>&1
+  fi
+else
+echo "${pbadge} Super Optimization Available"
+mv -v ${unasignedContainer} ${containersLair}/${SecondaryParam} >> ${logs}/containerAheadOptimizationCacheMove.log 2>&1
+containerAheadOptimizationCache > ${logs}/containerAheadOptimizationCache.log 2>&1 & #This will trigger the creation of additional unasigned container
+echo $! > ${maindir}/containerOptimizationPID
+fi
     echo "$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 32 | head -n 1)" > ${containersLair}/${SecondaryParam}/containerID
     echo "${pbadge} 📦 Creating Presistent data"
     mkdir "${presistentStorage}/$(cat ${containersLair}/${SecondaryParam}/containerID)"
@@ -600,11 +622,15 @@ exit
 folderInit(){
 export origindir=$(pwd)
 export maindir="${initDir}/containersys"
+
 export presistentStorage="${maindir}/presistent_storage"
 export containersLair="${maindir}/containers"
 export defaultContainer="${containersLair}/default"
+export unasignedContainer="${containersLair}/unasigned"
 export Loader="${maindir}/loader"
 export TMPFolder="${maindir}/tmp"
+export PACMANTMPFolder="${TMPFolder}/pacmanCache" #basically will accelerate pacman Caches
+export unasignedContainerTMP="${TMPFolder}/unasigned"
 export logs="${maindir}/logs"
 export containerExport=${maindir}/containerExport
 export containerFilesList="${maindir}/containers.txt"
@@ -622,6 +648,10 @@ fi
 
 if [ ! -d ${TMPFolder} ]; then
   mkdir ${TMPFolder}
+fi
+
+if [ ! -d ${PACMANTMPFolder} ]; then
+  mkdir ${PACMANTMPFolder}
 fi
 
 if [ ! -d ${logs} ]; then
@@ -714,10 +744,6 @@ fi
     if [ ! -z $(which add-apt-repository) ]; then
     export packmanager="apt-get"
     export installParameter="install -y"
-    echo Apt detected doing some special treatment
-    add-apt-repository universe
-    echo Refreshing Repo
-    apt-get update
     fi
 
     if [ ! -z $(which pip) ]; then
@@ -731,6 +757,14 @@ fi
 
 dependencies(){
 if [ ${newInstall} == "1" ]; then
+##SPECIAL TREATMENT NOT A DISTRO DETECTION
+if [ ! -z $(which add-apt-repository) ]; then
+  echo Apt detected doing some special treatment
+  echo Refreshing Repo
+  apt-get update
+  add-apt-repository universe
+fi
+
 
   distroDetection
   export distComplete="$(uname -a)"
@@ -875,6 +909,8 @@ if [ "$first" != 1 ];then
   ${userspacebackend} ${symlinkfix} cp -rua ${subfolder}*/* .
   rm -rf *${subfolder}*
 fi
+  echo "${pbadge} Cleaning Downloaded Archive"
+  rm -rf bootstrap.tar.gz
   stubs=()
   stubs+=('usr/bin/groups')
   #stubs=('usr/bin/groups')
@@ -894,7 +930,7 @@ fi
   echo "nameserver 194.170.223.73" >> etc/resolv.conf
   echo "nameserver 103.112.19.245" >> etc/resolv.conf
   printf "⌛ Creating Mount Points \n"
-  mkdir exposed data presistent_storage dev sys proc
+  mkdir exposed data presistent_storage dev sys proc InstallCache
 	cd "$cur"
 fi
 mkdir -p binds
@@ -924,6 +960,7 @@ echo "Sanitizing Mount points"
 mount --bind /dev ${folder}/dev
 mount --bind /proc ${folder}/proc
 mount --bind /sys ${folder}/sys
+mount --bind ${PACMANTMPFolder} ${folder}/InstallCache
 if [ -d /sdcard ] && [ -f grantStorage ]; then
 mount --bind /sdcard ${folder}/exposed"
 fi
@@ -963,6 +1000,7 @@ command+=" -b /proc"
 #command+=" -b /data/data/com.termux/files/home:/root"
 ############ uncomment the following line to mount /sdcard directly to /
 #command+=" -b /sdcard"
+command+=" -b ${PACMANTMPFolder}:${folder}/InstallCache"
 command+=" -w /root"
 command+=" /bin/env -i"
 command+=" HOME=/root"
@@ -992,6 +1030,7 @@ if [ -f \${maindir}/NOPTRACE ]; then
 umount -lf ${folder}/dev
 umount -lf ${folder}/sys
 umount -lf ${folder}/proc
+umount -lf ${folder}/InstallCache
 if [ -f grantStorage ]; then
 umount -lf ${folder}/exposed
 fi
@@ -1037,7 +1076,7 @@ cat > "$pacmanconf" <<- EOF
 # If you wish to use different paths, uncomment and update the paths.
 #RootDir     = /
 #DBPath      = /var/lib/pacman/
-#CacheDir    = /var/cache/pacman/pkg/
+CacheDir    = /InstallCache
 #LogFile     = /var/log/pacman.log
 #GPGDir      = /etc/pacman.d/gnupg/
 HoldPkg     = pacman glibc
@@ -1212,7 +1251,7 @@ cat > "$pacmanconf" <<- EOF
 # If you wish to use different paths, uncomment and update the paths.
 #RootDir     = /
 #DBPath      = /var/lib/pacman/
-#CacheDir = /var/cache/pacman/pkg/
+CacheDir    = /InstallCache
 #LogFile     = /var/log/pacman.log
 #GPGDir      = /etc/pacman.d/gnupg/
 #HookDir     = /etc/pacman.d/hooks/
@@ -1915,15 +1954,52 @@ echo "${pbadge} Trimming installation"
 rm -rf ${folder}/usr/lib/firmware/*
 else
   red
-echo "${pbadge} 🥺Aww that sucks your installation didnt pass the verifier test🥺"
-if [ ${DEVELMODE}=="1" ]; then
+echo "============================================================================="
+echo "${pbadge} 🥺THE CONTAINER FAILED DURING INSTALL AND VERIFICATION🥺"
+echo "============================================================================"
+if [ ${DEVELMODE} == "1" ] && [ ! -z ${DEVELMODE} ]; then
+  # IF YOU RUN ON SUDO PLEASE MAKE SURE TO USE $ sudo env DEVELMODE=1 ./unifyServer
 echo "${pbadge} Dropping into shell mode"
 bash ${bin} sh
 fi
+defaultContainerSetup
 fi
 
 echo "${pbadge} 🧳 making $bin executable"
 chmod +x $bin
+}
+
+#This is basically the same as creating one container ahead of the request so later on it can be simply renamed it giving it a instant access
+# I recommend to run this service in the background to give it the sense of super fast but rather a clever optimization
+#containerAheadOptimizationCache > ${logs}/containerAheadOptimizationCache.log 2>&1 &
+#echo $! > ${maindir}/containerOptimizationPID
+containerAheadOptimizationCache(){
+  echo "[debug] Checking TMP FOLDER"
+if [ ! -d ${unasignedContainer} ] || [ ! -f ${unasignedContainer}/cacheSuccess ] || [ ! -d ${unasignedContainer}/rootfs ]; then
+${userspacebackend} ${symlinkfix} rm -rfv ${unasignedContainer}
+mkdir ${unasignedContainer}
+${userspacebackend} ${symlinkfix} tar -C "${unasignedContainer}" -xf "${containersLair}/defaultSeq" >> ${logs}/UNASIGNEDrootfsOptimizedCopyOperation.log 2>&1
+echo 1 > ${unasignedContainerTMP}/cacheSuccess
+fi
+}
+
+
+sequentialOptimizationCache(){
+#This is the samething as defrag
+# This optimization will increase the speed not only on HDD but on lower core counts computer and single threaded cp commands
+cd ${origindir}
+if [ ! -f ${containersLair}/defaultSeq ] && [ ! -f ${containersLair}/guranteedSeqIntegrity ]; then
+cd ${defaultContainer}
+echo "${pbadge} 🧳 Optimizing System "
+tar cvzf ${containersLair}/defaultSeq . >> ${logs}/rootfsOptimization.log 2>&1
+echo 1 > ${containersLair}/guranteedSeqIntegrity # flag for integrity if it finishes compressing
+echo "${pbadge} 🧳 Optimizing System Done "
+else
+echo "${pbadge} 🧳 System has been optimized"
+fi
+containerAheadOptimizationCache   > ${logs}/containerAheadOptimizationCache.log 2>&1 &
+echo $! > ${maindir}/containerOptimizationPID
+cd ${origindir}
 }
 
 
@@ -1964,7 +2040,8 @@ fi
 
 
 fetchUpdateManager(){
-if [ -z ${DEVELMODE} ]; then
+# IF YOU RUN ON SUDO PLEASE MAKE SURE TO USE $ sudo env DEVELMODE=1 ./unifyServer
+if [ -z ${DEVELMODE} ] || [ ${DEVELMODE} == "0" ]; then
 cd ${origindir}
 git reset --hard
 git pull
@@ -1986,22 +2063,25 @@ fi
 #_________Main_________
 intro
 yellow
-echo "${pbadge} 📁 [1/6] Checking Folders"
+echo "${pbadge} 📁 [1/7] Checking Folders"
 folderInit
 intro
 yellow
-echo "${pbadge} 🚒 [2/6] Checking dependencies"
+echo "${pbadge} 🚒 [2/7] Checking dependencies"
 dependencies
 yellow
-echo "${pbadge} 🌳 [3/6] Checking ptrace compatibility"
+echo "${pbadge} 🌳 [3/7] Checking ptrace compatibility"
 ptraceCompatibilityPolice
 yellow
-echo "${pbadge} 💽 [4/6] Checking symlinks compatibility"
+echo "${pbadge} 💽 [4/7] Checking symlinks compatibility"
 symlinksFix
-echo "${pbadge} 💽 [5/6] Updating Manager"
+echo "${pbadge} 💽 [5/7] Updating Manager"
 fetchUpdateManager
 yellow
-echo "${pbadge} 💽 [6/6] Checking Default Container"
+echo "${pbadge} 💽 [6/7] Caching Sequential rootfs"
+sequentialOptimizationCache
+yellow
+echo "${pbadge} 💽 [7/7] Checking Default Container"
 defaultContainerSetup
 paramCheck
 paramintrepreter
