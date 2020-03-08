@@ -3,7 +3,7 @@
 # :sunflower: :computer: Project Bay :computer: :sunflower:
 ![version](https://img.shields.io/badge/alpha-0.01-green)
 > Project Bay or also known as Unified Container is a linux container manager Userspace proot backend that allows to create and share linux container in ease without any difficulty on creating one, Inspired from these programs ( Docker , Multipass , TermuxArch )
-## What its use and its advantages ?
+## :check: What its use and its advantages ?
 1. It can be used for anything really build a desktop, do a portable sharable reasearch container etc
 2. Its architechture is simple yet effective so system delivery is more efficient
 3. Have less dependencies on daemons due to the nature of simplistic architechture
