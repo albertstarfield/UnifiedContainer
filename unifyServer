@@ -1975,7 +1975,7 @@ chmod +x $bin
 #echo $! > ${maindir}/containerOptimizationPID
 containerAheadOptimizationCache(){
   echo "[debug] Checking TMP FOLDER"
-if [ ! -d ${unasignedContainer} ] || [ ! -f ${unasignedContainer}/cacheSuccess ] || [ ! -d ${unasignedContainer}/rootfs ]; then
+if ([ ! -d ${unasignedContainer} ] || [ ! -f ${unasignedContainer}/cacheSuccess ] || [ ! -d ${unasignedContainer}/rootfs ]) && [ ! -f ${containersLair}/defaultSeq ]; then
 ${userspacebackend} ${symlinkfix} rm -rfv ${unasignedContainer}
 mkdir ${unasignedContainer}
 ${userspacebackend} ${symlinkfix} tar -C "${unasignedContainer}" -xf "${containersLair}/defaultSeq" >> ${logs}/UNASIGNEDrootfsOptimizedCopyOperation.log 2>&1
