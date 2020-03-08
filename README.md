@@ -21,11 +21,18 @@
 1. WSL Distro
 2. iSH ( iOS shell )
 
-## How to install
+## :floppy_disk: How to install
 ```
 1. git clone https://github.com/Questandachievement7Developer/UnifiedContainer .
 2. chmod +x ./unifyServer 
 3. ./unifyServer
+```
+
+## :battery: How to Get started
+```
+add Container $ ./unifyServer add <container name>
+launchContainerService $ ./unifyServer launch <container name>
+Import container $ ./unifyServer import "<git repo link>"
 ```
 
 ## :heartpulse: How to share Container configuration?
