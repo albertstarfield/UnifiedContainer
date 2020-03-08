@@ -3,21 +3,21 @@
 # :sunflower: :computer: Project Bay :computer: :sunflower:
 ![version](https://img.shields.io/badge/alpha-0.01-green)
 > Project Bay or also known as Unified Container is a linux container manager Userspace proot backend that allows to create and share linux container in ease without any difficulty on creating one, Inspired from these programs ( Docker , Multipass , TermuxArch )
-## :check: What its use and its advantages ?
+## :white_check_mark: What its use and its advantages ?
 1. It can be used for anything really build a desktop, do a portable sharable reasearch container etc
 2. Its architechture is simple yet effective so system delivery is more efficient
 3. Have less dependencies on daemons due to the nature of simplistic architechture
 4. Faster error troubleshooting since you can simply flick reset switch for every container
 5. Structured Workflow
-## Where can it be installed?
-### PTrace Capable Kernel machines
+##  :question: Where can it be installed?
+### :gear: PTrace Capable Kernel machines
 1. Termux ( Originally built for )
 2. Ubuntu
 3. Debian
 4. Archlinux
 5. Manjaro
 6. CentOS
-### NON PTRACE Machines
+### :gear: NON PTRACE Machines
 1. WSL Distro
 2. iSH ( iOS shell )
 
@@ -28,7 +28,7 @@
 3. ./unifyServer
 ```
 
-## How to share Container configuration?
+## :heartpulse: How to share Container configuration?
 For container configuration check this refrence
 you can clone it and modify to get started quickly
 | Container | Link | 
@@ -37,7 +37,7 @@ you can clone it and modify to get started quickly
 | matrixcontainer | :computer: [Repo Container](https://github.com/Questandachievement7Developer/container_matrix)|
 | empiresserver | :computer: [Repo Container](https://github.com/Questandachievement7Developer/containers_EmpiresandAllies) |
 
-## Tested Systems
+## :clipboard: Tested Systems
 
 | Device | Status | 
 | ------- | ------ | 
