@@ -1927,6 +1927,7 @@ kill -9 ${threadPID}
 
 # Update the pacman libraries first
 # THe depenendices are available in here https://bbs.archlinux.org/viewtopic.php?id=117679
+bash ${bin} "rm -rf /var/lib/pacman/db.lck"
 bash ${bin} "pacman -Syy libidn2 libpsl gnutls systemd curl gpgme gnupg --noconfirm"
 bash ${bin} "pacman -Syyu busybox awk which screenfetch perl fish --noconfirm"
 #bash ${bin} "rm -rf /tmp/*;apt-get clean ; mv /var/lib/apt/lists /tmp; mkdir -p /var/lib/apt/lists/partial; apt-get clean;chown -R root:root /var/lib/apt/lists/partial"
