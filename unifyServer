@@ -517,6 +517,9 @@ managerExec="${installTarget}/bay"
 echo "cd ${origindir} ; bash ./unifyServer $1 \$2 \$3 " > "${managerExec}"
 chmod 777 "${managerExec}"
 echo "${pbadge} Installation is successfull"
+echo "${pbadge} Now you can call me \$ bay"
+echo "${pbadge} it is just the same but easier and more accessible"
+echo "${pbadge} try \$ bay help"
 exit
 }
 
@@ -1063,6 +1066,16 @@ cat > "$execroutines" <<- EOM
 echo "Hello world"
 uname -a
 EOM
+
+
+sudofix=${folder}/bin/sudo
+##### SUDO FIX ####
+cat > "$sudofix" <<- EOM
+#!/bin/sh
+echo "Emulated Sudo revision 1"
+su -c "\$@"
+EOM
+chmod +x ${folder}/bin/sudo
 
 # Setting up mirrorlist
 pacmanconf="${folder}/etc/pacman.conf"
