@@ -375,7 +375,7 @@ cat > "$bayd" <<- EOM
 ## This is a execution Routines that changes how the container behaves
 ## you can start a script or anything you want in here
 export binloc="../${maindir}/unifyServer"
-bash ${binloc} \$@
+bash ${binloc} \${1} \${2} \${3} \${4} \${5}
 EOM
 }
 
