@@ -589,7 +589,7 @@ case ${PrimaryParam} in
   *)
     help_unifyServer ;;
 esac
-
+}
 # if the bash is recognized this one rather the real one
 # then it have a big problem
 
@@ -619,7 +619,6 @@ export newInstall=1
 defaultContainerSetup
 }
 
-}
 containerManagerUpgrade(){
   if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
     red
