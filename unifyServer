@@ -3,6 +3,7 @@ echo "Manager Update codename: Tracing the bulk"
 export PrimaryParam=${1}
 export SecondaryParam=${2}
 export TertiaryParam=${3}
+export quadtiaryParam=${4}
 #set -x
 #echo DEBUG PARAM CHECK ${PrimaryParam} ${SecondaryParam}
 
@@ -185,6 +186,10 @@ launchcontainerSHELL(){
 }
 
 executeContainerCMD(){
+  if [ ! -z $@ ] ; then
+    SecondaryParam=${1}
+    TertiaryParam=${2}
+  fi
   if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
     red
     echo "${pbadge} ❌ Container does not exists please create the container first ❌"
@@ -194,10 +199,16 @@ executeContainerCMD(){
   yellow
   echo "${pbadge} 🏃‍ Executing ${TertiaryParam} on ${SecondaryParam}"
   bash start-bootstrap.sh "${TertiaryParam}"
+  if [ -z $@ ] ; then
   exit
+fi
 }
 
 containerManagerImport(){
+  if [ ! -z $@ ] ; then
+    SecondaryParam=${1}
+    TertiaryParam=${2}
+  fi
 containerID=$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 32 | head -n 1)
 export importedcontainer="${TMPFolder}/${containerID}"
 git clone ${SecondaryParam} ${TMPFolder}/${containerID}
@@ -212,14 +223,24 @@ init=$(cat ${importedcontainer}/init)
 setuproutines=$(cat ${importedcontainer}/setup)
 rootfsConfig=${importedcontainer}/additional_container_configuration
 cd ${origindir}
-bash ${0} add ${name}
+containerManagerAdd ${name}
 echo "${packages}" > ${containersLair}/${name}/rootfs/packages
+export totalpackage=0
+for b in ${packages}; do
+totalpackage=$((totalpackage + 1))
+done
+currentpackage=0
 for a in ${packages}; do
+currentpackage=$((currentpackage + 1))
+percentage=$((currentpackage * 100 / totalpackage))
 #bash ${0} exec ${name} "apt install -y < /packages"
 yellow
-echo "${pbadge} ⌛ Installing ${a} "
-bash ${0} exec ${name} "pacman -Syy" >> ${logs}/unifyServerPackageInstaller.log 2>&1
-bash ${0} exec ${name} "pacman -S --needed --noconfirm ${a}" >> ${logs}/unifyServerPackageInstaller.log 2>&1
+export SecondaryParamOld="${SecondaryParam}"
+echo "${pbadge} ⌛ Installing Dependencies ${percentage} %"
+#bash ${0} exec ${name} "pacman -Syy" >> ${logs}/unifyServerPackageInstaller.log 2>&1
+#bash ${0} exec ${name} "pacman -S --needed --noconfirm ${a}" >> ${logs}/unifyServerPackageInstaller.log 2>&1
+executeContainerCMD ${name} "pacman -Syy" >> ${logs}/unifyServerPackageInstaller.log 2>&1
+executeContainerCMD ${name} "pacman -S --needed --noconfirm ${a}" >> ${logs}/unifyServerPackageInstaller.log 2>&1
 green
 echo "${pbadge} ✔️ Done Installing ${a} "
 done
@@ -229,9 +250,10 @@ echo "${setuproutines}" > ${containersLair}/${name}/rootfs/setup
 echo "${pbadge} ✨Container Finishing touch✨"
 echo "${pbadge} Checking rootfs cache"
 if [ -d ${rootfsConfig} ]; then
-  ${userspacebackend} ${symlinkFix} cp -ruaH ${rootfsConfig}/* ${containersLair}/${name}/rootfs
+  ${userspacebackend} ${symlinkfix} cp -ruaH ${rootfsConfig}/* ${containersLair}/${name}/rootfs
 fi
-bash ${0} exec ${name} "bash /setup"
+executeContainerCMD ${name} "bash /setup"
+#bash ${0} exec ${name} "bash /setup"
 green
 echo "${pbadge} ✨import done✨"
 exit
@@ -245,7 +267,8 @@ containerManagerExport(){
   fi
 name=${SecondaryParam}
 #bash ${0} exec ${SecondaryParam} "apt list --installed > /packages" #https://askubuntu.com/questions/9135/how-to-backup-settings-and-list-of-installed-packages
-bash ${0} exec ${SecondaryParam} "pacman -Qqe > /packages"
+#bash ${0} exec ${SecondaryParam} "pacman -Qqe > /packages"
+executeContainerCMD ${name} "pacman -Qqe > /packages"
 packages=$(cat ${containersLair}/${SecondaryParam}/rootfs/packages)
 init=$(cat ${containersLair}/${SecondaryParam}/rootfs/init)
 
@@ -262,6 +285,10 @@ exit
 
 
 containerManagerAdd(){
+  if [ ! -z $@ ] ; then
+    SecondaryParam=${1}
+    TertiaryParam=${2}
+  fi
   if [ -d "${containersLair}/${SecondaryParam}" ]; then
     red
     echo "${pbadge} Container Exists"
@@ -284,7 +311,7 @@ else
 echo "${pbadge} Super Optimization Available"
 mv -v ${unasignedContainer} ${containersLair}/${SecondaryParam} >> ${logs}/containerAheadOptimizationCacheMove.log 2>&1
 containerAheadOptimizationCache > ${logs}/containerAheadOptimizationCache.log 2>&1 & #This will trigger the creation of additional unasigned container
-echo $! > ${maindir}/containerOptimizationPID
+#echo $! > ${maindir}/containerOptimizationPID
 fi
     echo "$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 32 | head -n 1)" > ${containersLair}/${SecondaryParam}/containerID
     echo "${pbadge} 📦 Creating Presistent data"
@@ -292,7 +319,9 @@ fi
     green
     echo "${pbadge} ${SecondaryParam} ✔️ Container done"
     echo "${SecondaryParam}" >> ${containerFilesList}
-    exit
+    if [ -z $@ ] ; then
+      exit
+    fi
   fi
 
 }
@@ -310,11 +339,11 @@ containerManagerReset(){
       echo "${pbadge} 📦 Resetting Remote Container"
       originLink="$(cat ${containersLair}/${SecondaryParam}/origin)"
       cd ${origindir}
-      rm -rf "${containersLair}/${SecondaryParam}"
+      ${userspacebackend} ${symlinkfix} rm -rf "${containersLair}/${SecondaryParam}"
       bash ${0} import "${originLink}"
     else
       echo "${pbadge} 📦 Resetting Local Container"
-    rm -rf "${containersLair}/${SecondaryParam}"
+    ${userspacebackend} ${symlinkfix} rm -rf "${containersLair}/${SecondaryParam}"
     ${userspacebackend} ${symlinkfix} cp -ruaH "${defaultContainer}" "${containersLair}/${SecondaryParam}" >> ${logs}/rootfsCopyOperation.log  2>&1
   fi
     green
@@ -334,8 +363,11 @@ containerManagerrm(){
   else
     yellow
     echo "${pbadge} 🗑️ Removing Container ${SecondaryParam}"
-    rm -rf "${containersLair}/${SecondaryParam}"
+    ${userspacebackend} ${symlinkfix} rm -rf "${containersLair}/${SecondaryParam}"
     green
+    if [ -f ${maindir}/NOPTRACE ]; then
+      umount -lf ${containersLair}/${SecondaryParam}/rootfs/dev ${containersLair}/${SecondaryParam}/rootfs/sys ${containersLair}/${SecondaryParam}/rootfs/proc ${containersLair}/${SecondaryParam}/rootfs/exposed
+    fi
     echo "${pbadge} ✔️ Removing Finished"
     sed "s/${SecondaryParam}//" ${containerFilesList} > "${containersFilesList}_tmp"
     rm -rf ${containersFilesList}
@@ -375,7 +407,7 @@ cat > "$bayd" <<- EOM
 ## This is a execution Routines that changes how the container behaves
 ## you can start a script or anything you want in here
 export binloc="../${maindir}/unifyServer"
-bash ${binloc} \${1} \${2} \${3} \${4} \${5}
+bash ${binloc} \$@
 EOM
 }
 
@@ -391,6 +423,51 @@ for a in \$(cat ${containerFilesList}); do
   bash ${binloc} launch ${a}
 done
 EOM
+}
+
+
+
+
+sysFileExchangeExport(){
+if [ -z ${quadtiaryParam}] || [ -z ${TertiaryParam} ]; then
+    red
+    echo "${pbadge} ❌ You forgot to put source or destination ❌"
+    exit
+fi
+if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
+    red
+    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
+    exit
+else
+${userspacebackend} ${symlinkfix} cp -ruavH "${TertiaryParam}" "${containersLair}/${SecondaryParam}/rootfs/${quadtiaryParam}"
+exit
+fi
+}
+
+sysFileExchangeImport(){
+if [ -z ${quadtiaryParam}] || [ -z ${TertiaryParam} ]; then
+    red
+    echo "${pbadge} ❌ You forgot to put source or destination ❌"
+    exit
+fi
+if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
+    red
+    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
+    exit
+else
+${userspacebackend} ${symlinkfix} cp -ruavH "${quadtiaryParam}" "${containersLair}/${SecondaryParam}/rootfs/${quadtiaryParam}"
+exit
+fi
+}
+
+
+debugFunct(){
+echo "${pbadge} DEBUG MODE !"
+printf "\n unifyManager dbg console > "
+
+read a
+${a}
+exit
 }
 
 
@@ -440,6 +517,12 @@ echo .
 echo "to enter the container Shell"
 echo "${0} shell <containerName>"
 echo .
+echo "to import File or directory from host "
+echo "${0} importFile <containerName> <Source dir or File Host> <Target dir on container>"
+echo .
+echo "to export File or directory from host "
+echo "${0} exportFile <containerName> <Source dir or File container> <Target dir on Host>"
+echo .
 echo "upgrade Container to newer version"
 echo "${0} upgrade <containerName>"
 echo .
@@ -457,9 +540,14 @@ echo "${0} edit_routines <containerName>"
 exit
 }
 
-
 paramintrepreter(){
 case ${PrimaryParam} in
+  debug)
+    debugFunct ;;
+  importFile)
+    sysFileExchangeImport ;;
+  exportFile)
+    sysFileExchangeExport ;;
   launch)
     launchcontainerSvc ;;
   install)
@@ -514,17 +602,19 @@ else
 installTarget="/usr/local/bin"
 fi
 managerExec="${installTarget}/bay"
-echo "cd ${origindir} ; bash ./unifyServer $1 \$2 \$3 " > "${managerExec}"
+echo "cd ${origindir} ; bash ./unifyServer \$1 \$2 \$3 \$4 " > "${managerExec}"
 chmod 777 "${managerExec}"
 echo "${pbadge} Installation is successfull"
-echo "${pbadge} Now you can call me \$ bay"
-echo "${pbadge} it is just the same but easier and more accessible"
-echo "${pbadge} try \$ bay help"
+
+managerExec="${installTarget}/unifyServer"
+echo "cd ${origindir} ; bash ./unifyServer \$1 \$2 \$3 \$4 " > "${managerExec}"
+chmod 777 "${managerExec}"
+echo "${pbadge} Installation is successfull"
 exit
 }
 
 upgradeMainContainer(){
-rm -rf ${defaultContainer}
+${userspacebackend} ${symlinkfix} rm -rf ${defaultContainer}
 export newInstall=1
 defaultContainerSetup
 }
@@ -601,7 +691,7 @@ else
   red
 echo "❌The Container is isolated from the local storage"
 fi
-if [ -d ${presistentStorage}/$(cat ${containersLair}/${a}/containerID) ]; then
+if [ ! -d ${presistentStorage}/$(cat ${containersLair}/${a}/containerID) ]; then
   red
 echo "❌The Container does not support presistent storage yet"
 yellow
@@ -1067,7 +1157,6 @@ echo "Hello world"
 uname -a
 EOM
 
-
 sudofix=${folder}/bin/sudo
 ##### SUDO FIX ####
 cat > "$sudofix" <<- EOM
@@ -1076,6 +1165,7 @@ echo "Emulated Sudo revision 1"
 su -c "\$@"
 EOM
 chmod +x ${folder}/bin/sudo
+
 
 # Setting up mirrorlist
 pacmanconf="${folder}/etc/pacman.conf"
@@ -1983,6 +2073,7 @@ if [ ${DEVELMODE} == "1" ] && [ ! -z ${DEVELMODE} ]; then
 echo "${pbadge} Dropping into shell mode"
 bash ${bin} sh
 fi
+yellow
 defaultContainerSetup
 fi
 
@@ -1993,15 +2084,20 @@ chmod +x $bin
 #This is basically the same as creating one container ahead of the request so later on it can be simply renamed it giving it a instant access
 # I recommend to run this service in the background to give it the sense of super fast but rather a clever optimization
 #containerAheadOptimizationCache > ${logs}/containerAheadOptimizationCache.log 2>&1 &
-#echo $! > ${maindir}/containerOptimizationPID
+##echo $! > ${maindir}/containerOptimizationPID
 containerAheadOptimizationCache(){
   echo "[debug] Checking TMP FOLDER"
-if ([ ! -d ${unasignedContainer} ] || [ ! -f ${unasignedContainer}/cacheSuccess ] || [ ! -d ${unasignedContainer}/rootfs ]) && [ ! -f ${containersLair}/defaultSeq ]; then
+if [ -f ${unasignedContainer}/runningCacheOP ]; then
+exit
+fi
+  echo 1 > ${unasignedContainer}/runningCacheOP
+if [ ! -d ${unasignedContainer} ] || [ ! -f ${unasignedContainer}/cacheSuccess ] || [ ! -d ${unasignedContainer}/rootfs ]; then
 ${userspacebackend} ${symlinkfix} rm -rfv ${unasignedContainer}
 mkdir ${unasignedContainer}
 ${userspacebackend} ${symlinkfix} tar -C "${unasignedContainer}" -xf "${containersLair}/defaultSeq" >> ${logs}/UNASIGNEDrootfsOptimizedCopyOperation.log 2>&1
 echo 1 > ${unasignedContainerTMP}/cacheSuccess
 fi
+rm ${unasignedContainer}/runningCacheOP
 }
 
 
@@ -2009,7 +2105,7 @@ sequentialOptimizationCache(){
 #This is the samething as defrag
 # This optimization will increase the speed not only on HDD but on lower core counts computer and single threaded cp commands
 cd ${origindir}
-if [ ! -f ${containersLair}/defaultSeq ] && [ ! -f ${containersLair}/guranteedSeqIntegrity ]; then
+if [ ! -f ${containersLair}/defaultSeq ] || [ ! -f ${containersLair}/guranteedSeqIntegrity ]; then
 cd ${defaultContainer}
 echo "${pbadge} 🧳 Optimizing System "
 tar cvzf ${containersLair}/defaultSeq . >> ${logs}/rootfsOptimization.log 2>&1
@@ -2019,7 +2115,7 @@ else
 echo "${pbadge} 🧳 System has been optimized"
 fi
 containerAheadOptimizationCache   > ${logs}/containerAheadOptimizationCache.log 2>&1 &
-echo $! > ${maindir}/containerOptimizationPID
+#echo $! > ${maindir}/containerOptimizationPID
 cd ${origindir}
 }
 
@@ -2054,7 +2150,7 @@ export newInstall=1
 cd ${origindir}
 ${userspacebackend} ${symlinkfix} rm -rf ${containersLair}/defaultSeq
 ${userspacebackend} ${symlinkfix} rm -rf ${unasignedContainer}
-${userspacebackend} ${symlinkFix} rm -rf ${defaultContainer}
+${userspacebackend} ${symlinkfix} rm -rf ${defaultContainer}
 folderInit
 defaultContainerSetup
 fi
@@ -2062,9 +2158,27 @@ fi
 }
 
 
+cacheExpireCheck(){
+if [ ! -f ${containersLair}/expireCount ]; then
+  echo "${pbadge} Cache is invalid deleting cache"
+  ${userspacebackend} ${symlinkfix} rm -rf ${containersLair}/defaultSeq
+  ${userspacebackend} ${symlinkfix} rm -rf ${unasignedContainer}
+  echo 0 > ${containersLair}/expireCount
+else
+expireCount=$(cat ${containersLair}/expireCount)
+expireCount=$((expireCount + 1))
+echo "${expireCount}" > ${containersLair}/expireCount
+if [ ${expireCount} -gt "16" ]; then
+rm -rf ${containersLair}/expireCount
+fi
+fi
+}
+
+
+
 fetchUpdateManager(){
 # IF YOU RUN ON SUDO PLEASE MAKE SURE TO USE $ sudo env DEVELMODE=1 ./unifyServer
-if [ -z ${DEVELMODE} ] || [ ${DEVELMODE} == "0" ]; then
+if [ -z ${DEVELMODE} ]; then
 cd ${origindir}
 git reset --hard
 git pull
@@ -2086,25 +2200,27 @@ fi
 #_________Main_________
 intro
 yellow
-echo "${pbadge} 📁 [1/7] Checking Folders"
+echo "${pbadge} 📁 [1/8] Checking Folders"
 folderInit
 intro
 yellow
-echo "${pbadge} 🚒 [2/7] Checking dependencies"
+echo "${pbadge} 🚒 [2/8] Checking dependencies"
 dependencies
 yellow
-echo "${pbadge} 🌳 [3/7] Checking ptrace compatibility"
+echo "${pbadge} 🌳 [3/8] Checking ptrace compatibility"
 ptraceCompatibilityPolice
 yellow
-echo "${pbadge} 💽 [4/7] Checking symlinks compatibility"
+echo "${pbadge} 💽 [4/8] Checking symlinks compatibility"
 symlinksFix
-echo "${pbadge} 💽 [5/7] Updating Manager"
+echo "${pbadge} 💽 [5/8] Updating Manager"
 fetchUpdateManager
 yellow
-echo "${pbadge} 💽 [6/7] Checking Default Container"
+echo "${pbadge} 💽 [6/8] Checking Default Container"
 defaultContainerSetup
 yellow
-echo "${pbadge} 💽 [7/7] Caching Sequential rootfs"
+echo "${pbadge} 💽 [7/8] Cache validation Check"
+cacheExpireCheck
+echo "${pbadge} 💽 [8/8] Caching Sequential rootfs"
 sequentialOptimizationCache
 paramCheck
 paramintrepreter
