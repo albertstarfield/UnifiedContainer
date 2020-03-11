@@ -602,14 +602,16 @@ else
 installTarget="/usr/local/bin"
 fi
 managerExec="${installTarget}/bay"
-echo "cd ${origindir} ; bash ./unifyServer \$1 \$2 \$3 \$4 " > "${managerExec}"
+echo "#!/bin/sh" > "${managerExec}"
+echo "cd ${origindir} ; bash ./unifyServer \$1 \$2 \$3 \$4 " >> "${managerExec}"
 chmod 777 "${managerExec}"
-echo "${pbadge} Installation is successfull"
+echo "${pbadge} Installation is successfull bay"
 
 managerExec="${installTarget}/unifyServer"
-echo "cd ${origindir} ; bash ./unifyServer \$1 \$2 \$3 \$4 " > "${managerExec}"
+echo "#!/bin/sh" > "${managerExec}"
+echo "cd ${origindir} ; bash ./unifyServer \$1 \$2 \$3 \$4 " >> "${managerExec}"
 chmod 777 "${managerExec}"
-echo "${pbadge} Installation is successfull"
+echo "${pbadge} Installation is successfull pbadge"
 exit
 }
 
