@@ -2197,7 +2197,7 @@ fi
 wakelock_device(){
 red
 echo "${pbadge} Function is not implemented"
-echo "${pbadge} [DEBUG] wakelock_device()"
+echo '[DEBUG] wakelock_device'
 #include Wake lock device and wake unlock device function
 }
 
