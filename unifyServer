@@ -223,7 +223,9 @@ init=$(cat ${importedcontainer}/init)
 setuproutines=$(cat ${importedcontainer}/setup)
 rootfsConfig=${importedcontainer}/additional_container_configuration
 cd ${origindir}
+if [ -z ${updateContainer} ]; then
 containerManagerAdd ${name}
+fi
 echo "${packages}" > ${containersLair}/${name}/rootfs/packages
 export totalpackage=0
 for b in ${packages}; do
@@ -517,8 +519,11 @@ echo .
 echo "to enter the container Shell"
 echo "${0} shell <containerName>"
 echo .
-echo "to import File or directory from host "
-echo "${0} importFile <containerName> <Source dir or File Host> <Target dir on container>"
+echo "to import container from the git server "
+echo "${0} import <git repo link>"
+echo .
+echo "to update the container that imported from the git server"
+echo "${0} update <containerName>"
 echo .
 echo "to export File or directory from host "
 echo "${0} exportFile <containerName> <Source dir or File container> <Target dir on Host>"
@@ -582,6 +587,8 @@ case ${PrimaryParam} in
     containerManagerAdd ;;
   upgrade)
     containerManagerUpgrade ;;
+  update)
+    containerManagerUpdate ;;
   remove)
     containerManagerrm ;;
   edit_routines)
@@ -648,6 +655,25 @@ echo "${pbadge} ✔️ Local Storage Denied "
 exit
 fi
 
+}
+
+containerManagerUpdate(){
+  if [ ! -z $@ ] ; then
+    SecondaryParam=${1}
+    TertiaryParam=${2}
+  fi
+  if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
+    red
+    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
+    exit
+  else
+    export updateContainer=1
+containerManagerImport "$(cat ${containersLair}/${SecondaryParam}/origin)"
+echo "${pbadge} ✔️ Container Updated "
+fi
+if [ -z $@ ]; then
+exit
+fi
 }
 
 containerManagerExposeStorage(){
