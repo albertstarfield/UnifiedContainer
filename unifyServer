@@ -116,7 +116,7 @@ confirmation
 fi
 red
 echo "${pbadge} 💣 Nuking the installation 💣"
-rm -rf ${maindir}
+${userspacebackend} ${symlinkfix} rm -rf ${maindir}
 if [ -d "${maindir}" ]; then
   red
   echo "${pbadge} ❌ Container Nuking failure Retrying! ❌"
