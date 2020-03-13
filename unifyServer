@@ -2159,6 +2159,12 @@ fi
 }
 
 
+unifyServerD_vm(){
+echo "${pbadge} Function is not implemented"
+echo "[DEBUG]: unifyServer vm daemon
+}
+
+
 cacheExpireCheck(){
 if [ ! -f ${containersLair}/expireCount ]; then
   echo "${pbadge} Cache is invalid deleting cache"
