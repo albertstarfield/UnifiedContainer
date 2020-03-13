@@ -48,7 +48,7 @@ export pbadge="[Unified Container Manager]:"
 
 intro(){
 
-if [ ${newInstall} == '1' ]; then
+if [ ${newInstall} == '1' ] && [ ! -z ${newInstall} ]; then
   clear
 blue
 echo "==================================================================="
@@ -111,10 +111,18 @@ fi
 }
 
 nuke(){
+  if [ -z ${removalretry}]; then
 confirmation
+fi
 red
 echo "${pbadge} 💣 Nuking the installation 💣"
 rm -rf ${maindir}
+if [ -d "${maindir}" ]; then
+  red
+  echo "${pbadge} ❌ Container Nuking failure Retrying! ❌"
+  export removalretry=1
+  nuke
+fi
 green
 echo "${pbadge} ✔️  Nuking complete ✔️ "
 exit
@@ -357,7 +365,9 @@ containerManagerReset(){
 
 
 containerManagerrm(){
+  if [ -z ${removalretry} ]; then
   confirmation
+fi
   if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
     red
     echo "${pbadge} ❌ Container does not exists please create the container first ❌"
@@ -366,9 +376,15 @@ containerManagerrm(){
     yellow
     echo "${pbadge} 🗑️ Removing Container ${SecondaryParam}"
     if [ -f ${maindir}/NOPTRACE ]; then
-      umount -lf ${containersLair}/${SecondaryParam}/rootfs/dev ${containersLair}/${SecondaryParam}/rootfs/sys ${containersLair}/${SecondaryParam}/rootfs/proc ${containersLair}/${SecondaryParam}/rootfs/exposed
+      umount -lf ${containersLair}/${SecondaryParam}/rootfs/dev ${containersLair}/${SecondaryParam}/rootfs/sys ${containersLair}/${SecondaryParam}/rootfs/proc ${containersLair}/${SecondaryParam}/rootfs/exposed >> ${logs}/chrootmountbindRemoval 2>&1
     fi
     ${userspacebackend} ${symlinkfix} rm -rf "${containersLair}/${SecondaryParam}"
+    if [ -d "${containersLair}/${SecondaryParam}" ]; then
+      red
+      echo "${pbadge} ❌ Container Removal failed retrying ❌"
+      export removalretry=1
+      containerManagerrm
+    fi
     green
     echo "${pbadge} ✔️ Removing Finished"
     sed "s/${SecondaryParam}//" ${containerFilesList} > "${containersFilesList}_tmp"
@@ -849,6 +865,7 @@ fi
     if [ ! -z $(which yum) ]; then
     export packmanager="yum"
     export installParameter="install -y"
+    export distro="debian"
     fi
 
     if [[ $(grep Microsoft /proc/version) ]]; then
@@ -2234,9 +2251,14 @@ fi
 APIdetection(){
   red
   echo "${pbadge} Function is not implemented"
-  echo '[DEBUG] APIdetection() function is a stub code '
+  echo '[DEBUG] APIdetection() function only supported for termux '
   yellow
   echo '[WARN] Wakelock, Notification, Humain interface input, Sensors may not work on current version'
+  if [ ${distro} == "termux" ]; then
+    export wakelockcall="termux-notify"
+    export notifysend="notify"
+
+  fi
   # use distroDetection to determine its API usage
   # API that is need to be implemented are but not limited
   # Wakelock, Notification, Humain interface input, Sensors
@@ -2284,28 +2306,29 @@ fi
 intro
 wakelock_device
 notifyBusIOd
-yellow
+blue
 echo "${pbadge} 📁 [1/8] Checking Folders"
 folderInit
 intro
-yellow
+blue
 echo "${pbadge} 🚒 [2/8] Checking dependencies"
 dependencies
 APIdetection
-yellow
+blue
 echo "${pbadge} 🌳 [3/8] Checking ptrace compatibility"
 ptraceCompatibilityPolice
-yellow
+blue
 echo "${pbadge} 💽 [4/8] Checking symlinks compatibility"
 symlinksFix
 echo "${pbadge} 💽 [5/8] Updating Manager"
 fetchUpdateManager
-yellow
+blue
 echo "${pbadge} 💽 [6/8] Checking Default Container"
 defaultContainerSetup
-yellow
+blue
 echo "${pbadge} 💽 [7/8] Cache validation Check"
 cacheExpireCheck
+blue
 echo "${pbadge} 💽 [8/8] Caching Sequential rootfs"
 sequentialOptimizationCache
 APIbus
