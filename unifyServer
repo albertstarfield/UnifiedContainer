@@ -2188,7 +2188,12 @@ chmod +x ${0}
 fi
 }
 
-
+wakelock_device(){
+red
+echo "${pbadge} Function is not implemented"
+echo "${pbadge} [DEBUG] wakelock_device()"
+#include Wake lock device and wake unlock device function
+}
 
 symlinksFix(){
 if [ ${linktosymlinkActivated} == '1' ]; then
@@ -2200,6 +2205,7 @@ fi
 
 #_________Main_________
 intro
+wakelock_device
 yellow
 echo "${pbadge} 📁 [1/8] Checking Folders"
 folderInit
