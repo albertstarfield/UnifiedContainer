@@ -828,17 +828,20 @@ if [ ! -z $(which apk) ]; then
   export packmanager=apk
   export installParameter="add"
   export ptracecompat='0'
+  export distro="iSH"
 fi
 
 if [ ! -z $(which apt) ]; then
 export packmanager="apt"
 export installParameter="install -y"
+export distro="debianGNU"
 fi
     if [ ! -z $(which pkg) ]; then
     export packmanager=pkg
     export installParameter="install -y"
     export linktosymlinkActivated=1
     echo Termux Detected
+    export distro="termux"
 
     fi
 
@@ -2147,7 +2150,15 @@ cd ${origindir}
 }
 
 
-
+notifyBusIOd(){
+  svcstart_notifyBusIOThread(){
+red
+echo "${pbadge} Function is not implemented"
+echo "[debug] notifyBusIOd() function is a stub code"
+}
+svcstart_notifyBusIOThread &
+export svcPID_notifyBusIOThread=$!
+}
 
 defaultContainerSetup(){
 if [ ${newInstall} == "0" ] && [ -f ${defaultContainer}/success ]; then
@@ -2220,11 +2231,45 @@ chmod +x ${0}
 fi
 }
 
+APIdetection(){
+  red
+  echo "${pbadge} Function is not implemented"
+  echo '[DEBUG] APIdetection() function is a stub code '
+  yellow
+  echo '[WARN] Wakelock, Notification, Humain interface input, Sensors may not work on current version'
+  # use distroDetection to determine its API usage
+  # API that is need to be implemented are but not limited
+  # Wakelock, Notification, Humain interface input, Sensors
+}
+
+
+APIbus(){
+svcstart_apimessaged(){
+  red
+  echo "${pbadge} Function is not implemented"
+  echo '[DEBUG] apimessaged() is not yet implemented'
+  yellow
+  echo '[WARN] hardware interface API reliant feature will not work'
+  echo '[WARN] Please remind questandachievement7Developer about this problem'
+  # Convert hardware information into jpeg ( if camera ) or text output on an containersys/hwIO
+  # bind containersys/hwIO
+}
+svcstart_apimessaged &
+export svcPID_apimessaged=$!
+}
+
+
+
 wakelock_device(){
+svcstart_wakelockd(){
 red
 echo "${pbadge} Function is not implemented"
-echo '[DEBUG] wakelock_device'
+echo '[DEBUG] wakelockd() function is a stub code '
+#use dist detection for wakelock diffrentiation
 #include Wake lock device and wake unlock device function
+}
+svcstart_wakelockd &
+export svcPID_wakelock=$!
 }
 
 symlinksFix(){
@@ -2238,6 +2283,7 @@ fi
 #_________Main_________
 intro
 wakelock_device
+notifyBusIOd
 yellow
 echo "${pbadge} 📁 [1/8] Checking Folders"
 folderInit
@@ -2245,6 +2291,7 @@ intro
 yellow
 echo "${pbadge} 🚒 [2/8] Checking dependencies"
 dependencies
+APIdetection
 yellow
 echo "${pbadge} 🌳 [3/8] Checking ptrace compatibility"
 ptraceCompatibilityPolice
@@ -2261,6 +2308,7 @@ echo "${pbadge} 💽 [7/8] Cache validation Check"
 cacheExpireCheck
 echo "${pbadge} 💽 [8/8] Caching Sequential rootfs"
 sequentialOptimizationCache
+APIbus
 paramCheck
 paramintrepreter
 exit
