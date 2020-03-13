@@ -64,10 +64,12 @@ you can clone it and modify to get started quickly
 
 | Device | Status | 
 | ------- | ------ | 
-| Samsung Galaxy Tab S2  (Termux) (armv7l) | Works really well | 
+| Samsung Galaxy Tab S2  (Termux) (armv7l) | Manager runs but pacman return 404 | 
 | Samsung Galaxy Note 8 (Termux) (aarch64) | Works really well |
 | Asus X505Z Windows 10 Ubuntu WSL (x86_64) (NOPTRACE) | Works and crashed the whole system ( Because its windows ) |
 | ASROCK DESKTOP Windows 10 Ubuntu WSL (x86_64) (NOPTRACE) | Works stable  |
+| Asus Vivobook Intel based (x86_64) (Ubuntu 18.04) (NOPTRACE)      |  Works but crashes the system randomly |
+| Samsung Galaxy ??? (aarch64) (Termux) | Works well |
 
 ## Feels confused about the installation setup or anything wanted to implemented in this version?
 Feel free to contact to these: <br>
