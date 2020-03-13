@@ -365,11 +365,11 @@ containerManagerrm(){
   else
     yellow
     echo "${pbadge} 🗑️ Removing Container ${SecondaryParam}"
-    ${userspacebackend} ${symlinkfix} rm -rf "${containersLair}/${SecondaryParam}"
-    green
     if [ -f ${maindir}/NOPTRACE ]; then
       umount -lf ${containersLair}/${SecondaryParam}/rootfs/dev ${containersLair}/${SecondaryParam}/rootfs/sys ${containersLair}/${SecondaryParam}/rootfs/proc ${containersLair}/${SecondaryParam}/rootfs/exposed
     fi
+    ${userspacebackend} ${symlinkfix} rm -rf "${containersLair}/${SecondaryParam}"
+    green
     echo "${pbadge} ✔️ Removing Finished"
     sed "s/${SecondaryParam}//" ${containerFilesList} > "${containersFilesList}_tmp"
     rm -rf ${containersFilesList}
