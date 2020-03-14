@@ -1243,7 +1243,7 @@ SyncFirst   = pacman
 Architecture = auto
 
 # Pacman won't upgrade packages listed in IgnorePkg and members of IgnoreGroup
-#IgnorePkg   = linux-*
+IgnorePkg   = linux
 #IgnoreGroup =
 
 #NoUpgrade   =
@@ -1419,7 +1419,7 @@ SyncFirst    = manjaro-system archlinux-keyring manjaro-keyring
 #UseDelta    = 0.7
 Architecture = auto
 # Pacman won't upgrade packages listed in IgnorePkg and members of IgnoreGroup
-#IgnorePkg   =
+IgnorePkg   = linux
 #IgnoreGroup =
 #NoUpgrade   =
 #NoExtract   =
