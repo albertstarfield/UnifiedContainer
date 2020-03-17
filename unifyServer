@@ -7,7 +7,7 @@ export quadtiaryParam=${4}
 #set -x
 #echo DEBUG PARAM CHECK ${PrimaryParam} ${SecondaryParam}
 
-
+export PATH="${PATH}:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/mnt/c/Program Files (x86)/Common Files/Oracle/Java/javapath:/mnt/c/Windows/system32:/mnt/c/Windows:/mnt/c/Windows/System32/Wbem:/mnt/c/Windows/System32/WindowsPowerShell/v1.0/:/mnt/c/Windows/System32/OpenSSH/:/mnt/c/ProgramData/chocolatey/bin:/mnt/c/Program Files/AMD/AMDuProf/bin:/mnt/c/Program Files/Intel/WiFi/bin/:/mnt/c/Program Files/Common Files/Intel/WirelessCommon/:/mnt/c/tools/php74:/mnt/c/ProgramData/ComposerSetup/bin:/mnt/c/Program Files/Git/cmd:/mnt/c/Program Files/OpenJDK/jdk-13.0.2/bin"
 #proot Seccomp Acceleration SEGFAULT CRASHES FIX
 #export PROOT_NO_SECCOMP=1
 
@@ -141,6 +141,7 @@ launchcontainerSvcFG(){
   bash start-bootstrap.sh bash /init
   echo $! > svcID
   cat "${logs}/containers_${SecondaryParam}.log"
+
 else
   red
   echo "${pbadge} ❌ Container currently is running if you believe that the container is not running ❌"
@@ -161,6 +162,7 @@ launchcontainerSvc(){
   bash start-bootstrap.sh bash /init > "${logs}/containers_${SecondaryParam}.log" 2>&1 &
   echo $! > svcID
   cat "${logs}/containers_${SecondaryParam}.log"
+  APIcall systemUI_notifysend "Container_${SecondaryParam}_Successfully_Launched"
   exit
 }
 
@@ -174,6 +176,7 @@ launchcontainerKill(){
   echo "${pbadge} 🛑 Stopping Container"
   kill -9 $(cat ${containersLair}/${SecondaryParam}/svcID)
   green
+  APIcall systemUI_notifysend "Container_${SecondaryParam}_Successfully_Stopped"
   echo "${pbadge} ✔️ Container Stopped"
   exit
 }
@@ -217,6 +220,7 @@ containerManagerImport(){
     SecondaryParam=${1}
     TertiaryParam=${2}
   fi
+APIcall systemUI_notifysend "Importing_container"
 containerID=$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 32 | head -n 1)
 export importedcontainer="${TMPFolder}/${containerID}"
 git clone ${SecondaryParam} ${TMPFolder}/${containerID}
@@ -265,6 +269,7 @@ fi
 executeContainerCMD ${name} "bash /setup"
 #bash ${0} exec ${name} "bash /setup"
 green
+APIcall systemUI_notifysend "✨Container_${SecondaryParam}_Successfully_Installed✨"
 echo "${pbadge} ✨import done✨"
 exit
 }
@@ -281,13 +286,13 @@ name=${SecondaryParam}
 executeContainerCMD ${name} "pacman -Qqe > /packages"
 packages=$(cat ${containersLair}/${SecondaryParam}/rootfs/packages)
 init=$(cat ${containersLair}/${SecondaryParam}/rootfs/init)
-
+executeContainerCMD ${name} "fish -c history" > ${containerExport}/${name}/setup
 mkdir ${containerExport}/${name}
 echo "${name}" > ${containerExport}/${name}/name
 echo "${packages}" > ${containerExport}/${name}/packages
 echo "${init}" > ${containerExport}/${name}/init
 #echo "apt-get update; apt-get upgrade; echo Default setup done" > ${containerExport}/${name}/setup
-echo "pacman -Syu --noconfirm ; echo Default setup done" > ${containerExport}/${name}/setup
+#echo "pacman -Syu --noconfirm ; echo Default setup done" > ${containerExport}/${name}/setup
 green
 echo "${pbadge} ✨export done✨"
 exit
@@ -327,6 +332,7 @@ fi
     echo "${pbadge} 📦 Creating Presistent data"
     mkdir "${presistentStorage}/$(cat ${containersLair}/${SecondaryParam}/containerID)"
     green
+    APIcall systemUI_notifysend "✔️_Container_${SecondaryParam}_Successfully_Created"
     echo "${pbadge} ${SecondaryParam} ✔️ Container done"
     echo "${SecondaryParam}" >> ${containerFilesList}
     if [ -z $@ ] ; then
@@ -376,7 +382,7 @@ fi
     yellow
     echo "${pbadge} 🗑️ Removing Container ${SecondaryParam}"
     if [ -f ${maindir}/NOPTRACE ]; then
-      umount -lf ${containersLair}/${SecondaryParam}/rootfs/dev ${containersLair}/${SecondaryParam}/rootfs/sys ${containersLair}/${SecondaryParam}/rootfs/proc ${containersLair}/${SecondaryParam}/rootfs/exposed >> ${logs}/chrootmountbindRemoval 2>&1
+      umount -lf ${containersLair}/${SecondaryParam}/rootfs/dev ${containersLair}/${SecondaryParam}/rootfs/sys ${containersLair}/${SecondaryParam}/rootfs/InstallCache ${containersLair}/${SecondaryParam}/rootfs/proc ${containersLair}/${SecondaryParam}/rootfs/exposed >> ${logs}/chrootmountbindRemoval 2>&1
     fi
     ${userspacebackend} ${symlinkfix} rm -rf "${containersLair}/${SecondaryParam}"
     if [ -d "${containersLair}/${SecondaryParam}" ]; then
@@ -480,12 +486,22 @@ fi
 
 
 debugFunct(){
+sleep 4
+clear
+echo "================================================================="
+red
+echo " Do it at your own risk! You are on your own"
+echo " Please refer to the code when calling a function "
 echo "${pbadge} DEBUG MODE !"
+echo
+green
+console(){
 printf "\n unifyManager dbg console > "
-
 read a
 ${a}
-exit
+console
+}
+console
 }
 
 
@@ -774,9 +790,24 @@ export PACMANTMPFolder="${TMPFolder}/pacmanCache" #basically will accelerate pac
 export unasignedContainerTMP="${TMPFolder}/unasigned"
 export logs="${maindir}/logs"
 export containerExport=${maindir}/containerExport
+export APIHAL=${maindir}/sysIO
+export APIHAL_INPUT=${APIHAL}/input
+export APIHAL_OUTPUT=${APIHAL}/output
 export containerFilesList="${maindir}/containers.txt"
 if [ ! -d ${maindir} ]; then
   mkdir ${maindir}
+fi
+
+if [ ! -d ${APIHAL} ]; then
+  mkdir ${APIHAL}
+fi
+
+if [ ! -d ${APIHAL_INPUT} ]; then
+  mkdir ${APIHAL_INPUT}
+fi
+
+if [ ! -d ${APIHAL_OUTPUT} ]; then
+  mkdir ${APIHAL_OUTPUT}
 fi
 
 if [ ! -d ${presistentStorage} ]; then
@@ -865,18 +896,20 @@ fi
     if [ ! -z $(which yum) ]; then
     export packmanager="yum"
     export installParameter="install -y"
-    export distro="debian"
+    export distro="centOSGNU"
     fi
 
     if [[ $(grep Microsoft /proc/version) ]]; then
       echo "Bash is running on WSL"
       echo "PTRACE ON WSL 1 IS NOT SUPPORTED"
       export ptracecompat='0'
+      export WSLenv="1"
     fi
 
     if [ ! -z $(which pacman) ]; then
     export packmanager="pacman"
     export installParameter="-Sy --noconfirm"
+    export distro="archlinux"
     echo Redownloading Databases
     pacman -Syy
     fi
@@ -914,7 +947,7 @@ fi
   distroDetection
   export distComplete="$(uname -a)"
 
-  requirements="chroot busybox wget git proot"
+  requirements="chroot busybox wget git proot xclip"
  echo "echo Installing 🔧" > ${TMPFolder}/SUINSTALL
   for i in ${requirements}; do
     green
@@ -927,6 +960,15 @@ su -c "bash ${TMPFolder}/SUINSTALL"
 else
 bash ${TMPFolder}/SUINSTALL
 fi
+# https://github.com/Windos/BurntToast
+# https://codelearn.me/2019/01/13/wsl-windows-toast.html
+if [ ${WSLenv} == "1" ] && [ ! -z ${WSLenv} ]; then
+  echo "Installing Powershell WSL bridge"
+  powershell.exe -Command "Start-Process PowerShell 'Install-Module -Name BurntToast' -Verb RunAs"
+  powershell.exe -Command "Start-Process PowerShell 'Set-ExecutionPolicy RemoteSigned -Scope CurrentUser' -Verb RunAs"
+  powershell.exe -Command "Start-Process PowerShell 'Import-Module BurntToast' -Verb RunAs"
+fi
+
 
 #alternative for proot
   if [ -z $(which proot) ]; then
@@ -1003,14 +1045,9 @@ ptraceCompatibilityPolice(){
 bootstrapSetup(){
 
 folder=rootfs
-if [ -d "$folder" ]; then
-	first=1
-  green
-	echo "${pbadge} ⏭️ skipping downloading"
-fi
 tarball="bootstrap.tar.gz"
 if [ "$first" != 1 ];then
-	if [ ! -f $tarball ]; then
+	if [  ${tarball} == $tarball ]; then
     yellow
 		echo "${pbadge} ⌛ downloading bootstrap-image"
 		#case `dpkg --print-architecture` in
@@ -1083,7 +1120,7 @@ bin=start-bootstrap.sh
 echo "${pbadge} 🚀 writing launch script"
 cat > $bin <<- EOM
 #!/bin/bash
-echo BOOTLOADER revision 020
+echo BOOTLOADER revision 022
 containerID=\$(cat containerID)
 cd \$(dirname \$0)
 ## unset LD_PRELOAD in case termux-exec is installed
@@ -1102,16 +1139,20 @@ unset LD_PRELOAD
 if [ -f \${maindir}/NOPTRACE ]; then
 #chroot version
 echo "Sanitizing Mount points"
+echo "system control fs"
 mount --bind /dev ${folder}/dev
 mount --bind /proc ${folder}/proc
 mount --bind /sys ${folder}/sys
+echo "system storage Cachemount"
 mount --bind ${PACMANTMPFolder} ${folder}/InstallCache
+echo "manager storage Expose"
 if [ -d /sdcard ] && [ -f grantStorage ]; then
 mount --bind /sdcard ${folder}/exposed"
 fi
 if [ -d /home ] && [ -f grantStorage ]; then
 mount --bind /home ${folder}/exposed"
 fi
+echo "chrootdefine"
 command="chroot"
 command+=" ${folder}"
 command+=" /bin/env -i"
@@ -1122,6 +1163,7 @@ command+=" LANG=C.UTF-8"
 command+=" HOME=/root"
 command+=" /bin/bash --login"
 else
+  echo "prootdefine"
   #proot version
 command="proot"
 command+=" ${symlinkfix}"
@@ -1156,12 +1198,14 @@ command+=" /bin/bash --login"
 fi
 
 ###################################ROOT MANAGER #######################################
-
+echo Check Param
 com="\$@"
-
+echo Init check
 if [ "\$2" == "/init" ]; then
 echo a > boot
 fi
+
+echo EXEC
 if [ -z "\$1" ];then
     exec \$command
 else
@@ -2195,10 +2239,12 @@ else
   red
 if [ -f ${defaultContainer}/success ]; then
 green
+APIcall systemUI_notifysend "✔️_defaultContainer_success"
 echo "${pbadge} default container is installed"
 rm -rf ${defaultContainer}/bootstrap.tar.gz
 else
 red
+APIcall systemUI_notifysend "❌_defaultContainer_failure"
 echo "${pbadge} resetting Install due to the corrupted install"
 export newInstall=1
 # This will forces the program to retry until the program output the flag ( success flag ) from the verifier test ( See bootstrapSetup verifier test )
@@ -2248,51 +2294,185 @@ chmod +x ${0}
 fi
 }
 
-APIdetection(){
-  red
-  echo "${pbadge} Function is not implemented"
-  echo '[DEBUG] APIdetection() function only supported for termux '
-  yellow
-  echo '[WARN] Wakelock, Notification, Humain interface input, Sensors may not work on current version'
-  if [ ${distro} == "termux" ]; then
-    export wakelockcall="termux-notify"
-    export notifysend="notify"
+#Cache data into ram using variables
+cachemem(){
+red
+prefetchmem(){
+count=0
+for a in $(ls ${TMPFolder}/prefetch); do
+count=count+1
+export address_${count}=$(cat ${a})
+export storedmem="${storedmem} address_${count}"
+done
+}
 
+flushmem(){
+  for a in ${storedmem}; do
+    echo "${a}" > ${TMPFolder}/prefetch/$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 32 | head -n 1)
+  done
+}
+
+
+
+red
+echo "${pbadge} Warning this is a experimental feature use with caution"
+
+store(){
+echo "${pbadge} [debug] ${storedmem} address_${1} "
+
+export address_${1}="$(busybox tar -cf - "${2}" | base64)"
+export storedmem="${storedmem} address_${2}"
+}
+
+release(){
+if [ address_${1} != "null" ] || [ ! -z address_${1} ] ; then
+echo "test"
+fi
+}
+
+eraseAddress(){
+export address_${2}="null"
+}
+
+cachememd(){
+echo "${pbadge} function is not implemented"
+}
+
+${1} ${2} ${3}
+}
+
+
+makeObfuscation(){
+if [ ${DEVELMODE} == "1" ] && [ ! -z ${DEVELMODE} ]; then
+convertedcode=$(base64 ${0})
+
+
+output="bay_mana"
+cat > "${output}" <<- EOM
+#!/bin/bash
+capsule=$( echo "${convertedcode}" \| base64 \--decode)
+bash - \${1} \${2} \${3} \${4} < \${capsule}
+EOM
+
+
+
+else
+red
+echo "Wait thats illegal access"
+exit
+fi
+
+}
+
+
+
+
+
+
+
+
+APIcall(){
+  dummyResponse(){
+  echo "${pbadge} Current version of API Abstraction Layer is unsupported for your current environment"
+  }
+  #This function is basically like a API abstraction layer
+  #red
+  #echo "${pbadge} Function is not implemented"
+  #echo '[DEBUG] APIcall() function only supported for termux '
+  #yellow
+  echo "${pbadge} Detecting available API"
+  #echo '[WARN] Wakelock, Notification, Humain interface input, Sensors may not work on current version'
+  if [ ${distro} == "termux" ]; then
+    #systemUI calls
+    echo "Using Termux API"
+    systemUI_notifysend(){ termux-notification "${1}" "${2}" "${3}" "${4}" ;}
+    systemUI_directNotification(){ termux-toast "${1}" "${2}" "${3}" "${4}" ;}
+    systemUI_nativeDownload(){ termux-download "${1}" "${2}" "${3}" "${4}" ;}
+    systemUI_clipboard_get(){ termux-clipboard-get; }
+    systemUI_clipboard_set(){ termux-clipboard-set; }
+    systemUI_authFingerprint(){ termux-fingerprint; }
+    #Power management calls
+    pwmCall_batterystat(){ termux-battery-status; }
+    pwmCall_enable_wakelockcall(){ termux-wake-lock; }
+    pwmCall_disable_wakelockcall(){ termux-wake-unlock; }
+    pwmCall_brightnessAdjust(){ termux-brightness; }
+    #Sensors call
+    sense_Retrievesensor(){ termux-sensor; }
+    #radiocall
+    tele_sms_read(){ termux-sms-list; }
+    tele_sms_send(){ termux-sms-send; }
+    tele_voice_call(){ termux-telephony-call ${1} ${2} ${3} ;}
+    #hardware access
+    hw_usb(){ termux-usb ${1} ${2} ${3} ;}
+  fi
+  if [ ${distro} == "debianGNU" ] || [ ${distro} == "iSH" ] || [ ${distro} == "debian" ] || [ ${distro} == "archlinux" ]; then
+    #systemUI calls
+    echo "Using Generic GNU/Linux calls"
+    systemUI_notifysend(){ echo [INFO] ${pbadge}; }
+    if [ ! -z $(which xmessage) ]; then
+    systemUI_directNotification(){ xmessage; }
+  else
+    systemUI_directNotification(){ echo [INFO] ${pbadge}; }
+  fi
+  if [ ${WSLenv} == "1" ] && [ ! -z ${WSLenv} ]; then
+    echo "Using WSL specific calls"
+  systemUI_directNotification(){ powershell.exe New-BurntToastNotification -Text "${1}" "${2}" "${3}" "${4}" ; }
+  systemUI_notifysend(){ powershell.exe New-BurntToastNotification -Text "${1}" "${2}" "${3}" "${4}"; }
+fi
+    alias systemUI_sensorpoll="dummyResponse"
+    if [ ! -z $(which aria2c) ]; then
+    systemUI_nativeDownload(){ aria2c; }
+  else
+    systemUI_nativeDownload(){ wget; }
+  fi
+    if [ ! -z $(which xclip) ]; then
+    systemUI_clipboard_get(){ xclip; }
+    systemUI_clipboard_set(){ xclip -selection c; }
+  else
+    alias systemUI_clipboard_get="dummyResponse"
+    alias systemUI_clipboard_set="dummyResponse"
+  fi
+    alias systemUI_authFingerprint="dummyResponse"
+    #Power management calls
+    if [ ! -d /proc/acpi ]; then
+    alias pwmCall_batterystat="termux-battery-status"
+    alias pwmCall_enable_wakelockcall="termux-wake-lock"
+    alias pwmCall_disable_wakelockcall="termux-wake-unlock"
+    alias pwmCall_brightnessAdjust="termux-brightness"
+  else
+    alias pwmCall_batterystat="dummyResponse"
+    alias pwmCall_enable_wakelockcall="dummyResponse"
+    alias pwmCall_disable_wakelockcall="dummyResponse"
+    alias pwmCall_brightnessAdjust="dummyResponse"
+  fi
+    #Sensors call
+    export sense_Retrievesensor="dummyResponse"
+    #radiocall
+    alias tele_sms_read="dummyResponse"
+    alias tele_sms_send="dummyResponse"
+    alias tele_voice_call="dummyResponse"
+    #hardware access
+    hw_usb(){ lsusb
+  }
   fi
   # use distroDetection to determine its API usage
   # API that is need to be implemented are but not limited
   # Wakelock, Notification, Humain interface input, Sensors
-}
 
-
-APIbus(){
-svcstart_apimessaged(){
-  red
-  echo "${pbadge} Function is not implemented"
-  echo '[DEBUG] apimessaged() is not yet implemented'
-  yellow
-  echo '[WARN] hardware interface API reliant feature will not work'
-  echo '[WARN] Please remind questandachievement7Developer about this problem'
-  # Convert hardware information into jpeg ( if camera ) or text output on an containersys/hwIO
-  # bind containersys/hwIO
-}
-svcstart_apimessaged &
-export svcPID_apimessaged=$!
-}
+#125
+#https://unix.stackexchange.com/questions/1496/why-doesnt-my-bash-script-recognize-aliases
+#First of all, as ddeimeke said, aliases by default are not expanded in non-interactive shells.
+#Second, .bashrc is not read by non-interactive shells unless you set the BASH_ENV environment variable.
+#But most importantly: don't do that! Please? One day you will move that script somewhere where the necessary aliases are not set and it will break again.
+#Instead set and use environment variables as shortcuts in your script:
 
 
 
-wakelock_device(){
-svcstart_wakelockd(){
-red
-echo "${pbadge} Function is not implemented"
-echo '[DEBUG] wakelockd() function is a stub code '
-#use dist detection for wakelock diffrentiation
-#include Wake lock device and wake unlock device function
+  alias hw_usb="echo lsusb"
+  hw_usb
+  "${1}" "${2}" "${3}" "${4}"
 }
-svcstart_wakelockd &
-export svcPID_wakelock=$!
-}
+
 
 symlinksFix(){
 if [ ${linktosymlinkActivated} == '1' ]; then
@@ -2304,8 +2484,6 @@ fi
 
 #_________Main_________
 intro
-wakelock_device
-notifyBusIOd
 blue
 echo "${pbadge} 📁 [1/8] Checking Folders"
 folderInit
@@ -2313,7 +2491,7 @@ intro
 blue
 echo "${pbadge} 🚒 [2/8] Checking dependencies"
 dependencies
-APIdetection
+APIcall
 blue
 echo "${pbadge} 🌳 [3/8] Checking ptrace compatibility"
 ptraceCompatibilityPolice
