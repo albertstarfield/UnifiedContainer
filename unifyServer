@@ -140,9 +140,6 @@ launchcontainerSvcFG(){
   green
   echo "⏳ Launching container ${SecondaryParam}"
   bash start-bootstrap.sh bash /init
-  echo $! > svcID
-  cat "${logs}/containers_${SecondaryParam}.log"
-
 else
   red
   echo "${pbadge} ❌ Container currently is running if you believe that the container is not running ❌"
