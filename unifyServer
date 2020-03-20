@@ -357,6 +357,7 @@ containerManagerReset(){
     if [ -f "${containersLair}/${SecondaryParam}/origin" ]; then
       echo "${pbadge} 📦 Resetting Remote Container"
       originLink="$(cat ${containersLair}/${SecondaryParam}/origin)"
+      echo "${originLink}"
       cd ${origindir}
       ${userspacebackend} ${symlinkfix} rm -rf "${containersLair}/${SecondaryParam}"
       bash ${0} import "${originLink}"
