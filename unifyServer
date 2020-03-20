@@ -227,6 +227,7 @@ if [ ! -d "${TMPFolder}/${containerID}" ]; then
   echo "${pbadge} ❌ Imported Container does not exists ❌"
   exit
 fi
+export GITSOURCE="${SecondaryParam}"
 name=$(cat ${importedcontainer}/name)
 packages=$(cat ${importedcontainer}/packages)
 init=$(cat ${importedcontainer}/init)
@@ -258,7 +259,7 @@ bash ${0} exec ${name} "pacman -S --needed --noconfirm ${a}" >> ${logs}/unifySer
 green
 echo "${pbadge} ✔️ Done Installing ${a} "
 done
-echo "${SecondaryParam}" > ${containersLair}/${name}/origin
+echo "${GITSOURCE}" > ${containersLair}/${name}/origin
 echo "${init}" > ${containersLair}/${name}/rootfs/init
 echo "${setuproutines}" > ${containersLair}/${name}/rootfs/setup
 echo "${pbadge} ✨Container Finishing touch✨"
@@ -1122,7 +1123,7 @@ bin=start-bootstrap.sh
 echo "${pbadge} 🚀 writing launch script"
 cat > $bin <<- EOM
 #!/bin/bash
-echo BOOTLOADER revision 022
+echo BOOTLOADER revision 023
 containerID=\$(cat containerID)
 cd \$(dirname \$0)
 ## unset LD_PRELOAD in case termux-exec is installed
@@ -1229,6 +1230,8 @@ if [ -f grantStorage ]; then
 umount -lf ${folder}/exposed
 fi
 fi
+echo Removing container Bootup flag
+rm svcID
 
 EOM
 echo "${pbadge} Writing done"
@@ -2478,11 +2481,6 @@ fi
 #Second, .bashrc is not read by non-interactive shells unless you set the BASH_ENV environment variable.
 #But most importantly: don't do that! Please? One day you will move that script somewhere where the necessary aliases are not set and it will break again.
 #Instead set and use environment variables as shortcuts in your script:
-
-
-
-  alias hw_usb="echo lsusb"
-  hw_usb
   "${1}" "${2}" "${3}" "${4}" &
 }
 
