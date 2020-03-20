@@ -269,8 +269,8 @@ echo "${pbadge} Checking rootfs cache"
 if [ -d ${rootfsConfig} ]; then
   ${userspacebackend} ${symlinkfix} cp -ruaH ${rootfsConfig}/* ${containersLair}/${name}/rootfs
 fi
-executeContainerCMD ${name} "bash /setup"
-#bash ${0} exec ${name} "bash /setup"
+#executeContainerCMD ${name} "bash /setup"
+bash ${0} exec ${name} "bash /setup"
 green
 APIcall systemUI_notifysend "✨Container_${SecondaryParam}_Successfully_Installed✨"
 echo "${pbadge} ✨import done✨"
