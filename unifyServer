@@ -252,11 +252,12 @@ percentage=$((currentpackage * 100 / totalpackage))
 yellow
 export SecondaryParamOld="${SecondaryParam}"
 echo "${pbadge} ⌛ Installing Dependencies ${percentage} %"
-#bash ${0} exec ${name} "pacman -Syy" >> ${logs}/unifyServerPackageInstaller.log 2>&1
-#bash ${0} exec ${name} "pacman -S --needed --noconfirm ${a}" >> ${logs}/unifyServerPackageInstaller.log 2>&1
-executeContainerCMD ${name} "pacman -Syy" >> ${logs}/unifyServerPackageInstaller.log 2>&1
+bash ${0} exec ${name} "pacman -Syy" >> ${logs}/unifyServerPackageInstaller.log 2>&1
+bash ${0} exec ${name} "pacman -S --needed --noconfirm ${a}" >> ${logs}/unifyServerPackageInstaller.log 2>&1
+#Efficient code seems to not working? I dont know why?
+#executeContainerCMD ${name} "pacman -Syy" >> ${logs}/unifyServerPackageInstaller.log 2>&1
 #executeContainerCMD ${name} "pacman -S --needed --noconfirm ${a}" >> ${logs}/unifyServerPackageInstaller.log 2>&1
-executeContainerCMD ${name} "pacman -S --needed --noconfirm ${a}"
+#executeContainerCMD ${name} "pacman -S --needed --noconfirm ${a}"
 green
 echo "${pbadge} ✔️ Done Installing ${a} "
 done
