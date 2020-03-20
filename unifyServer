@@ -10,7 +10,7 @@ export quadtiaryParam=${4}
 export PATH="${PATH}:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/mnt/c/Program Files (x86)/Common Files/Oracle/Java/javapath:/mnt/c/Windows/system32:/mnt/c/Windows:/mnt/c/Windows/System32/Wbem:/mnt/c/Windows/System32/WindowsPowerShell/v1.0/:/mnt/c/Windows/System32/OpenSSH/:/mnt/c/ProgramData/chocolatey/bin:/mnt/c/Program Files/AMD/AMDuProf/bin:/mnt/c/Program Files/Intel/WiFi/bin/:/mnt/c/Program Files/Common Files/Intel/WirelessCommon/:/mnt/c/tools/php74:/mnt/c/ProgramData/ComposerSetup/bin:/mnt/c/Program Files/Git/cmd:/mnt/c/Program Files/OpenJDK/jdk-13.0.2/bin"
 #proot Seccomp Acceleration SEGFAULT CRASHES FIX
 #export PROOT_NO_SECCOMP=1
-
+export newInstall=0
 
 
 
@@ -115,6 +115,7 @@ nuke(){
 confirmation
 fi
 red
+APIcall systemUI_notifysend "💣_Your_instlalation_is_being_nuked_💣"
 echo "${pbadge} 💣 Nuking the installation 💣"
 ${userspacebackend} ${symlinkfix} rm -rf ${maindir}
 if [ -d "${maindir}" ]; then
@@ -220,7 +221,7 @@ containerManagerImport(){
     SecondaryParam=${1}
     TertiaryParam=${2}
   fi
-APIcall systemUI_notifysend "Importing_container"
+APIcall systemUI_notifysend "⌛Importing_container⌛"
 containerID=$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 32 | head -n 1)
 export importedcontainer="${TMPFolder}/${containerID}"
 git clone ${SecondaryParam} ${TMPFolder}/${containerID}
@@ -392,6 +393,7 @@ fi
       containerManagerrm
     fi
     green
+    APIcall systemUI_notifysend "✔️_Container_${SecondaryParam}_Removal_Successfull"
     echo "${pbadge} ✔️ Removing Finished"
     sed "s/${SecondaryParam}//" ${containerFilesList} > "${containersFilesList}_tmp"
     rm -rf ${containersFilesList}
@@ -1138,14 +1140,14 @@ unset LD_PRELOAD
 
 if [ -f \${maindir}/NOPTRACE ]; then
 #chroot version
-echo "Sanitizing Mount points"
+echo "[Progress] Sanitizing Mount points"
 echo "system control fs"
 mount --bind /dev ${folder}/dev
 mount --bind /proc ${folder}/proc
 mount --bind /sys ${folder}/sys
-echo "system storage Cachemount"
+echo "[Progress] system storage Cachemount"
 mount --bind ${PACMANTMPFolder} ${folder}/InstallCache
-echo "manager storage Expose"
+echo "[Progress] manager storage Expose"
 if [ -d /sdcard ] && [ -f grantStorage ]; then
 mount --bind /sdcard ${folder}/exposed"
 fi
@@ -1198,12 +1200,15 @@ command+=" /bin/bash --login"
 fi
 
 ###################################ROOT MANAGER #######################################
-echo Check Param
+echo "[Progress] Check Param"
 com="\$@"
-echo Init check
+echo "[Progress] Init check"
 if [ "\$2" == "/init" ]; then
 echo a > boot
 fi
+
+clear
+echo "${pbadge} Welcome to \${SecondaryParam} Hope you enjoy your stay"
 
 echo EXEC
 if [ -z "\$1" ];then
@@ -2239,7 +2244,7 @@ else
   red
 if [ -f ${defaultContainer}/success ]; then
 green
-APIcall systemUI_notifysend "✔️_defaultContainer_success"
+APIcall systemUI_notifysend "✔️_defaultContainer_integrity_check_success"
 echo "${pbadge} default container is installed"
 rm -rf ${defaultContainer}/bootstrap.tar.gz
 else
@@ -2268,6 +2273,7 @@ echo "[DEBUG]: unifyServer vm daemon"
 cacheExpireCheck(){
 if [ ! -f ${containersLair}/expireCount ]; then
   echo "${pbadge} Cache is invalid deleting cache"
+  APIcall systemUI_notifysend "Cache_is_invalid_refreshing_Cache"
   ${userspacebackend} ${symlinkfix} rm -rf ${containersLair}/defaultSeq
   ${userspacebackend} ${symlinkfix} rm -rf ${unasignedContainer}
   echo 0 > ${containersLair}/expireCount
@@ -2380,11 +2386,19 @@ APIcall(){
   #echo "${pbadge} Function is not implemented"
   #echo '[DEBUG] APIcall() function only supported for termux '
   #yellow
-  echo "${pbadge} Detecting available API"
-  #echo '[WARN] Wakelock, Notification, Humain interface input, Sensors may not work on current version'
+  #echo "${pbadge} Detecting available API"
+  #echo '[WARN] Wakelock, Notification, Humain interface input, Sensors may not work on current version'#
+
+  #____________________________
+  #Hardware Acceleration Setup
+  #OpenCL
+  opencl_forward(){
+    echo "${pbadge} Function is not yet implemented"
+  }
+  #__________________________
   if [ ${distro} == "termux" ]; then
     #systemUI calls
-    echo "Using Termux API"
+    #echo "Using Termux API"
     systemUI_notifysend(){ termux-notification "${1}" "${2}" "${3}" "${4}" ;}
     systemUI_directNotification(){ termux-toast "${1}" "${2}" "${3}" "${4}" ;}
     systemUI_nativeDownload(){ termux-download "${1}" "${2}" "${3}" "${4}" ;}
@@ -2407,7 +2421,7 @@ APIcall(){
   fi
   if [ ${distro} == "debianGNU" ] || [ ${distro} == "iSH" ] || [ ${distro} == "debian" ] || [ ${distro} == "archlinux" ]; then
     #systemUI calls
-    echo "Using Generic GNU/Linux calls"
+    #echo "Using Generic GNU/Linux calls"
     systemUI_notifysend(){ echo [INFO] ${pbadge}; }
     if [ ! -z $(which xmessage) ]; then
     systemUI_directNotification(){ xmessage; }
@@ -2415,7 +2429,7 @@ APIcall(){
     systemUI_directNotification(){ echo [INFO] ${pbadge}; }
   fi
   if [ ${WSLenv} == "1" ] && [ ! -z ${WSLenv} ]; then
-    echo "Using WSL specific calls"
+    #echo "Using WSL specific calls"
   systemUI_directNotification(){ powershell.exe New-BurntToastNotification -Text "${1}" "${2}" "${3}" "${4}" ; }
   systemUI_notifysend(){ powershell.exe New-BurntToastNotification -Text "${1}" "${2}" "${3}" "${4}"; }
 fi
@@ -2452,8 +2466,7 @@ fi
     alias tele_sms_send="dummyResponse"
     alias tele_voice_call="dummyResponse"
     #hardware access
-    hw_usb(){ lsusb
-  }
+    hw_usb(){ lsusb ; }
   fi
   # use distroDetection to determine its API usage
   # API that is need to be implemented are but not limited
@@ -2470,7 +2483,7 @@ fi
 
   alias hw_usb="echo lsusb"
   hw_usb
-  "${1}" "${2}" "${3}" "${4}"
+  "${1}" "${2}" "${3}" "${4}" &
 }
 
 
@@ -2483,6 +2496,7 @@ fi
 }
 
 #_________Main_________
+#only if it is used for nonmodular purposes
 intro
 blue
 echo "${pbadge} 📁 [1/8] Checking Folders"
@@ -2509,7 +2523,6 @@ cacheExpireCheck
 blue
 echo "${pbadge} 💽 [8/8] Caching Sequential rootfs"
 sequentialOptimizationCache
-APIbus
 paramCheck
 paramintrepreter
 exit
