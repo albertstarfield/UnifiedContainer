@@ -963,7 +963,7 @@ fi
   distroDetection
   export distComplete="$(uname -a)"
 
-  requirements="chroot busybox wget git proot xclip"
+  requirements="chroot busybox wget git proot aria2 aria2c xclip"
  echo "echo Installing 🔧" > ${TMPFolder}/SUINSTALL
   for i in ${requirements}; do
     green
@@ -1094,7 +1094,12 @@ if [ "$first" != 1 ];then
 
 
     #Well the problem is actually i put the o lowercase rather than the O capital
+    if [ ! -z $(which aria2c) ]; then
+    echo "${pbadge} Download acceleration is available"
+    aria2c --max-connection-per-server=16 --min-split-size=1M ${downloadcompass} -o ${tarball}
+    else
     wget ${downloadcompass} -O ${tarball}
+    fi
 		#wget "https://partner-images.canonical.com/core/disco/current/bootstrap-disco-core-cloudimg-${archurl}-root.tar.gz" -O $tarball
 	fi
 	cur=`pwd`
