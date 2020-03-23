@@ -2508,29 +2508,29 @@ fi
 if [ -z ${NOBOOT} ]; then #whether skip checks or not
 #only if it is used for nonmodular purposes
 intro
-blue
+yellow
 echo "${pbadge} 📁 [1/8] Checking Folders"
 folderInit
 intro
-blue
+yellow
 echo "${pbadge} 🚒 [2/8] Checking dependencies"
 dependencies
 APIcall
-blue
+yellow
 echo "${pbadge} 🌳 [3/8] Checking ptrace compatibility"
 ptraceCompatibilityPolice
-blue
+yellow
 echo "${pbadge} 💽 [4/8] Checking symlinks compatibility"
 symlinksFix
 echo "${pbadge} 💽 [5/8] Updating Manager"
 fetchUpdateManager
-blue
+yellow
 echo "${pbadge} 💽 [6/8] Checking Default Container"
 defaultContainerSetup
-blue
+yellow
 echo "${pbadge} 💽 [7/8] Cache validation Check"
 cacheExpireCheck
-blue
+yellow
 echo "${pbadge} 💽 [8/8] Caching Sequential rootfs"
 sequentialOptimizationCache
 fi
