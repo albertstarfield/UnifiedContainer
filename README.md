@@ -24,7 +24,7 @@
 6. CentOS
 ### :gear: NON PTRACE Machines
 1. WSL Distro
-2. iSH ( iOS shell )
+2. iSH ( iOS shell ) ( i686 support Comming soon )
 
 ### :camera: Tech demo screenshot
 > Using blender Container
