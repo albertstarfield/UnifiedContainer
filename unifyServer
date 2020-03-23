@@ -94,12 +94,14 @@ confirmation(){
   randcode=$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 32 | head -n 1)
   randcode="iwilltaketheresponsibilityofmyaction"
   yellow
+  [ ! -z ${SCRIPTCALL} ]; then
   echo "${pbadge} ⚠️ Are you sure that you want to do this ?⚠️"
   echo "${pbadge} if you do please type this token"
   echo "${randcode}"
   echo "Your input: "
   read input
   echo "debug ${input}"
+  fi
   if [ $input == $randcode ] || [ ! -z ${SCRIPTCALL} ] ; then #SCRIPTCALL VARIABLE IS FOR WHEN YOU CALL THIS SCRIPT THRROUGH A SCRIPT AND YOU WANTED TO HAVE no CONFIRMATION
     yellow
     echo "${pbadge} 🚀 Initiating dangerous code"
