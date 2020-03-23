@@ -251,6 +251,8 @@ percentage=$((currentpackage * 100 / totalpackage))
 yellow
 export SecondaryParamOld="${SecondaryParam}"
 echo "${pbadge} ⌛ Installing Dependencies ${percentage} %"
+export NOBOOT=1 # to prevent any Uncessary checks when reexecuting
+bash ${0} exec ${name} "rm -rf /var/lib/pacman/db.lck" >> ${logs}/unifyServerPackageInstaller.log 2>&1
 bash ${0} exec ${name} "pacman -Syy" >> ${logs}/unifyServerPackageInstaller.log 2>&1
 bash ${0} exec ${name} "pacman -S --needed --noconfirm ${a}" >> ${logs}/unifyServerPackageInstaller.log 2>&1
 #Efficient code seems to not working? I dont know why?
@@ -2502,6 +2504,7 @@ fi
 }
 
 #_________Main_________
+if [ -z ${NOBOOT} ]; then #whether skip checks or not
 #only if it is used for nonmodular purposes
 intro
 blue
@@ -2529,6 +2532,7 @@ cacheExpireCheck
 blue
 echo "${pbadge} 💽 [8/8] Caching Sequential rootfs"
 sequentialOptimizationCache
+fi
 paramCheck
 paramintrepreter
 exit
