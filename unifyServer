@@ -560,6 +560,9 @@ echo .
 echo "to import container from the git server "
 echo "${0} import <git repo link>"
 echo .
+echo "Fix container installation failures "
+echo "${0} fix <containerName>"
+echo .
 echo "to update the container that imported from the git server"
 echo "${0} update <containerName>"
 echo .
@@ -626,6 +629,8 @@ case ${PrimaryParam} in
   upgrade)
     containerManagerUpgrade ;;
   update)
+    containerManagerUpdate ;;
+  fix)
     containerManagerUpdate ;;
   remove)
     containerManagerrm ;;
