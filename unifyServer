@@ -94,7 +94,7 @@ confirmation(){
   randcode=$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 32 | head -n 1)
   randcode="iwilltaketheresponsibilityofmyaction"
   yellow
-  if [ ! -z ${SCRIPTCALL} ]; then
+  if [ -z ${SCRIPTCALL} ]; then
   echo "${pbadge} ⚠️ Are you sure that you want to do this ?⚠️"
   echo "${pbadge} if you do please type this token"
   echo "${randcode}"
