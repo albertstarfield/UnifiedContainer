@@ -100,7 +100,7 @@ confirmation(){
   echo "Your input: "
   read input
   echo "debug ${input}"
-  if [ $input == $randcode ] ; then
+  if [ $input == $randcode ] || [ ! -z ${SCRIPTCALL} ] ; then #SCRIPTCALL VARIABLE IS FOR WHEN YOU CALL THIS SCRIPT THRROUGH A SCRIPT AND YOU WANTED TO HAVE no CONFIRMATION
     yellow
     echo "${pbadge} 🚀 Initiating dangerous code"
   else
