@@ -643,7 +643,7 @@ if [ ! -z "${PREFIX}" ]; then
 echo "${pbadge} PREFIX VARIABLE IS DETECTED WE ARE GOING TO INSTALL THERE"
 installTarget="${PREFIX}/bin"
 else
-installTarget="/usr/local/bin"
+installTarget="${HOME}/bin"
 fi
 managerExec="${installTarget}/bay"
 echo "#!/bin/sh" > "${managerExec}"
@@ -789,7 +789,7 @@ export presistentStorage="${maindir}/presistent_storage"
 export containersLair="${maindir}/containers"
 export defaultContainer="${containersLair}/default"
 export unasignedContainer="${containersLair}/unasigned"
-export Loader="${maindir}/loader"
+export loader="${maindir}/loader"
 export TMPFolder="${maindir}/tmp"
 export PACMANTMPFolder="${TMPFolder}/pacmanCache" #basically will accelerate pacman Caches
 export unasignedContainerTMP="${TMPFolder}/unasigned"
