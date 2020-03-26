@@ -1,7 +1,7 @@
 ![Screenshot](Graphic_Material/BannerLogo.png "logo")
 
 [![Gitpod Ready-to-Code](https://img.shields.io/badge/Gitpod-Ready--to--Code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/Questandachievement7Developer/UnifiedContainer) 
-[![DISCORD](https://img.shields.io/badge/Chat-On%20Discord-738BD7.svg?style=for-the-badge)](https://discord.gg/Vyecdkj)
+[![DISCORD](https://img.shields.io/badge/Chat-On%20Discord-738BD7.svg?style=for-the-badge)](https://discord.gg/krVd2b9)
 ![version](https://img.shields.io/badge/alpha-0.05-green)
 # :computer: Unified Container :computer: 
 
