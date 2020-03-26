@@ -2,7 +2,7 @@
 
 [![Gitpod Ready-to-Code](https://img.shields.io/badge/Gitpod-Ready--to--Code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/Questandachievement7Developer/UnifiedContainer) 
 
-# :sunflower: :computer: Unified Container :computer: :sunflower:
+# :computer: Unified Container :computer: 
 ![version](https://img.shields.io/badge/alpha-0.01-green)
 > Project Bay or also known as Unified Container is a linux container manager Userspace proot backend that allows to create and share linux container in ease without any difficulty on creating one, Inspired from these programs <br>
 [TermuxArch](https://github.com/SDRausty/TermuxArch) <br>
