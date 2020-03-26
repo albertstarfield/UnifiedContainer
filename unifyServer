@@ -1085,7 +1085,7 @@ if [ "$first" != 1 ];then
     echo exec
     #https://github.com/MFDGaming/bootstrap-in-termux/blob/master/bootstrap.sh
     #export UBUNTU_VERSION=19.10
-    echo "${downloadcompass}"
+    #echo "${downloadcompass}"
     #wget "https://github.com/Questandachievement7Developer/UnifiedContainer/releases/download/downloadableRootfs/${archurl}.gz" -O ${tarball}
     #
     #
@@ -1094,13 +1094,14 @@ if [ "$first" != 1 ];then
 
 
     #Well the problem is actually i put the o lowercase rather than the O capital
+    echo "${pbadge} Downloading ${tarball}"
     if [ ! -z $(which aria2c) ]; then
     green
     echo "${pbadge} Download acceleration is available"
-    rm -rf ${tarball}
-    aria2c --max-connection-per-server=16 --min-split-size=1M ${downloadcompass} -o ${tarball}
+    rm -rf ${tarball} 
+    aria2c --max-connection-per-server=16 --min-split-size=1M ${downloadcompass} -o ${tarball} >> ${logs}/DownloadloadTarballCheck.log 2>&1 
     else
-    wget ${downloadcompass} -O ${tarball}
+    wget ${downloadcompass} -O ${tarball} >> ${logs}/DonwloadloadTarballCheck.log 2>&1 
     fi
 		#wget "https://partner-images.canonical.com/core/disco/current/bootstrap-disco-core-cloudimg-${archurl}-root.tar.gz" -O $tarball
 	fi
@@ -1109,7 +1110,7 @@ if [ "$first" != 1 ];then
 	cd "$folder"
   yellow
 	echo "${pbadge} 🗜️ decompressing bootstrap image"
-	${userspacebackend} ${symlinkfix} tar -vxf ${cur}/${tarball} --exclude='dev' --exclude='firmware' --exclude='kernel' >> ${logs}/rootfsExtract.log
+	${userspacebackend} ${symlinkfix} tar -vxf ${cur}/${tarball} --exclude='dev' --exclude='firmware' --exclude='kernel' >> ${logs}/rootfsExtract.log 2>&1 
   if [ ! -z ${subfolder} ]; then
   ${userspacebackend} ${symlinkfix} cp -rua ${subfolder}*/* .
   rm -rf *${subfolder}*
@@ -2135,13 +2136,13 @@ sleep 15
 kill -9 ${threadPID}
 echo disable-scdaemon > ${folder}/etc/pacman.d/gnupg/gpg-agent.conf #https://github.com/sdrausty/TermuxArch/issues/33
 echo "${pbadge} Initiating GPG key signing phase 1"
-threadGPG=$(bash ${bin} "pacman-key --populate archlinux${specialarchtype}" > ${logs}/gpgInit 2>&1 ) &
+threadGPG=$(bash ${bin} "pacman-key --populate archlinux${specialarchtype}" > ${logs}/gpgInit 2>&1 ) >> ${logs}/pacmanKeyInit.log 2>&1  &
 threadPID=$!
 echo "Waiting for 10 seconds"
 sleep 10
 kill -9 ${threadPID}
 echo "${pbadge} Initiating GPG key signing phase 2"
-threadGPG=$(bash ${bin} "pacman-key --populate archlinux${specialarchtype}" > ${logs}/gpgInit 2>&1 ) &
+threadGPG=$(bash ${bin} "pacman-key --populate archlinux${specialarchtype}" > ${logs}/gpgInit 2>&1 ) >> ${logs}/pacmanKeyInit.log 2>&1  &
 threadPID=$!
 echo "Waiting for 60 seconds"
 sleep 60
@@ -2522,26 +2523,25 @@ echo "${pbadge} 📁 [1/8] Checking Folders"
 folderInit
 intro
 yellow
-echo "${pbadge} 🚒 [2/8] Checking dependencies"
-dependencies
-APIcall
+echo "${pbadge} 🚒 [2/8] Checking and installing dependencies"
+dependencies >> ${logs}/dependenciesCheck.log 2>&1 
 yellow
 echo "${pbadge} 🌳 [3/8] Checking ptrace compatibility"
 ptraceCompatibilityPolice
 yellow
 echo "${pbadge} 💽 [4/8] Checking symlinks compatibility"
-symlinksFix
+symlinksFix >> ${logs}/symlinksCheck.log 2>&1 
 echo "${pbadge} 💽 [5/8] Updating Manager"
-fetchUpdateManager
+fetchUpdateManager >> ${logs}/ManagerUpdate.log 2>&1 
 yellow
 echo "${pbadge} 💽 [6/8] Checking Default Container"
 defaultContainerSetup
 yellow
 echo "${pbadge} 💽 [7/8] Cache validation Check"
-cacheExpireCheck
+cacheExpireCheck >> ${logs}/CacherefreshCheck.log 2>&1 
 yellow
 echo "${pbadge} 💽 [8/8] Caching Sequential rootfs"
-sequentialOptimizationCache
+sequentialOptimizationCache >> ${logs}/CacheMakeCheck.log 2>&1 
 fi
 paramCheck
 paramintrepreter
