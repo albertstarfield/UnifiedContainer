@@ -29,8 +29,8 @@
 ### :camera: Tech demo screenshot
 > Using blender Container
 
-![Screenshot](Screenshot_20200307-212043_Termux.jpg "termux")
-![Screenshot](Screenshot_20200307-191840_Chrome.jpg "chrome")
+![Screenshot](Graphic_Material/TermuxTechDemo.jpg "termux")
+![Screenshot](Graphic_Material/ChromeTechDemo.jpg "chrome")
 
 
 
