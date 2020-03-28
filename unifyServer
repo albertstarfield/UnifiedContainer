@@ -239,6 +239,21 @@ cd ${origindir}
 if [ -z ${updateContainer} ]; then
 containerManagerAdd ${name}
 fi
+PackagemanagerCheck(){
+  #https://stackoverflow.com/questions/11287861/how-to-check-if-a-file-contains-a-specific-string-using-bash
+File=${containersLair}/${name}/rootfs/installedPackage
+for b in ${packages}; do
+if grep -q ${b} "$File" ; then
+  green
+echo "${pbadge} ✔️ Package Verified Installed ${a} "
+else
+  red
+  echo "${pbadge} ❌ Package not installed correctly ❌"
+ImportedContainerPackageManager
+fi
+done
+}
+ImportedContainerPackageManager(){
 echo "${GITSOURCE}" > ${containersLair}/${name}/origin #add the source link first so if the installs fails user can easily reset the container
 echo "${packages}" > ${containersLair}/${name}/rootfs/packages
 export totalpackage=0
@@ -264,7 +279,13 @@ bash ${0} exec ${name} "rm -rf /var/lib/pacman/db.lck" >> ${logs}/unifyServerPac
 #executeContainerCMD ${name} "pacman -S --needed --noconfirm ${a}"
 green
 echo "${pbadge} ✔️ Done Installing ${a} "
+PackagemanagerCheck
 done
+bash ${0} exec ${name} "pacman -Qqe > /installedPackage"
+}
+
+ImportedContainerPackageManager
+
 echo "${GITSOURCE}" > ${containersLair}/${name}/origin
 echo "${init}" > ${containersLair}/${name}/rootfs/init
 echo "${setuproutines}" > ${containersLair}/${name}/rootfs/setup
@@ -282,6 +303,380 @@ echo "${GITSOURCE}" > ${containersLair}/${name}/origin
 echo "${pbadge} ✨import done✨"
 exit
 }
+
+containerManagerPullDockerImage(){ #HELP Pull an image from Docker Hub:\nBOCKER pull <name> <tag>
+######################################## TO BE IMPLEMENTED #########################################
+mobyfrozenImagePull(){
+set -eo pipefail
+# hello-world                      latest              ef872312fe1b        3 months ago        910 B
+# hello-world                      latest              ef872312fe1bbc5e05aae626791a47ee9b032efa8f3bda39cc0be7b56bfe59b9   3 months ago        910 B
+
+# debian                           latest              f6fab3b798be        10 weeks ago        85.1 MB
+# debian                           latest              f6fab3b798be3174f45aa1eb731f8182705555f89c9026d8c1ef230cbf8301dd   10 weeks ago        85.1 MB
+
+# check if essential commands are in our PATH
+for cmd in curl jq go; do
+	if ! command -v $cmd &> /dev/null; then
+		echo >&2 "error: \"$cmd\" not found!"
+		exit 1
+	fi
+done
+
+usage() {
+	echo "usage: $0 dir image[:tag][@digest] ..."
+	echo "       $0 /tmp/old-hello-world hello-world:latest@sha256:8be990ef2aeb16dbcb9271ddfe2610fa6658d13f6dfb8bc72074cc1ca36966a7"
+	[ -z "$1" ] || exit "$1"
+}
+
+dir="$1" # dir for building tar in
+shift || usage 1 >&2
+
+[ $# -gt 0 -a "$dir" ] || usage 2 >&2
+mkdir -p "$dir"
+
+# hacky workarounds for Bash 3 support (no associative arrays)
+images=()
+rm -f "$dir"/tags-*.tmp
+manifestJsonEntries=()
+doNotGenerateManifestJson=
+# repositories[busybox]='"latest": "...", "ubuntu-14.04": "..."'
+
+# bash v4 on Windows CI requires CRLF separator
+newlineIFS=$'\n'
+if [ "$(go env GOHOSTOS)" = 'windows' ]; then
+	major=$(echo ${BASH_VERSION%%[^0.9]} | cut -d. -f1)
+	if [ "$major" -ge 4 ]; then
+		newlineIFS=$'\r\n'
+	fi
+fi
+
+registryBase='https://registry-1.docker.io'
+authBase='https://auth.docker.io'
+authService='registry.docker.io'
+
+# https://github.com/moby/moby/issues/33700
+fetch_blob() {
+	local token="$1"
+	shift
+	local image="$1"
+	shift
+	local digest="$1"
+	shift
+	local targetFile="$1"
+	shift
+	local curlArgs=("$@")
+
+	local curlHeaders="$(
+		curl -S "${curlArgs[@]}" \
+			-H "Authorization: Bearer $token" \
+			"$registryBase/v2/$image/blobs/$digest" \
+			-o "$targetFile" \
+			-D-
+	)"
+	curlHeaders="$(echo "$curlHeaders" | tr -d '\r')"
+	if grep -qE "^HTTP/[0-9].[0-9] 3" <<< "$curlHeaders"; then
+		rm -f "$targetFile"
+
+		local blobRedirect="$(echo "$curlHeaders" | awk -F ': ' 'tolower($1) == "location" { print $2; exit }')"
+		if [ -z "$blobRedirect" ]; then
+			echo >&2 "error: failed fetching '$image' blob '$digest'"
+			echo "$curlHeaders" | head -1 >&2
+			return 1
+		fi
+
+		curl -fSL "${curlArgs[@]}" \
+			"$blobRedirect" \
+			-o "$targetFile"
+	fi
+}
+
+# handle 'application/vnd.docker.distribution.manifest.v2+json' manifest
+handle_single_manifest_v2() {
+	local manifestJson="$1"
+	shift
+
+	local configDigest="$(echo "$manifestJson" | jq --raw-output '.config.digest')"
+	local imageId="${configDigest#*:}" # strip off "sha256:"
+
+	local configFile="$imageId.json"
+	fetch_blob "$token" "$image" "$configDigest" "$dir/$configFile" -s
+
+	local layersFs="$(echo "$manifestJson" | jq --raw-output --compact-output '.layers[]')"
+	local IFS="$newlineIFS"
+	local layers=($layersFs)
+	unset IFS
+
+	echo "Downloading '$imageIdentifier' (${#layers[@]} layers)..."
+	local layerId=
+	local layerFiles=()
+	for i in "${!layers[@]}"; do
+		local layerMeta="${layers[$i]}"
+
+		local layerMediaType="$(echo "$layerMeta" | jq --raw-output '.mediaType')"
+		local layerDigest="$(echo "$layerMeta" | jq --raw-output '.digest')"
+
+		# save the previous layer's ID
+		local parentId="$layerId"
+		# create a new fake layer ID based on this layer's digest and the previous layer's fake ID
+		layerId="$(echo "$parentId"$'\n'"$layerDigest" | sha256sum | cut -d' ' -f1)"
+		# this accounts for the possibility that an image contains the same layer twice (and thus has a duplicate digest value)
+
+		mkdir -p "$dir/$layerId"
+		echo '1.0' > "$dir/$layerId/VERSION"
+
+		if [ ! -s "$dir/$layerId/json" ]; then
+			local parentJson="$(printf ', parent: "%s"' "$parentId")"
+			local addJson="$(printf '{ id: "%s"%s }' "$layerId" "${parentId:+$parentJson}")"
+			# this starter JSON is taken directly from Docker's own "docker save" output for unimportant layers
+			jq "$addJson + ." > "$dir/$layerId/json" <<- 'EOJSON'
+				{
+					"created": "0001-01-01T00:00:00Z",
+					"container_config": {
+						"Hostname": "",
+						"Domainname": "",
+						"User": "",
+						"AttachStdin": false,
+						"AttachStdout": false,
+						"AttachStderr": false,
+						"Tty": false,
+						"OpenStdin": false,
+						"StdinOnce": false,
+						"Env": null,
+						"Cmd": null,
+						"Image": "",
+						"Volumes": null,
+						"WorkingDir": "",
+						"Entrypoint": null,
+						"OnBuild": null,
+						"Labels": null
+					}
+				}
+			EOJSON
+		fi
+
+		case "$layerMediaType" in
+			application/vnd.docker.image.rootfs.diff.tar.gzip)
+				local layerTar="$layerId/layer.tar"
+				layerFiles=("${layerFiles[@]}" "$layerTar")
+				# TODO figure out why "-C -" doesn't work here
+				# "curl: (33) HTTP server doesn't seem to support byte ranges. Cannot resume."
+				# "HTTP/1.1 416 Requested Range Not Satisfiable"
+				if [ -f "$dir/$layerTar" ]; then
+					# TODO hackpatch for no -C support :'(
+					echo "skipping existing ${layerId:0:12}"
+					continue
+				fi
+				local token="$(curl -fsSL "$authBase/token?service=$authService&scope=repository:$image:pull" | jq --raw-output '.token')"
+				fetch_blob "$token" "$image" "$layerDigest" "$dir/$layerTar" --progress
+				;;
+
+			*)
+				echo >&2 "error: unknown layer mediaType ($imageIdentifier, $layerDigest): '$layerMediaType'"
+				exit 1
+				;;
+		esac
+	done
+
+	# change "$imageId" to be the ID of the last layer we added (needed for old-style "repositories" file which is created later -- specifically for older Docker daemons)
+	imageId="$layerId"
+
+	# munge the top layer image manifest to have the appropriate image configuration for older daemons
+	local imageOldConfig="$(jq --raw-output --compact-output '{ id: .id } + if .parent then { parent: .parent } else {} end' "$dir/$imageId/json")"
+	jq --raw-output "$imageOldConfig + del(.history, .rootfs)" "$dir/$configFile" > "$dir/$imageId/json"
+
+	local manifestJsonEntry="$(
+		echo '{}' | jq --raw-output '. + {
+			Config: "'"$configFile"'",
+			RepoTags: ["'"${image#library\/}:$tag"'"],
+			Layers: '"$(echo '[]' | jq --raw-output ".$(for layerFile in "${layerFiles[@]}"; do echo " + [ \"$layerFile\" ]"; done)")"'
+		}'
+	)"
+	manifestJsonEntries=("${manifestJsonEntries[@]}" "$manifestJsonEntry")
+}
+
+while [ $# -gt 0 ]; do
+	imageTag="$1"
+	shift
+	image="${imageTag%%[:@]*}"
+	imageTag="${imageTag#*:}"
+	digest="${imageTag##*@}"
+	tag="${imageTag%%@*}"
+
+	# add prefix library if passed official image
+	if [[ "$image" != *"/"* ]]; then
+		image="library/$image"
+	fi
+
+	imageFile="${image//\//_}" # "/" can't be in filenames :)
+
+	token="$(curl -fsSL "$authBase/token?service=$authService&scope=repository:$image:pull" | jq --raw-output '.token')"
+
+	manifestJson="$(
+		curl -fsSL \
+			-H "Authorization: Bearer $token" \
+			-H 'Accept: application/vnd.docker.distribution.manifest.v2+json' \
+			-H 'Accept: application/vnd.docker.distribution.manifest.list.v2+json' \
+			-H 'Accept: application/vnd.docker.distribution.manifest.v1+json' \
+			"$registryBase/v2/$image/manifests/$digest"
+	)"
+	if [ "${manifestJson:0:1}" != '{' ]; then
+		echo >&2 "error: /v2/$image/manifests/$digest returned something unexpected:"
+		echo >&2 "  $manifestJson"
+		exit 1
+	fi
+
+	imageIdentifier="$image:$tag@$digest"
+
+	schemaVersion="$(echo "$manifestJson" | jq --raw-output '.schemaVersion')"
+	case "$schemaVersion" in
+		2)
+			mediaType="$(echo "$manifestJson" | jq --raw-output '.mediaType')"
+
+			case "$mediaType" in
+				application/vnd.docker.distribution.manifest.v2+json)
+					handle_single_manifest_v2 "$manifestJson"
+					;;
+				application/vnd.docker.distribution.manifest.list.v2+json)
+					layersFs="$(echo "$manifestJson" | jq --raw-output --compact-output '.manifests[]')"
+					IFS="$newlineIFS"
+					layers=($layersFs)
+					unset IFS
+
+					found=""
+					# parse first level multi-arch manifest
+					for i in "${!layers[@]}"; do
+						layerMeta="${layers[$i]}"
+						maniArch="$(echo "$layerMeta" | jq --raw-output '.platform.architecture')"
+						if [ "$maniArch" = "$(go env GOARCH)" ]; then
+							digest="$(echo "$layerMeta" | jq --raw-output '.digest')"
+							# get second level single manifest
+							submanifestJson="$(
+								curl -fsSL \
+									-H "Authorization: Bearer $token" \
+									-H 'Accept: application/vnd.docker.distribution.manifest.v2+json' \
+									-H 'Accept: application/vnd.docker.distribution.manifest.list.v2+json' \
+									-H 'Accept: application/vnd.docker.distribution.manifest.v1+json' \
+									"$registryBase/v2/$image/manifests/$digest"
+							)"
+							handle_single_manifest_v2 "$submanifestJson"
+							found="found"
+							break
+						fi
+					done
+					if [ -z "$found" ]; then
+						echo >&2 "error: manifest for $maniArch is not found"
+						exit 1
+					fi
+					;;
+				*)
+					echo >&2 "error: unknown manifest mediaType ($imageIdentifier): '$mediaType'"
+					exit 1
+					;;
+			esac
+			;;
+
+		1)
+			if [ -z "$doNotGenerateManifestJson" ]; then
+				echo >&2 "warning: '$imageIdentifier' uses schemaVersion '$schemaVersion'"
+				echo >&2 "  this script cannot (currently) recreate the 'image config' to put in a 'manifest.json' (thus any schemaVersion 2+ images will be imported in the old way, and their 'docker history' will suffer)"
+				echo >&2
+				doNotGenerateManifestJson=1
+			fi
+
+			layersFs="$(echo "$manifestJson" | jq --raw-output '.fsLayers | .[] | .blobSum')"
+			IFS="$newlineIFS"
+			layers=($layersFs)
+			unset IFS
+
+			history="$(echo "$manifestJson" | jq '.history | [.[] | .v1Compatibility]')"
+			imageId="$(echo "$history" | jq --raw-output '.[0]' | jq --raw-output '.id')"
+
+			echo "Downloading '$imageIdentifier' (${#layers[@]} layers)..."
+			for i in "${!layers[@]}"; do
+				imageJson="$(echo "$history" | jq --raw-output ".[${i}]")"
+				layerId="$(echo "$imageJson" | jq --raw-output '.id')"
+				imageLayer="${layers[$i]}"
+
+				mkdir -p "$dir/$layerId"
+				echo '1.0' > "$dir/$layerId/VERSION"
+
+				echo "$imageJson" > "$dir/$layerId/json"
+
+				# TODO figure out why "-C -" doesn't work here
+				# "curl: (33) HTTP server doesn't seem to support byte ranges. Cannot resume."
+				# "HTTP/1.1 416 Requested Range Not Satisfiable"
+				if [ -f "$dir/$layerId/layer.tar" ]; then
+					# TODO hackpatch for no -C support :'(
+					echo "skipping existing ${layerId:0:12}"
+					continue
+				fi
+				token="$(curl -fsSL "$authBase/token?service=$authService&scope=repository:$image:pull" | jq --raw-output '.token')"
+				fetch_blob "$token" "$image" "$imageLayer" "$dir/$layerId/layer.tar" --progress
+			done
+			;;
+
+		*)
+			echo >&2 "error: unknown manifest schemaVersion ($imageIdentifier): '$schemaVersion'"
+			exit 1
+			;;
+	esac
+
+	echo
+
+	if [ -s "$dir/tags-$imageFile.tmp" ]; then
+		echo -n ', ' >> "$dir/tags-$imageFile.tmp"
+	else
+		images=("${images[@]}" "$image")
+	fi
+	echo -n '"'"$tag"'": "'"$imageId"'"' >> "$dir/tags-$imageFile.tmp"
+done
+
+echo -n '{' > "$dir/repositories"
+firstImage=1
+for image in "${images[@]}"; do
+	imageFile="${image//\//_}" # "/" can't be in filenames :)
+	image="${image#library\/}"
+
+	[ "$firstImage" ] || echo -n ',' >> "$dir/repositories"
+	firstImage=
+	echo -n $'\n\t' >> "$dir/repositories"
+	echo -n '"'"$image"'": { '"$(cat "$dir/tags-$imageFile.tmp")"' }' >> "$dir/repositories"
+done
+echo -n $'\n}\n' >> "$dir/repositories"
+
+rm -f "$dir"/tags-*.tmp
+
+if [ -z "$doNotGenerateManifestJson" ] && [ "${#manifestJsonEntries[@]}" -gt 0 ]; then
+	echo '[]' | jq --raw-output ".$(for entry in "${manifestJsonEntries[@]}"; do echo " + [ $entry ]"; done)" > "$dir/manifest.json"
+else
+	rm -f "$dir/manifest.json"
+fi
+
+echo "Download of images into '$dir' complete."
+echo "Use something like the following to load the result into a Docker daemon:"
+echo "  tar -cC '$dir' . | docker load"
+}
+  	#token="$(curl -sL -o /dev/null -D- -H 'X-Docker-Token: true' "https://index.docker.io/v1/repositories/$1/images" | tr -d '\r' | awk -F ': *' '$1 == "X-Docker-Token" { print $2 }')"
+    token="$(curl -sL -o /dev/null -D- -H 'X-Docker-Token: true' "https://index.docker.io/v2/repositories/$1/images" | tr -d '\r' | awk -F ': *' '$1 == "X-Docker-Token" { print $2 }')"
+    echo "Docker ${token}"
+    #registry='https://registry-1.docker.io/v1'
+    registry='https://registry-1.docker.io/v2'
+    #/v2/<name>/manifests/<reference>
+  	#id="$(curl -sL -H "Authorization: Token $token" "$registry/repositories/$1/tags/$2" | sed 's/"//g')"
+    id="$(curl -sL -H "Authorization: Token $token" "$registry/repositories/$1/tags/$2" | sed 's/"//g')"
+    echo "Docker ID ${id}"
+  	[[ "${#id}" -ne 64 ]] && echo "No image named '$1:$2' exists" && exit 1
+  	ancestry="$(curl -sL -H "Authorization: Token $token" "$registry/images/$id/ancestry")"
+  	IFS=',' && ancestry=(${ancestry//[\[\] \"]/}) && IFS=' \n\t'; tmp_uuid="$(uuidgen)" && mkdir /tmp/"$tmp_uuid"
+  	for id in "${ancestry[@]}"; do
+  		curl -#L -H "Authorization: Token $token" "$registry/images/$id/layer" -o /tmp/"$tmp_uuid"/layer.tar
+  		tar xf /tmp/"$tmp_uuid"/layer.tar -C /tmp/"$tmp_uuid" && rm /tmp/"$tmp_uuid"/layer.tar
+  	done
+  	echo "$1:$2" > /tmp/"$tmp_uuid"/img.source
+  	bocker_init /tmp/"$tmp_uuid" && rm -rf /tmp/"$tmp_uuid"
+}
+
+
 
 containerManagerExport(){
   if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
@@ -322,13 +717,13 @@ containerManagerAdd(){
     echo "${pbadge} 📦 Creating Container"
   if [ ! -d ${unasignedContainer} ] || [ ! -f ${unasignedContainer}/cacheSuccess ]; then
     if [ -f ${containersLair}/defaultSeq ] && [ -f ${containersLair}/guranteedSeqIntegrity ]; then
-    echo "Optimization Enabled"
+    #echo "Optimization Enabled"
       mkdir ${containersLair}/${SecondaryParam}
       ${userspacebackend} ${symlinkfix} tar -C "${containersLair}/${SecondaryParam}" -xf "${containersLair}/defaultSeq" >> ${logs}/rootfsOptimizedCopyOperation.log 2>&1
       #mv ${containersLair}/${SecondaryParam}/default/* ${containersLair}/${SecondaryParam} #this is unused since the tar compressed directly from the directory
       #rm -rf ${containersLair}/${SecondaryParam}/default
   else
-    echo "Optimization Disabled"
+    #echo "Optimization Disabled"
       ${userspacebackend} ${symlinkfix} cp -ruaH "${defaultContainer}" "${containersLair}/${SecondaryParam}" >> ${logs}/rootfsCopyOperation.log 2>&1
   fi
 else
@@ -705,6 +1100,34 @@ fi
 
 }
 
+containerManagerDeExposeSystemLibrary(){
+  if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
+    red
+    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
+    exit
+  else
+rm ${containersLair}/${SecondaryParam}/grantSystemLibrary
+green
+echo "${pbadge} ✔️ System Library Blocked "
+exit
+fi
+
+}
+
+containerManagerExposeSystemLibrary(){
+  if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
+    red
+    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
+    exit
+  else
+echo 1 > ${containersLair}/${SecondaryParam}/grantSystemLibrary
+green
+echo "${pbadge} ✔️ System Library Granted "
+exit
+fi
+
+}
+
 containerManagerUpdate(){
   if [ ! -z $@ ] ; then
     SecondaryParam=${1}
@@ -716,6 +1139,11 @@ containerManagerUpdate(){
     exit
   else
     export updateContainer=1
+    if [ ! -f "${containersLair}/${SecondaryParam}/origin" ]; then
+      red
+      echo "${pbadge} ❌ This feature is not available for locally created container ❌"
+      exit
+    fi
 containerManagerImport "$(cat ${containersLair}/${SecondaryParam}/origin)"
 echo "${pbadge} ✔️ Container Updated "
 fi
@@ -1098,10 +1526,10 @@ if [ "$first" != 1 ];then
     if [ ! -z $(which aria2c) ]; then
     green
     echo "${pbadge} Download acceleration is available"
-    rm -rf ${tarball} 
-    aria2c --max-connection-per-server=16 --min-split-size=1M ${downloadcompass} -o ${tarball} >> ${logs}/DownloadloadTarballCheck.log 2>&1 
+    rm -rf ${tarball}
+    aria2c --max-connection-per-server=16 --min-split-size=1M ${downloadcompass} -o ${tarball} >> ${logs}/DownloadloadTarballCheck.log 2>&1
     else
-    wget ${downloadcompass} -O ${tarball} >> ${logs}/DonwloadloadTarballCheck.log 2>&1 
+    wget ${downloadcompass} -O ${tarball} >> ${logs}/DonwloadloadTarballCheck.log 2>&1
     fi
 		#wget "https://partner-images.canonical.com/core/disco/current/bootstrap-disco-core-cloudimg-${archurl}-root.tar.gz" -O $tarball
 	fi
@@ -1110,7 +1538,7 @@ if [ "$first" != 1 ];then
 	cd "$folder"
   yellow
 	echo "${pbadge} 🗜️ decompressing bootstrap image"
-	${userspacebackend} ${symlinkfix} tar -vxf ${cur}/${tarball} --exclude='dev' --exclude='firmware' --exclude='kernel' >> ${logs}/rootfsExtract.log 2>&1 
+	${userspacebackend} ${symlinkfix} tar -vxf ${cur}/${tarball} --exclude='dev' --exclude='firmware' --exclude='kernel' >> ${logs}/rootfsExtract.log 2>&1
   if [ ! -z ${subfolder} ]; then
   ${userspacebackend} ${symlinkfix} cp -rua ${subfolder}*/* .
   rm -rf *${subfolder}*
@@ -1176,6 +1604,14 @@ fi
 if [ -d /home ] && [ -f grantStorage ]; then
 mount --bind /home ${folder}/exposed"
 fi
+echo "[Progress] System Library Expose"
+if [ -d /system ] && [ -f grantSystemLibrary ]; then
+mount --bind /system ${folder}/systemfs"
+fi
+if [ -d /usr/lib ] && [ -f grantSystemLibrary ]; then
+mount --bind / ${folder}/systemfs"
+fi
+
 echo "chrootdefine"
 command="chroot"
 command+=" ${folder}"
@@ -1205,6 +1641,13 @@ command+=" -b /sdcard:/exposed"
 fi
 if [ -d /home ] && [ -f grantStorage ]; then
   command+=" -b /home:/exposed"
+fi
+echo Exposing systemLib
+if [ -d /system ] && [ -f grantSystemLibrary ]; then
+  command+=" -b /system:/systemfs"
+fi
+if [ -d /usr/lib ] && [ -f grantSystemLibrary ]; then
+  command+=" -b /:/systemfs"
 fi
 command+=" -b /proc"
 ## uncomment the following line to have access to the home directory of termux
@@ -2188,6 +2631,7 @@ else
 echo "============================================================================="
 echo "${pbadge} 🥺THE CONTAINER FAILED DURING INSTALL AND VERIFICATION🥺"
 echo "============================================================================"
+
 if [ ${DEVELMODE} == "1" ] && [ ! -z ${DEVELMODE} ]; then
   # IF YOU RUN ON SUDO PLEASE MAKE SURE TO USE $ sudo env DEVELMODE=1 ./unifyServer
 echo "${pbadge} Dropping into shell mode"
@@ -2275,6 +2719,8 @@ else
 red
 APIcall systemUI_notifysend "❌_defaultContainer_failure"
 echo "${pbadge} resetting Install due to the corrupted install"
+echo "${pbadge} Automatic Resolve Enabled"
+envTroubleShooting
 export newInstall=1
 # This will forces the program to retry until the program output the flag ( success flag ) from the verifier test ( See bootstrapSetup verifier test )
 cd ${origindir}
@@ -2505,6 +2951,31 @@ fi
   "${1}" "${2}" "${3}" "${4}" &
 }
 
+envTroubleShooting(){
+yellow
+echo "${pbadge} Experimental Troubleshooter"
+echo "Fixing Partial Sleep"
+partialSleepandroid9fix(){
+  pkglist=$(pm list packages -f | sed -e 's/.*=//' | sort | grep term )
+#echo ${pkglist}
+
+
+if [ $1 == 'restore' ]; then
+for a in ${pkglist}; do
+echo "Deoptimizing ${a}"
+cmd appops set "${a}" WAKE_LOCK allow
+cmd appops set "${a}" RUN_IN_BACKGROUND allow
+cmd appops set "${a}" RUN_ANY_IN_BACKGROUND allow
+cmd appops set "${a}" START_FOREGROUND allow
+done
+exit
+fi
+}
+if [ -d /system ]; then
+partialSleepandroid9fix >> ${logs}/partialSleepfix 2>&1
+fi
+echo done
+}
 
 symlinksFix(){
 if [ ${linktosymlinkActivated} == '1' ]; then
@@ -2524,24 +2995,24 @@ folderInit
 intro
 yellow
 echo "${pbadge} 🚒 [2/8] Checking and installing dependencies"
-dependencies >> ${logs}/dependenciesCheck.log 2>&1 
+dependencies >> ${logs}/dependenciesCheck.log 2>&1
 yellow
 echo "${pbadge} 🌳 [3/8] Checking ptrace compatibility"
 ptraceCompatibilityPolice
 yellow
 echo "${pbadge} 💽 [4/8] Checking symlinks compatibility"
-symlinksFix >> ${logs}/symlinksCheck.log 2>&1 
+symlinksFix >> ${logs}/symlinksCheck.log 2>&1
 echo "${pbadge} 💽 [5/8] Updating Manager"
-fetchUpdateManager >> ${logs}/ManagerUpdate.log 2>&1 
+fetchUpdateManager >> ${logs}/ManagerUpdate.log 2>&1
 yellow
 echo "${pbadge} 💽 [6/8] Checking Default Container"
 defaultContainerSetup
 yellow
 echo "${pbadge} 💽 [7/8] Cache validation Check"
-cacheExpireCheck >> ${logs}/CacherefreshCheck.log 2>&1 
+cacheExpireCheck >> ${logs}/CacherefreshCheck.log 2>&1
 yellow
 echo "${pbadge} 💽 [8/8] Caching Sequential rootfs"
-sequentialOptimizationCache >> ${logs}/CacheMakeCheck.log 2>&1 
+sequentialOptimizationCache >> ${logs}/CacheMakeCheck.log 2>&1
 fi
 paramCheck
 paramintrepreter
