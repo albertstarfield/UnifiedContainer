@@ -221,7 +221,7 @@ containerManagerImport(){
     TertiaryParam=${2}
   fi
 APIcall systemUI_notifysend "⌛Importing_container⌛"
-echo "${pbadge} ⌛Importing_container⌛"
+echo "${pbadge} ⌛Importing container configuration ⌛"
 containerID=$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 32 | head -n 1)
 export importedcontainer="${TMPFolder}/${containerID}"
 git clone ${SecondaryParam} ${TMPFolder}/${containerID} > ${logs}/${containerID}_gitcloneLog.log 2>&1
@@ -243,6 +243,7 @@ fi
 PackagemanagerCheck(){
   #https://stackoverflow.com/questions/11287861/how-to-check-if-a-file-contains-a-specific-string-using-bash
 File=${containersLair}/${name}/rootfs/installedPackage
+export reinstall=0
 for b in ${packages}; do
 if grep -q ${b} "$File" ; then
   green
@@ -250,9 +251,12 @@ echo "${pbadge} ✔️ Package Verified Installed ${a} "
 else
   red
   echo "${pbadge} ❌ ${a} Package not installed correctly ❌"
-ImportedContainerPackageManager
+export reinstall=1
 fi
 done
+if [ ${reinstall} == '1' ]; then
+ImportedContainerPackageManager
+fi
 }
 ImportedContainerPackageManager(){
 echo "${GITSOURCE}" > ${containersLair}/${name}/origin #add the source link first so if the installs fails user can easily reset the container
@@ -281,7 +285,7 @@ bash ${0} exec ${name} "rm -rf /var/lib/pacman/db.lck" >> ${logs}/unifyServerPac
 green
 echo "${pbadge} ✔️ Done Installing ${a} "
 done
-bash ${0} exec ${name} "pacman -Qqe > /installedPackage"
+bash ${0} exec ${name} "pacman -Qqe > /installedPackage" >> ${logs}/unifyServerInstallerCheck.log 2>&1
 PackagemanagerCheck
 }
 
