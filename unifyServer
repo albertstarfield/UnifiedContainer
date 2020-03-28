@@ -937,6 +937,12 @@ echo .
 echo "To isolate local storage from the container"
 echo "${0} deexposeStorage <containerName>"
 echo .
+echo "To Grant system Library for the container"
+echo "${0} exposeSystemLibs <containerName>"
+echo .
+echo "To isolate system Library from the container"
+echo "${0} deexposeSystemLibs <containerName>"
+echo .
 echo "Export Container Configuration "
 echo "${0} exportCont <containerName>"
 echo .
@@ -1017,6 +1023,10 @@ case ${PrimaryParam} in
     containerManagerExposeStorage ;;
   deexposeStorage)
     containerManagerDeExposeStorage ;;
+  exposeSystemLibs)
+    containerManagerExposeSystemLibrary ;;
+  deexposeSystemLibs)
+    containerManagerDeExposeSystemLibrary ;;
   reset)
     containerManagerReset ;;
   list)
@@ -1042,13 +1052,63 @@ case ${PrimaryParam} in
   edit_routines)
     editroutinesContainer ;;
   *)
-    help_unifyServer ;;
+    menuUI ;;
 esac
 }
 # if the bash is recognized this one rather the real one
 # then it have a big problem
 
 # bash does not recognize this function
+
+menuUI(){
+  HEIGHT=15
+  WIDTH=80
+  CHOICE_HEIGHT=18
+  BACKTITLE="unifyServer"
+  TITLE="unifyServer Menu"
+  OPTIONS=(
+  "launch" "Launch a container as a daemon"
+  "launchfg" "Launch a container in foreground"
+  "stop" "Stop a container daemon"
+  "add" "Add a container"
+  "remove" "remove a container"
+  "reset" "reset a container"
+  "fix" "Fix a container (only for Remote imported container)"
+  "list all" "List and the status of contaieners"
+  "shell" "Enters the container shell"
+  "exportCont" "export container configuration into containersys/ExportedContainer"
+  "nuke yes" "Reset the whole installation"
+  "exitUI" "exits the UI manager")
+
+  mission=$(dialog --clear \
+                  --backtitle "$BACKTITLE" \
+                  --title "Select Action" \
+                  --menu "$MENU" \
+                  $HEIGHT $WIDTH $CHOICE_HEIGHT \
+                  "${OPTIONS[@]}" \
+                  2>&1 >/dev/tty)
+
+
+  commandExecutor(){
+    if [ ! -z $2 ]; then
+    secondParam=${1}
+  fi
+    if [ -z $2 ]; then
+      secondParam=$(dialog --title "Insert the second parameter" \
+--backtitle "$BACKTITLE" \
+--inputbox "Enter the second parameter" 8 60 2>$OUTPUT)
+    fi
+    ${1} ${secondParam} ${3} ${4} ${5}
+  }
+commandExecutor "${mission}"
+exit
+}
+
+
+exitUI(){
+  exit
+}
+
 linkManagerPath(){
 if [ ! -z "${PREFIX}" ]; then
 echo "${pbadge} PREFIX VARIABLE IS DETECTED WE ARE GOING TO INSTALL THERE"
@@ -1320,11 +1380,11 @@ export ptracecompat='1' #flag ptrace compatibility based on the distro or kernel
 export linktosymlinkActivated=0
 export arch=$(uname -m)
 if [ ! -z $(which apk) ]; then
-  echo "THIS MIGHT BE RUNNING ON iSH which Does not support Ptrace"
+  echo "Alpine Distro"
   export packmanager=apk
   export installParameter="add"
-  export ptracecompat='0'
-  export distro="iSH"
+  export ptracecompat='1'
+  export distro="alpine"
 fi
 
 if [ ! -z $(which apt) ]; then
@@ -1353,6 +1413,13 @@ fi
       echo "PTRACE ON WSL 1 IS NOT SUPPORTED"
       export ptracecompat='0'
       export WSLenv="1"
+    fi
+
+    if [[ $(grep iSH /proc/version) ]]; then
+      echo "Bash is running on iSH"
+      echo "PTRACE ON iSH IS NOT SUPPORTED"
+      export ptracecompat='0'
+      export WSLenv="0"
     fi
 
     if [ ! -z $(which pacman) ]; then
@@ -2977,7 +3044,7 @@ exit
 fi
 }
 if [ -d /system ]; then
-partialSleepandroid9fix >> ${logs}/partialSleepfix 2>&1
+su -c "partialSleepandroid9fix" >> ${logs}/partialSleepfix 2>&1
 fi
 echo done
 }
