@@ -695,11 +695,15 @@ name=${SecondaryParam}
 executeContainerCMD ${name} "pacman -Qqe > /packages"
 packages=$(cat ${containersLair}/${SecondaryParam}/rootfs/packages)
 init=$(cat ${containersLair}/${SecondaryParam}/rootfs/init)
-executeContainerCMD ${name} "fish -c history" > ${containerExport}/${name}/setup
+echo '# You can edit the setup runtime in here (This installation happens post package installation)' > ${containerExport}/${name}/setup
+executeContainerCMD ${name} "fish -c history" >> ${containerExport}/${name}/setup
+nano ${containerExport}/${name}/setup
 mkdir ${containerExport}/${name}
 echo "${name}" > ${containerExport}/${name}/name
 echo "${packages}" > ${containerExport}/${name}/packages
-echo "${init}" > ${containerExport}/${name}/init
+echo '# You can edit the init file anything you want (Executed everytime launched the container)' > ${containerExport}/${name}/init
+echo "${init}" >> ${containerExport}/${name}/init
+nano ${containerExport}/${name}/init
 #echo "apt-get update; apt-get upgrade; echo Default setup done" > ${containerExport}/${name}/setup
 #echo "pacman -Syu --noconfirm ; echo Default setup done" > ${containerExport}/${name}/setup
 green
@@ -1468,7 +1472,7 @@ fi
   distroDetection
   export distComplete="$(uname -a)"
 
-  requirements="chroot busybox wget git proot aria2 aria2c xclip"
+  requirements="chroot busybox wget git proot aria2 aria2c xclip dialog nano"
  echo "echo Installing 🔧" > ${TMPFolder}/SUINSTALL
   for i in ${requirements}; do
     green
