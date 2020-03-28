@@ -68,8 +68,8 @@ paramCheck(){
 #echo DEBUG PARAM CHECK ${PrimaryParam} ${SecondaryParam}
 if [ -z ${PrimaryParam} ]; then
   red
-  echo "${pbadge} 🤔 Invalid Sub command please refer help for manual 🤷"
-  help_unifyServer
+  echo "${pbadge} 🤔 No command detected Redirecting to MENU UI 🤷"
+  menuUI
   exit
 fi
 
@@ -1088,16 +1088,17 @@ menuUI(){
                   "${OPTIONS[@]}" \
                   2>&1 >/dev/tty)
 
-
+echo "if you are stuck do ctrl+c it wont damage anything"
   commandExecutor(){
     if [ ! -z $2 ]; then
     secondParam=${1}
   fi
     if [ -z $2 ]; then
       secondParam=$(dialog --title "Insert the second parameter" \
---backtitle "$BACKTITLE" \
---inputbox "Enter the second parameter" 8 60 2>$OUTPUT)
+      --backtitle "$BACKTITLE" \
+      --inputbox "Enter the second parameter" 8 60 )
     fi
+    echo Processing ${1}
     ${1} ${secondParam} ${3} ${4} ${5}
   }
 commandExecutor "${mission}"
