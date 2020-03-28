@@ -223,7 +223,7 @@ containerManagerImport(){
 APIcall systemUI_notifysend "⌛Importing_container⌛"
 containerID=$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 32 | head -n 1)
 export importedcontainer="${TMPFolder}/${containerID}"
-git clone ${SecondaryParam} ${TMPFolder}/${containerID}
+git clone ${SecondaryParam} ${TMPFolder}/${containerID} > ${logs}/${containerID}_gitcloneLog.log 2>&1
 if [ ! -d "${TMPFolder}/${containerID}" ]; then
   red
   echo "${pbadge} ❌ Imported Container does not exists ❌"
