@@ -279,9 +279,9 @@ bash ${0} exec ${name} "rm -rf /var/lib/pacman/db.lck" >> ${logs}/unifyServerPac
 #executeContainerCMD ${name} "pacman -S --needed --noconfirm ${a}"
 green
 echo "${pbadge} ✔️ Done Installing ${a} "
-PackagemanagerCheck
 done
 bash ${0} exec ${name} "pacman -Qqe > /installedPackage"
+PackagemanagerCheck
 }
 
 ImportedContainerPackageManager
