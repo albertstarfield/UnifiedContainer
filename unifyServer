@@ -249,7 +249,7 @@ if grep -q ${b} "$File" ; then
 echo "${pbadge} ✔️ Package Verified Installed ${a} "
 else
   red
-  echo "${pbadge} ❌ Package not installed correctly ❌"
+  echo "${pbadge} ❌ ${a} Package not installed correctly ❌"
 ImportedContainerPackageManager
 fi
 done
