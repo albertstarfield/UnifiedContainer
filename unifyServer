@@ -1115,7 +1115,11 @@ if [ ! -z "${PREFIX}" ]; then
 echo "${pbadge} PREFIX VARIABLE IS DETECTED WE ARE GOING TO INSTALL THERE"
 installTarget="${PREFIX}/bin"
 else
+if [ ${WSLenv} == "1" ] && [ ! -z ${WSLenv} ]; then
+installTarget="/bin"
+else
 installTarget="${HOME}/bin"
+fi
 fi
 managerExec="${installTarget}/bay"
 echo "#!/bin/sh" > "${managerExec}"
