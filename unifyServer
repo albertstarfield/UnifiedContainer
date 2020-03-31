@@ -1,9 +1,12 @@
 #!/bin/bash
 echo "Manager Update codename: Tracing the bulk"
+
+if [ -z ${PrimaryParam} ]; then # this if are for the Mitigation if it used in a AlternateEnvironment
 export PrimaryParam=${1}
 export SecondaryParam=${2}
 export TertiaryParam=${3}
 export quadtiaryParam=${4}
+fi
 #set -x
 #echo DEBUG PARAM CHECK ${PrimaryParam} ${SecondaryParam}
 
@@ -1369,6 +1372,7 @@ distroDetection(){
 # DISTRO MANAGER DETECTION IS ALSO USED TO DETERMINE WHERE DOES THE SCRIPT RUN
 export ptracecompat='1' #flag ptrace compatibility based on the distro or kernel that its running
 export linktosymlinkActivated=0
+export foreignenvironment="0" # flag foreign environment such as freebsd darwin or other nix system
 export arch=$(uname -m)
 if [ ! -z $(which apk) ]; then
   echo "Alpine Distro"
@@ -1404,6 +1408,22 @@ fi
       echo "PTRACE ON WSL 1 IS NOT SUPPORTED"
       export ptracecompat='0'
       export WSLenv="1"
+    fi
+
+    if [[ $(grep darwin /proc/version) ]]; then
+      echo "Bash is running on Darwin Kernel"
+      echo "Running Experimental mode"
+      yellow
+      echo "${pbadge} Running environment setup" > /dev/tty
+      if [ -z $(which brew) ]; then
+      /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+      fi
+      export distro="darwinkrnl"
+      export packmanager="brew"
+      export foreignenvironment="1"
+      export installParameter="install -y"
+      export ptracecompat='0'
+      export WSLenv="0"
     fi
 
     if [[ $(grep iSH /proc/version) ]]; then
@@ -1454,10 +1474,15 @@ fi
   distroDetection
   export distComplete="$(uname -a)"
 
-  requirements="chroot busybox wget git proot aria2 aria2c xclip dialog nano"
+  requirements="chroot busybox wget git proot aria2 aria2c xclip dialog nano "
+  if [ ${distro} == "darwinkrnl" ]; then
+    requirements="chroot busybox wget git proot aria2 aria2c tar sed dialog nano linux-noah/noah/noah"
+    #linux-noah/noah/noah
+  fi
  echo "echo Installing 🔧" > ${TMPFolder}/SUINSTALL
   for i in ${requirements}; do
     green
+    echo "echo ${pbadge} Installing 🔧 ${i}" > /dev/tty
     echo "echo ${pbadge} Installing 🔧 ${i}" >> ${TMPFolder}/SUINSTALL
     echo "${packmanager} ${installParameter} ${i}" >> ${TMPFolder}/SUINSTALL
   done
@@ -3048,35 +3073,67 @@ else
 fi
 }
 
+environmentMigration(){
+
+if [ ${foreignenvironment} == "1" ]; then
+green
+echo "${pbadge} EXPERIMENTAL ENVIRONMENT MITIGATION"
+echo "${pbadge} Loading UnifyServer into ram"
+ramUnifyServerLoad="$(cat ${0})"
+echo "${pbadge} UnifyServer Loaded"
+if [ ${distro} == "darwinkrnl" ]; then
+  noah "/usr/bin/env PrimaryParam=${PrimaryParam} SecondaryParam=${SecondaryParam} TertiaryParam=${TertiaryParam} quadtiaryParam=${quadtiaryParam} bash -c "${ramUnifyServerLoad}"  "
+fi
+yellow
+echo "${pbadge} EXITING environment mitigation"
+exit
+fi
+
+}
+
+
+
+
+
 #_________Main_________
 if [ -z ${NOBOOT} ]; then #whether skip checks or not
 #only if it is used for nonmodular purposes
 intro
 yellow
 echo "${pbadge} 📁 [1/8] Checking Folders"
+blue
 folderInit
 intro
 yellow
-echo "${pbadge} 🚒 [2/8] Checking and installing dependencies"
+echo "${pbadge} 🚒 [2/8] Checking Environment and installing dependencies"
+blue
 dependencies >> ${logs}/dependenciesCheck.log 2>&1
+environmentMigration >> ${logs}/environtmentMigration.log 2>&1
 yellow
 echo "${pbadge} 🌳 [3/8] Checking ptrace compatibility"
+blue
 ptraceCompatibilityPolice
 yellow
 echo "${pbadge} 💽 [4/8] Checking symlinks compatibility"
+blue
 symlinksFix >> ${logs}/symlinksCheck.log 2>&1
 echo "${pbadge} 💽 [5/8] Updating Manager"
+blue
 fetchUpdateManager >> ${logs}/ManagerUpdate.log 2>&1
 yellow
 echo "${pbadge} 💽 [6/8] Checking Default Container"
+blue
 defaultContainerSetup
 yellow
 echo "${pbadge} 💽 [7/8] Cache validation Check"
+blue
 cacheExpireCheck >> ${logs}/CacherefreshCheck.log 2>&1
 yellow
 echo "${pbadge} 💽 [8/8] Caching Sequential rootfs"
+blue
 sequentialOptimizationCache >> ${logs}/CacheMakeCheck.log 2>&1
 fi
+yellow
 paramCheck
 paramintrepreter
 exit
