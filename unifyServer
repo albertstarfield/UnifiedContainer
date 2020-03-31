@@ -1410,7 +1410,7 @@ fi
       export WSLenv="1"
     fi
 
-    if [[ $(grep darwin /proc/version) ]]; then
+    if [[ $( uname -a | grep darwin ) ]]; then
       echo "Bash is running on Darwin Kernel"
       echo "Running Experimental mode"
       yellow
