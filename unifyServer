@@ -1479,10 +1479,9 @@ fi
     requirements="chroot busybox wget git proot aria2 aria2c tar sed dialog nano linux-noah/noah/noah"
     #linux-noah/noah/noah
   fi
- echo "echo Installing 🔧" > ${TMPFolder}/SUINSTALL
+ echo "Installing 🔧" > ${TMPFolder}/SUINSTALL
   for i in ${requirements}; do
     green
-    echo "echo ${pbadge} Installing 🔧 ${i}" > /dev/tty
     echo "echo ${pbadge} Installing 🔧 ${i}" >> ${TMPFolder}/SUINSTALL
     echo "${packmanager} ${installParameter} ${i}" >> ${TMPFolder}/SUINSTALL
   done
