@@ -3107,7 +3107,7 @@ intro
 yellow
 echo "${pbadge} 🚒 [2/8] Checking Environment and installing dependencies"
 blue
-dependencies >> ${logs}/dependenciesCheck.log 2>&1
+dependencies
 environmentMigration >> ${logs}/environtmentMigration.log 2>&1
 yellow
 echo "${pbadge} 🌳 [3/8] Checking ptrace compatibility"
