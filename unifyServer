@@ -10,7 +10,7 @@ fi
 #set -x
 #echo DEBUG PARAM CHECK ${PrimaryParam} ${SecondaryParam}
 export managerGitlink="https://github.com/Questandachievement7Developer/UnifiedContainer"
-export PATH="${PATH}:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/mnt/c/Program Files (x86)/Common Files/Oracle/Java/javapath:/mnt/c/Windows/system32:/mnt/c/Windows:/mnt/c/Windows/System32/Wbem:/mnt/c/Windows/System32/WindowsPowerShell/v1.0/:/mnt/c/Windows/System32/OpenSSH/:/mnt/c/ProgramData/chocolatey/bin:/mnt/c/Program Files/AMD/AMDuProf/bin:/mnt/c/Program Files/Intel/WiFi/bin/:/mnt/c/Program Files/Common Files/Intel/WirelessCommon/:/mnt/c/tools/php74:/mnt/c/ProgramData/ComposerSetup/bin:/mnt/c/Program Files/Git/cmd:/mnt/c/Program Files/OpenJDK/jdk-13.0.2/bin"
+export PATH="$PATH:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/mnt/c/Windows/system32:/mnt/c/Windows:/mnt/c/Windows/System32/Wbem:/mnt/c/Windows/System32/WindowsPowerShell/v1.0/:/mnt/c/Windows/System32/OpenSSH/:/mnt/c/ProgramData/chocolatey/bin"
 #proot Seccomp Acceleration SEGFAULT CRASHES FIX
 #export PROOT_NO_SECCOMP=1
 export newInstall=0
@@ -219,6 +219,7 @@ fi
 }
 
 containerManagerImport(){
+APIcall pwmCall_enable_wakelockcall
   if [ ! -z $@ ] ; then
     SecondaryParam=${1}
     TertiaryParam=${2}
@@ -292,6 +293,7 @@ green
 APIcall systemUI_notifysend "✨Container_${SecondaryParam}_Successfully_Installed✨"
 echo "${GITSOURCE}" > ${containersLair}/${name}/origin
 echo "${pbadge} ✨import done✨"
+APIcall pwmCall_disable_wakelockcall
 exit
 }
 
@@ -1550,7 +1552,8 @@ fi
 			echo "unknown architecture"; exit 1 ;;
 		esac
   if [ ! -f ${loader}/proot ]; then
-  wget "https://github.com/proot-me/proot-static-build/blob/master/static/proot-${archurl}"
+  #wget "https://github.com/proot-me/proot-static-build/blob/master/static/proot-${archurl}"
+  wget "https://raw.githubusercontent.com/proot-me/proot-static-build/master/static/proot-${archurl}"
   chmod +x proot-${archurl}
   mv proot-${archurl} ${loader}/proot
   fi
@@ -1605,7 +1608,7 @@ ptraceCompatibilityPolice(){
 
 
 bootstrapSetup(){
-
+APIcall pwmCall_enable_wakelockcall #Requests Wakelock Access to prevent any Installation Errors
 folder=rootfs
 tarball="bootstrap.tar.gz"
 if [ "$first" != 1 ];then
@@ -2768,6 +2771,7 @@ fi
 
 echo "${pbadge} 🧳 making $bin executable"
 chmod +x $bin
+APIcall pwmCall_disable_wakelockcall
 }
 
 #This is basically the same as creating one container ahead of the request so later on it can be simply renamed it giving it a instant access
@@ -2969,14 +2973,9 @@ fi
 
 
 
-
-
-
-
-
 APIcall(){
   dummyResponse(){
-  echo "${pbadge} Current version of API Abstraction Layer is unsupported for your current environment"
+  echo "${pbadge} Current version of unifyServer API Abstraction Layer is unsupported for your current environment"
   }
   #This function is basically like a API abstraction layer
   #red
