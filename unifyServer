@@ -2886,7 +2886,9 @@ fi
 
 fetchUpdateManager(){
 # IF YOU RUN ON SUDO PLEASE MAKE SURE TO USE $ sudo env DEVELMODE=1 ./unifyServer
-if [ -z ${DEVELMODE} ]; then
+# due to the change on FetchUpdatemanager call Prioritize it will check git first whether its installed already or not yet 
+# Previously it was position at [5/8] of the process then it is placed on [3/8] to compensate NOPROOT problems
+if [ -z ${DEVELMODE} ] && [ ! -z $(which git) ]; then
 cd ${origindir}
 git reset --hard
 git pull
@@ -3210,8 +3212,13 @@ echo Storing Logs into ram
 export compiledlogs="$(cat ${logs}/*.log)"
 echo ${compiledlogs} > ${origindir}/diagnostic_result.txt
 clear
-echo "========[send this link to the developer]========="
+green
+echo "Thank you for joining the survey Your contribution will help unifyServer!"
+yellow
+echo "========[Send this link to the developer]========="
+green
 echo "${compiledlogs}" | sendLog
+yellow
 echo "=================================================="
 exit
 
@@ -3235,22 +3242,23 @@ echo "${pbadge} 📁 [1/8] Creating Recovery Environment"
 blue
 recoveryEnvironment  >> ${logs}/recoveryEnvironment.log 2>&1
 yellow
-echo "${pbadge} 🚒 [2/8] Checking Environment and installing dependencies"
+echo "${pbadge} 💽 [2/8] Updating Manager"
+blue
+fetchUpdateManager >> ${logs}/ManagerUpdate.log 2>&1
+yellow
+echo "${pbadge} 🚒 [3/8] Checking Environment and installing dependencies"
 blue
 dependencies
 environmentMigration >> ${logs}/environtmentMigration.log 2>&1
 yellow
-echo "${pbadge} 🌳 [3/8] Checking ptrace compatibility"
+echo "${pbadge} 🌳 [4/8] Checking ptrace compatibility"
 blue
 ptraceCompatibilityPolice
 yellow
-echo "${pbadge} 💽 [4/8] Checking symlinks compatibility"
+echo "${pbadge} 💽 [5/8] Checking symlinks compatibility"
 blue
 symlinksFix >> ${logs}/symlinksCheck.log 2>&1
-echo "${pbadge} 💽 [5/8] Updating Manager"
-blue
-fetchUpdateManager >> ${logs}/ManagerUpdate.log 2>&1
-yellow
+
 echo "${pbadge} 💽 [6/8] Checking Default Container"
 blue
 defaultContainerSetup
