@@ -1118,7 +1118,7 @@ echo "This is strange Why there isnt a unifyServer Folder here?"
 git clone ${managerGitlink} ${origindir}
 else
 cd ${origindir}
-if [ ! -z \$(cat unifyServer) ]; then
+if [ ! -z "\$(cat unifyServer)" ]; then
 bash ./unifyServer \$1 \$2 \$3 \$4
 else
 echo "This is Really strange and i dont like it! how in the world the actual installation exists but there isnt any code inside??!?!"
@@ -1136,7 +1136,7 @@ echo "This is strange Why there isnt a unifyServer Folder here?"
 git clone ${managerGitlink} ${origindir}
 else
 cd ${origindir}
-if [ ! -z \$(cat unifyServer) ]; then
+if [ ! -z "\$(cat unifyServer)" ]; then
 bash ./unifyServer \$1 \$2 \$3 \$4
 else
 echo "This is Really strange and i dont like it! how in the world the actual installation exists but there isnt any code inside??!?!"
