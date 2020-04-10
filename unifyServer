@@ -1281,8 +1281,8 @@ exit
 
 folderInit(){
 export origindir=$(pwd)
-export maindir="${initDir}/containersys"
-
+export maindir="${origindir}/containersys"
+export recoveryEnvironmentDir="${origindir}/managerbackup"
 export presistentStorage="${maindir}/presistent_storage"
 export containersLair="${maindir}/containers"
 export defaultContainer="${containersLair}/default"
@@ -1301,6 +1301,9 @@ if [ ! -d ${maindir} ]; then
   mkdir ${maindir}
 fi
 
+if [ ! -d ${recoveryEnvironmentDir} ]; then
+mkdir ${recoveryEnvironmentDir}
+fi
 if [ ! -d ${APIHAL} ]; then
   mkdir ${APIHAL}
 fi
@@ -2717,7 +2720,7 @@ else
   red
 echo "============================================================================="
 echo "${pbadge} 🥺THE CONTAINER FAILED DURING INSTALL AND VERIFICATION🥺"
-echo "============================================================================"
+echo "============================================================================="
 
 if [ ${DEVELMODE} == "1" ] && [ ! -z ${DEVELMODE} ]; then
   # IF YOU RUN ON SUDO PLEASE MAKE SURE TO USE $ sudo env DEVELMODE=1 ./unifyServer
@@ -3090,19 +3093,51 @@ fi
 
 }
 
+recoveryEnvironment(){
+if [ ! -d ${recoveryEnvironmentDir}/.git ] || [ ! -f ${recoveryEnvironmentDir}/unifyServer ]; then
+echo "${pbadge} Recovery Files not found This is a dangerous thing!"
+echo "${pbadge} Please wait... while we creating current version recovery"
+cp -v ${maindir}/unifyServer ${recoveryEnvironmentDir}
+cp -rv ${maindir}/.git ${recoveryEnvironmentDir}
+echo "${pbadge} Critical core has been backed up!"
+echo "${pbadge} Creating Recovery Wizard"
+output="${maindir}/recovery"
+cat > "${output}" <<- EOM
+#!/bin/bash
+clear
+echo "Recovering unifyServer!"
+cp -r "${recoveryEnvironmentDir}/*" "${maindir}"
+echo "Updating UnifyServer"
+git reset --hard
+git pull
+echo "Recovering All containers"
+for a in \$(cat ${maindir}/containers.txt ); do
+bay fix \${a}
+done
+echo "Finished Recovery"
+EOM
+else
+echo "${pbadge} "
+fi
 
+}
 
 
 
 #_________Main_________
-if [ -z ${NOBOOT} ]; then #whether skip checks or not
+if [ -z ${NOBOOT} ]; then #whether skip checks or not 
+#This is particularly useful when running from a script or doing a recursive operation and doesnt need a full checks
 #only if it is used for nonmodular purposes
 intro
 yellow
-echo "${pbadge} 📁 [1/8] Checking Folders"
+echo "${pbadge} 📁 [0/8] Checking Folders"
 blue
 folderInit
 intro
+yellow
+echo "${pbadge} 📁 [1/8] Creating Recovery Environment"
+blue
+recoveryEnvironment  >> ${logs}/recoveryEnvironment.log 2>&1
 yellow
 echo "${pbadge} 🚒 [2/8] Checking Environment and installing dependencies"
 blue
