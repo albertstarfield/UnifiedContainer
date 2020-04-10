@@ -3159,7 +3159,7 @@ fi
 }
 
 #https://stackoverflow.com/questions/4013947/how-to-use-pastebin-from-shell-script
-sprunge() {
+sendLog() {
   if [[ $1 ]]; then
     curl -F 'sprunge=<-' "http://sprunge.us" <"$1"
   else
@@ -3197,9 +3197,13 @@ echo "Running bay refresh"
 green
 env SCRIPTCALL=1 bash ${0} reset ContainerImportTestfromGithub >> ${logs}/diagnostics.log 2>&1
 yellow
-echo "Running bay refresh"
+echo "Running Recovery Setup"
 green
-env SCRIPTCALL=1 bash ${0} refresh >> ${logs}/diagnostics.log 2>&1
+recoveryEnvironment >> ${logs}/diagnostics.log 2>&1
+yellow
+echo "Removing example import"
+green
+env SCRIPTCALL=1 bash ${0} remove ContainerImportTestfromGithub >> ${logs}/diagnostics.log 2>&1
 yellow
 echo "=================="
 echo Storing Logs into ram
@@ -3207,7 +3211,7 @@ export compiledlogs="$(cat ${logs}/*.log)"
 echo ${compiledlogs} > ${origindir}/diagnostic_result.txt
 clear
 echo "========[send this link to the developer]========="
-echo "${compiledlogs}" | sprunge
+echo "${compiledlogs}" | sendLog
 echo "=================================================="
 exit
 
