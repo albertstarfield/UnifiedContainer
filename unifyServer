@@ -3182,24 +3182,24 @@ yellow
 echo "=================="
 green
 echo "Running bay refresh"
-date >> ${logs}/diagnostics.log
-env SCRIPTCALL=1 bash ${0} refresh yes >> ${logs}/diagnostics.log
+date >> ${logs}/diagnostics.log 2>&1
+env SCRIPTCALL=1 bash ${0} refresh yes >> ${logs}/diagnostics.log 2>&1
 yellow
 echo "Running bay import"
 green
-env SCRIPTCALL=1 bash ${0} import 'https://github.com/Questandachievement7Developer/container_importExample' >> ${logs}/diagnostics.log
+env SCRIPTCALL=1 bash ${0} import 'https://github.com/Questandachievement7Developer/container_importExample' >> ${logs}/diagnostics.log 2>&1
 yellow
 echo "Running bay list"
 green
-env SCRIPTCALL=1 bash ${0} list all >> ${logs}/diagnostics.log
+env SCRIPTCALL=1 bash ${0} list all >> ${logs}/diagnostics.log 2>&1
 yellow
 echo "Running bay refresh"
 green
-env SCRIPTCALL=1 bash ${0} reset ContainerImportTestfromGithub >> ${logs}/diagnostics.log
+env SCRIPTCALL=1 bash ${0} reset ContainerImportTestfromGithub >> ${logs}/diagnostics.log 2>&1
 yellow
 echo "Running bay refresh"
 green
-env SCRIPTCALL=1 bash ${0} refresh >> ${logs}/diagnostics.log
+env SCRIPTCALL=1 bash ${0} refresh >> ${logs}/diagnostics.log 2>&1
 yellow
 echo "=================="
 echo Storing Logs into ram
