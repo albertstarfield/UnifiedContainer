@@ -1111,16 +1111,41 @@ installTarget="${HOME}/bin"
 fi
 fi
 managerExec="${installTarget}/bay"
-echo "#!/bin/sh" > "${managerExec}"
-echo "cd ${origindir} ; bash ./unifyServer \$1 \$2 \$3 \$4 " >> "${managerExec}"
+cat > "${managerExec}" <<- EOM
+#!/bin/sh
+if [ ! -d ${origindir} ] ;then
+echo "This is strange Why there isnt a unifyServer Folder here?"
+git clone ${managerGitlink} ${origindir}
+else
+cd ${origindir}
+if [ ! -z \$(cat unifyServer) ]; then
+bash ./unifyServer \$1 \$2 \$3 \$4
+else
+echo "This is Really strange and i dont like it! how in the world the actual installation exists but there isnt any code inside??!?!"
+bash recovery
+fi
+fi
+EOM
 chmod 777 "${managerExec}"
-echo "${pbadge} Installation is successfull bay"
 
 managerExec="${installTarget}/unifyServer"
-echo "#!/bin/sh" > "${managerExec}"
-echo "cd ${origindir} ; bash ./unifyServer \$1 \$2 \$3 \$4 " >> "${managerExec}"
+cat > "${managerExec}" <<- EOM
+#!/bin/sh
+if [ ! -d ${origindir} ] ;then
+echo "This is strange Why there isnt a unifyServer Folder here?"
+git clone ${managerGitlink} ${origindir}
+else
+cd ${origindir}
+if [ ! -z \$(cat unifyServer) ]; then
+bash ./unifyServer \$1 \$2 \$3 \$4
+else
+echo "This is Really strange and i dont like it! how in the world the actual installation exists but there isnt any code inside??!?!"
+bash recovery
+fi
+fi
+EOM
 chmod 777 "${managerExec}"
-echo "${pbadge} Installation is successfull pbadge"
+
 exit
 }
 
@@ -3125,7 +3150,7 @@ echo "Finished Recovery"
 EOM
 chmod +x ${maindir}/recovery
 else
-echo "${pbadge} "
+echo "${pbadge} Recovery environment Present! Do no harm!"
 fi
 
 }
