@@ -1711,6 +1711,9 @@ command+=" TERM=\$TERM"
 command+=" PATH=/usr/local/sbin:/usr/local/bin:/bin:/usr/bin:/sbin:/usr/sbin:/usr/games:/usr/local/games"
 command+=" LANG=C.UTF-8"
 command+=" HOME=/root"
+if [ -f ${folder}/usr/bin/eatmydata ]; then
+command+=" /usr/bin/eatmydata"
+fi
 command+=" /bin/bash --login"
 else
   echo "prootdefine"
@@ -1751,6 +1754,9 @@ command+=" HOME=/root"
 command+=" PATH=/usr/local/sbin:/usr/local/bin:/bin:/usr/bin:/sbin:/usr/sbin:/usr/games:/usr/local/games"
 command+=" TERM=\$TERM"
 command+=" LANG=C.UTF-8"
+if [ -f ${folder}/usr/bin/eatmydata ]; then
+command+=" /usr/bin/eatmydata"
+fi
 command+=" /bin/bash --login"
 fi
 
@@ -2688,6 +2694,7 @@ echo "${pbadge} Forcefully Refreshing repo"
 bash ${bin} "pacman -Syy --noconfirm"
 bash ${bin} "pacman -Syy libidn2 libpsl gnutls systemd curl gpgme gnupg --noconfirm"
 bash ${bin} "pacman -Syyu busybox awk which screenfetch perl fish --noconfirm"
+bash ${bin} "pacman -Syy libeatmydata --noconfirm"
 #bash ${bin} "rm -rf /tmp/*;apt-get clean ; mv /var/lib/apt/lists /tmp; mkdir -p /var/lib/apt/lists/partial; apt-get clean;chown -R root:root /var/lib/apt/lists/partial"
 #bash ${bin} "apt-get update --allow-insecure-repositories"
 #bash ${bin} "apt-get update --allow-insecure-repositories --allow-unauthenticated"
@@ -3116,6 +3123,7 @@ bay fix \${a}
 done
 echo "Finished Recovery"
 EOM
+chmod +x ${maindir}/recovery
 else
 echo "${pbadge} "
 fi
@@ -3159,7 +3167,7 @@ echo "${pbadge} 💽 [6/8] Checking Default Container"
 blue
 defaultContainerSetup
 yellow
-echo "${pbadge} 💽 [7/8] Cache validation Check"
+echo "${pbadge} 💽 [7/8] Refreshing cache"
 blue
 cacheExpireCheck >> ${logs}/CacherefreshCheck.log 2>&1
 yellow
