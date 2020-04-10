@@ -223,17 +223,18 @@ containerManagerImport(){
     SecondaryParam=${1}
     TertiaryParam=${2}
   fi
+export GITSOURCE="${SecondaryParam}"
 APIcall systemUI_notifysend "⌛Importing_container⌛"
 echo "${pbadge} ⌛Importing container configuration ⌛"
 containerID=$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 32 | head -n 1)
 export importedcontainer="${TMPFolder}/${containerID}"
-git clone ${SecondaryParam} ${TMPFolder}/${containerID} > ${logs}/${containerID}_gitcloneLog.log 2>&1
+git clone ${GITSOURCE} ${TMPFolder}/${containerID} > ${logs}/${containerID}_gitcloneLog.log 2>&1
 if [ ! -d "${TMPFolder}/${containerID}" ]; then
   red
   echo "${pbadge} ❌ Imported Container does not exists ❌"
   exit
 fi
-export GITSOURCE="${SecondaryParam}"
+
 name=$(cat ${importedcontainer}/name)
 packages=$(cat ${importedcontainer}/packages)
 init=$(cat ${importedcontainer}/init)
@@ -992,6 +993,8 @@ case ${PrimaryParam} in
     debugFunct ;;
   importFile)
     sysFileExchangeImport ;;
+  diagnostic)
+    diagnosticsRun ;;
   exportFile)
     sysFileExchangeExport ;;
   launch)
@@ -3154,6 +3157,48 @@ echo "${pbadge} Recovery environment Present! Do no harm!"
 fi
 
 }
+
+#https://stackoverflow.com/questions/4013947/how-to-use-pastebin-from-shell-script
+sprunge() {
+  if [[ $1 ]]; then
+    curl -F 'sprunge=<-' "http://sprunge.us" <"$1"
+  else
+    curl -F 'sprunge=<-' "http://sprunge.us"
+  fi
+}
+
+clearlog(){
+rm -rf ${logs}/*
+}
+
+diagnosticsRun(){
+clear
+confirmation
+clearlog
+echo "=================="
+echo "Running bay refresh"
+date >> ${logs}/diagnostics.log
+env SCRIPTCALL=1 bash ${0} refresh yes >> ${logs}/diagnostics.log
+echo "Running bay import"
+env SCRIPTCALL=1 bash ${0} import 'https://github.com/Questandachievement7Developer/container_importExample' >> ${logs}/diagnostics.log
+echo "Running bay list"
+env SCRIPTCALL=1 bash ${0} list all >> ${logs}/diagnostics.log
+echo "Running bay refresh"
+env SCRIPTCALL=1 bash ${0} reset ContainerImportTestfromGithub >> ${logs}/diagnostics.log
+echo "Running bay refresh"
+env SCRIPTCALL=1 bash ${0} refresh >> ${logs}/diagnostics.log
+echo "=================="
+echo Storing Logs into ram
+export compiledlogs="$(cat ${logs}/*.log)"
+echo ${compiledlogs} > ${origindir}/diagnostic_result.txt
+clear
+echo "========[send this link to the developer]========="
+echo "${compiledlogs}" | sprunge
+echo "=================================================="
+exit
+
+}
+
 
 
 
