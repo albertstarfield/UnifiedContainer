@@ -3175,18 +3175,32 @@ diagnosticsRun(){
 clear
 confirmation
 clearlog
+clear
+red
+echo "THIS DIAGNOSTIC WILL TAKE 30 Minutes and MORE PLEASE BE PATIENT"
+yellow
 echo "=================="
+green
 echo "Running bay refresh"
 date >> ${logs}/diagnostics.log
 env SCRIPTCALL=1 bash ${0} refresh yes >> ${logs}/diagnostics.log
+yellow
 echo "Running bay import"
+green
 env SCRIPTCALL=1 bash ${0} import 'https://github.com/Questandachievement7Developer/container_importExample' >> ${logs}/diagnostics.log
+yellow
 echo "Running bay list"
+green
 env SCRIPTCALL=1 bash ${0} list all >> ${logs}/diagnostics.log
+yellow
 echo "Running bay refresh"
+green
 env SCRIPTCALL=1 bash ${0} reset ContainerImportTestfromGithub >> ${logs}/diagnostics.log
+yellow
 echo "Running bay refresh"
+green
 env SCRIPTCALL=1 bash ${0} refresh >> ${logs}/diagnostics.log
+yellow
 echo "=================="
 echo Storing Logs into ram
 export compiledlogs="$(cat ${logs}/*.log)"
