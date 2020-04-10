@@ -2887,7 +2887,7 @@ fi
 fetchUpdateManager(){
 # IF YOU RUN ON SUDO PLEASE MAKE SURE TO USE $ sudo env DEVELMODE=1 ./unifyServer
 # due to the change on FetchUpdatemanager call Prioritize it will check git first whether its installed already or not yet 
-# Previously it was position at [5/8] of the process then it is placed on [3/8] to compensate NOPROOT problems
+# Previously it was position at [5/8] of the process then it is placed on [2/8] to compensate NOPROOT problems
 if [ -z ${DEVELMODE} ] && [ ! -z $(which git) ]; then
 cd ${origindir}
 git reset --hard
