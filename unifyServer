@@ -3056,7 +3056,7 @@ fi
     pwmCall_brightnessAdjust(){ dummyResponse; }
   fi
     #Sensors call
-    export sense_Retrievesensor(){ dummyResponse; }
+    sense_Retrievesensor(){ dummyResponse; }
     #radiocall
     tele_sms_read(){ dummyResponse; }
     tele_sms_send(){ dummyResponse; }
