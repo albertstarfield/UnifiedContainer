@@ -3142,17 +3142,17 @@ cat > "${output}" <<- EOM
 #!/bin/bash
 clear
 echo "Recovering unifyServer!"
-cp -r "${recoveryEnvironmentDir}/*" "${maindir}"
+cp -r "${recoveryEnvironmentDir}/*" "${origindir}"
 echo "Updating UnifyServer"
 git reset --hard
 git pull
 echo "Recovering All containers"
-for a in \$(cat ${maindir}/containers.txt ); do
+for a in \$(cat ${origindir}/containers.txt ); do
 bay fix \${a}
 done
 echo "Finished Recovery"
 EOM
-chmod +x ${maindir}/recovery
+chmod +x ${origindir}/recovery
 else
 echo "${pbadge} Recovery environment Present! Do no harm!"
 fi
