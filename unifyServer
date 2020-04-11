@@ -3182,33 +3182,57 @@ confirmation
 clearlog
 clear
 red
-echo "THIS DIAGNOSTIC WILL TAKE 30 Minutes and MORE PLEASE BE PATIENT"
+echo "THIS DIAGNOSTIC WILL TAKE 42 MINUTES PLEASE BE PATIENT"
 yellow
 echo "=================="
 green
 echo "refresh"
 date >> ${logs}/diagnostics.log 2>&1
-env SCRIPTCALL=1 bash ${0} refresh yes >> ${logs}/diagnostics.log 2>&1
+threadCapsule=$( env SCRIPTCALL=1 bash ${0} refresh yes) &
+threadPID=$!
+sleep 360
+kill -9 ${threadPID} 
+echo ${threadCapsule} >> ${logs}/diagnostics.log 
 yellow
 echo "import"
 green
-env SCRIPTCALL=1 bash ${0} import 'https://github.com/Questandachievement7Developer/container_importExample' >> ${logs}/diagnostics.log 2>&1
+threadCapsule=$( env SCRIPTCALL=1 bash ${0} import 'https://github.com/Questandachievement7Developer/container_importExample' ) &
+threadPID=$!
+sleep 360
+kill -9 ${threadPID} 
+echo ${threadCapsule} >> ${logs}/diagnostics.log 
 yellow
 echo "list"
 green
-env SCRIPTCALL=1 bash ${0} list all >> ${logs}/diagnostics.log 2>&1
+threadCapsule=$( env SCRIPTCALL=1 bash ${0} list all ) &
+threadPID=$!
+sleep 360
+kill -9 ${threadPID} 
+echo ${threadCapsule} >> ${logs}/diagnostics.log 
 yellow
 echo "refresh"
 green
-env SCRIPTCALL=1 bash ${0} reset ContainerImportTestfromGithub >> ${logs}/diagnostics.log 2>&1
+threadCapsule=$( env SCRIPTCALL=1 bash ${0} reset ContainerImportTestfromGithub ) &
+threadPID=$!
+sleep 360
+kill -9 ${threadPID} 
+echo ${threadCapsule} >> ${logs}/diagnostics.log 
 yellow
 echo "Setup"
 green
-recoveryEnvironment >> ${logs}/diagnostics.log 2>&1
+threadCapsule=$( recoveryEnvironment ) &
+threadPID=$!
+sleep 360
+kill -9 ${threadPID} 
+echo ${threadCapsule} >> ${logs}/diagnostics.log 
 yellow
 echo "remove"
 green
-env SCRIPTCALL=1 bash ${0} remove ContainerImportTestfromGithub >> ${logs}/diagnostics.log 2>&1
+threadCapsule=$( env SCRIPTCALL=1 bash ${0} remove ContainerImportTestfromGithub ) &
+threadPID=$!
+sleep 360
+kill -9 ${threadPID} 
+echo ${threadCapsule} >> ${logs}/diagnostics.log 
 yellow
 echo "=================="
 echo Compiling Logs and adding headers
@@ -3238,6 +3262,8 @@ exit
 if [ ! -z ${SecondaryParam} ] && [ ${SecondaryParam} == "diagnostic" ]; then
 export NOBOOT=1
 diagnosticsRun
+else
+echo "paramdiagnosticNo"
 fi
 
 #_________Main_________
