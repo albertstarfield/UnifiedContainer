@@ -3259,7 +3259,7 @@ exit
 
 #Checks if there is a diagnostic mode invoked
 # or what we called is a DGM 
-if [ ! -z ${SecondaryParam} ] && [ ${SecondaryParam} == "diagnostic" ]; then
+if [ ! -z ${PrimaryParam} ] && [ ${PrimaryParam} == "diagnostic" ]; then
 export NOBOOT=1
 diagnosticsRun
 else
