@@ -3217,6 +3217,7 @@ echo "++++++unifySERVER DIAGNOSTIC LOG++++++" > ${origindir}/diagnostic_result.t
 echo "++++++DO NOT SHARE TO ANYONE IN ORDER TO PRESERVE YOUR PRIVACY TO THE FULLEST++++++" >> ${origindir}/diagnostic_result.txt
 date >> ${origindir}/diagnostic_result.txt
 uname -a >> ${origindir}/diagnostic_result.txt
+echo "Commmit Version $(git log -1 --format=%cd)" >> ${origindir}/diagnostic_result.txt
 echo ${compiledlogs} >> ${origindir}/diagnostic_result.txt
 clear
 green
@@ -3224,7 +3225,7 @@ echo "Thank you for joining the survey Your contribution will help unifyServer!"
 yellow
 echo "========[Send this link to the developer]========="
 green
-echo "${compiledlogs}" | sendLog
+sendLog ${origindir}/diagnostic_result.txt
 yellow
 echo "=================================================="
 exit
