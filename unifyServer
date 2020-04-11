@@ -3173,12 +3173,13 @@ sendLog() {
 }
 
 clearlog(){
-rm -rf ${logs}/*
+rm -rf ${logs}/*.log
 }
 
 diagnosticsRun(){
 clear
 confirmation
+folderInit # we need to do folderInit due to the fact that we skipped the boot sequence so the folder and other variable does not initialize unless we do folderInit
 clearlog
 clear
 red
