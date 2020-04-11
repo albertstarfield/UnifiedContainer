@@ -3189,51 +3189,50 @@ echo "=================="
 green
 echo "refresh"
 date >> ${logs}/diagnostics.log 2>&1
-threadCapsule=$( env SCRIPTCALL=1 bash ${0} refresh yes) &
+threadCapsule=$( env SCRIPTCALL=1 bash ${0} refresh yes)  >/dev/null 2>&1 &
 threadPID=$!
 sleep 360
 kill -9 ${threadPID} 
-echo ${threadCapsule} >> ${logs}/diagnostics.log 
+echo "${threadCapsule}" >> ${logs}/diagnostics.log 
 yellow
 echo "import"
 green
-threadCapsule=$( env SCRIPTCALL=1 bash ${0} import 'https://github.com/Questandachievement7Developer/container_importExample' ) &
-threadPID=$!
+threadCapsule=$( env SCRIPTCALL=1 bash ${0} import 'https://github.com/Questandachievement7Developer/container_importExample' )  >/dev/null 2>&1 &
 sleep 360
 kill -9 ${threadPID} 
-echo ${threadCapsule} >> ${logs}/diagnostics.log 
+echo "${threadCapsule}" >> ${logs}/diagnostics.log 
 yellow
 echo "list"
 green
-threadCapsule=$( env SCRIPTCALL=1 bash ${0} list all ) &
+threadCapsule=$( env SCRIPTCALL=1 bash ${0} list all )  >/dev/null 2>&1 &
 threadPID=$!
 sleep 360
 kill -9 ${threadPID} 
-echo ${threadCapsule} >> ${logs}/diagnostics.log 
+echo "${threadCapsule}" >> ${logs}/diagnostics.log 
 yellow
 echo "refresh"
 green
-threadCapsule=$( env SCRIPTCALL=1 bash ${0} reset ContainerImportTestfromGithub ) &
+threadCapsule=$( env SCRIPTCALL=1 bash ${0} reset ContainerImportTestfromGithub )  >/dev/null 2>&1 &
 threadPID=$!
 sleep 360
 kill -9 ${threadPID} 
-echo ${threadCapsule} >> ${logs}/diagnostics.log 
+echo "${threadCapsule}" >> ${logs}/diagnostics.log 
 yellow
 echo "Setup"
 green
-threadCapsule=$( recoveryEnvironment ) &
+threadCapsule=$( recoveryEnvironment )  >/dev/null 2>&1 &
 threadPID=$!
 sleep 360
 kill -9 ${threadPID} 
-echo ${threadCapsule} >> ${logs}/diagnostics.log 
+echo "${threadCapsule}" >> ${logs}/diagnostics.log 
 yellow
 echo "remove"
 green
-threadCapsule=$( env SCRIPTCALL=1 bash ${0} remove ContainerImportTestfromGithub ) &
+threadCapsule=$( env SCRIPTCALL=1 bash ${0} remove ContainerImportTestfromGithub )  >/dev/null 2>&1 &
 threadPID=$!
 sleep 360
 kill -9 ${threadPID} 
-echo ${threadCapsule} >> ${logs}/diagnostics.log 
+echo "${threadCapsule}" >> ${logs}/diagnostics.log 
 yellow
 echo "=================="
 echo Compiling Logs and adding headers
