@@ -1113,6 +1113,7 @@ if [ ${WSLenv} == "1" ] && [ ! -z ${WSLenv} ]; then
 installTarget="/bin"
 else
 installTarget="${HOME}/bin"
+mkdir ${installTarget}
 fi
 fi
 managerExec="${installTarget}/bay"
