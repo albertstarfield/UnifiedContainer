@@ -3039,28 +3039,28 @@ fi
     systemUI_clipboard_get(){ xclip; }
     systemUI_clipboard_set(){ xclip -selection c; }
   else
-    alias systemUI_clipboard_get="dummyResponse"
-    alias systemUI_clipboard_set="dummyResponse"
+    systemUI_clipboard_get(){ dummyResponse; }
+    systemUI_clipboard_set(){ dummyResponse; }
   fi
     alias systemUI_authFingerprint="dummyResponse"
     #Power management calls
     if [ ! -d /proc/acpi ]; then
-    alias pwmCall_batterystat="termux-battery-status"
-    alias pwmCall_enable_wakelockcall="termux-wake-lock"
-    alias pwmCall_disable_wakelockcall="termux-wake-unlock"
-    alias pwmCall_brightnessAdjust="termux-brightness"
+    pwmCall_batterystat(){ dummyResponse; }
+    pwmCall_enable_wakelockcall(){ dummyResponse; }
+    pwmCall_disable_wakelockcall(){ dummyResponse; }
+    pwmCall_brightnessAdjust(){ dummyResponse; }
   else
-    alias pwmCall_batterystat="dummyResponse"
-    alias pwmCall_enable_wakelockcall="dummyResponse"
-    alias pwmCall_disable_wakelockcall="dummyResponse"
-    alias pwmCall_brightnessAdjust="dummyResponse"
+    pwmCall_batterystat(){ dummyResponse; }
+    pwmCall_enable_wakelockcall(){ dummyResponse; }
+    pwmCall_disable_wakelockcall(){ dummyResponse; }
+    pwmCall_brightnessAdjust(){ dummyResponse; }
   fi
     #Sensors call
-    export sense_Retrievesensor="dummyResponse"
+    export sense_Retrievesensor(){ dummyResponse; }
     #radiocall
-    alias tele_sms_read="dummyResponse"
-    alias tele_sms_send="dummyResponse"
-    alias tele_voice_call="dummyResponse"
+    tele_sms_read(){ dummyResponse; }
+    tele_sms_send(){ dummyResponse; }
+    tele_voice_call(){ dummyResponse; }
     #hardware access
     hw_usb(){ lsusb ; }
   fi
