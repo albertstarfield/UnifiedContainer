@@ -3137,11 +3137,11 @@ recoveryEnvironment(){
 if [ ! -d ${recoveryEnvironmentDir}/.git ] || [ ! -f ${recoveryEnvironmentDir}/unifyServer ]; then
 echo "${pbadge} Recovery Files not found This is a dangerous thing!"
 echo "${pbadge} Please wait... while we creating current version recovery"
-cp -v ${maindir}/unifyServer ${recoveryEnvironmentDir}
-cp -rv ${maindir}/.git ${recoveryEnvironmentDir}
+cp -v ${origindir}/unifyServer ${recoveryEnvironmentDir}
+cp -rv ${origindir}/.git ${recoveryEnvironmentDir}
 echo "${pbadge} Critical core has been backed up!"
 echo "${pbadge} Creating Recovery Wizard"
-output="${maindir}/recovery"
+output="${origindir}/recovery"
 cat > "${output}" <<- EOM
 #!/bin/bash
 clear
