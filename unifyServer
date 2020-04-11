@@ -1570,7 +1570,8 @@ fi
 if [ -z $(which proot) ] && [ ${ptracecompat} == '1' ]; then
   echo "${pbadge} NO PROOT BUT SUPPORT PTRACE"
   echo "${pbadge} retrying!"
-  env newInstall=1 dependencies
+  export newInstall=1
+  dependencies
   exit
 fi
 
