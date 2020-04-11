@@ -3186,34 +3186,38 @@ echo "THIS DIAGNOSTIC WILL TAKE 30 Minutes and MORE PLEASE BE PATIENT"
 yellow
 echo "=================="
 green
-echo "Running bay refresh"
+echo "refresh"
 date >> ${logs}/diagnostics.log 2>&1
 env SCRIPTCALL=1 bash ${0} refresh yes >> ${logs}/diagnostics.log 2>&1
 yellow
-echo "Running bay import"
+echo "import"
 green
 env SCRIPTCALL=1 bash ${0} import 'https://github.com/Questandachievement7Developer/container_importExample' >> ${logs}/diagnostics.log 2>&1
 yellow
-echo "Running bay list"
+echo "list"
 green
 env SCRIPTCALL=1 bash ${0} list all >> ${logs}/diagnostics.log 2>&1
 yellow
-echo "Running bay refresh"
+echo "refresh"
 green
 env SCRIPTCALL=1 bash ${0} reset ContainerImportTestfromGithub >> ${logs}/diagnostics.log 2>&1
 yellow
-echo "Running Recovery Setup"
+echo "Setup"
 green
 recoveryEnvironment >> ${logs}/diagnostics.log 2>&1
 yellow
-echo "Removing example import"
+echo "remove"
 green
 env SCRIPTCALL=1 bash ${0} remove ContainerImportTestfromGithub >> ${logs}/diagnostics.log 2>&1
 yellow
 echo "=================="
-echo Storing Logs into ram
+echo Compiling Logs and adding headers
 export compiledlogs="$(cat ${logs}/*.log)"
-echo ${compiledlogs} > ${origindir}/diagnostic_result.txt
+echo "++++++unifySERVER DIAGNOSTIC LOG++++++" > ${origindir}/diagnostic_result.txt
+echo "++++++DO NOT SHARE TO ANYONE IN ORDER TO PRESERVE YOUR PRIVACY TO THE FULLEST++++++" >> ${origindir}/diagnostic_result.txt
+date >> ${origindir}/diagnostic_result.txt
+uname -a >> ${origindir}/diagnostic_result.txt
+echo ${compiledlogs} >> ${origindir}/diagnostic_result.txt
 clear
 green
 echo "Thank you for joining the survey Your contribution will help unifyServer!"
@@ -3228,10 +3232,15 @@ exit
 }
 
 
-
+#Checks if there is a diagnostic mode invoked
+# or what we called is a DGM 
+if [ ! -z ${SecondaryParam} ] && [ ${SecondaryParam} == "diagnostic" ]; then
+export NOBOOT=1
+diagnosticsRun
+fi
 
 #_________Main_________
-if [ -z ${NOBOOT} ]; then #whether skip checks or not 
+if [ -z ${NOBOOT} ] ; then #whether skip checks or not 
 #This is particularly useful when running from a script or doing a recursive operation and doesnt need a full checks
 #only if it is used for nonmodular purposes
 intro
