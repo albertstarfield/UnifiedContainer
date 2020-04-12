@@ -3238,10 +3238,15 @@ echo "=================="
 sendDiagnostics(){
     # Send diagnostics timeout is when the diagnostic are taking too long so it will interrupt and send the logs or diagnostic data without waiting for the diagnostic to finish
 if [ $TIMEOUTWAIT == 1 ]; then
-sleep 600
-clear
-red
-echo "${pbadge} 10 Minutes Tracing Done!"
+yellow
+echo "${pbadge} [sendDiagnostics()] I have been launched!"
+sleep 200
+echo "${pbadge} [sendDiagnostics()] We are half way there"
+sleep 200
+echo "${pbadge} [sendDiagnostics()] We are almost done observing the behaviour"
+sleep 200
+green
+echo "${pbadge} [sendDiagnostics()] 10 Minutes Tracing Done!"
 kill -9 ${diagnosticThreadPID}
 else
 echo "Finished!"
