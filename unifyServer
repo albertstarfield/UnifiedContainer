@@ -3279,8 +3279,17 @@ if [ ! -z ${PrimaryParam} ] && [ ${PrimaryParam} == "diagnostic" ]; then
 export NOBOOT=1
 diagnosticsRun
 else
-echo "paramdiagnosticNo"
+echo "Pass"
 fi
+
+if [ ! -z ${PrimaryParam} ] && [ ${PrimaryParam} == "debug" ]; then
+export NOBOOT=1
+debugFunct
+else
+echo "Pass"
+fi
+
+
 
 #_________Main_________
 if [ -z ${NOBOOT} ] ; then #whether skip checks or not 
