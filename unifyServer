@@ -2,7 +2,7 @@
 echo "Manager Update codename: Tracing the bulk"
 
 if [ ${diagnosticTrigger} == "1" ] && [ ! -z ${diagnosticTrigger} ]; then
-set +x
+set -x
 fi
 
 
