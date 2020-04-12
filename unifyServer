@@ -1537,7 +1537,7 @@ fi
 
 #alternative for proot
   if [ -z $(which proot) ]; then
-    echo "proot not available?"
+    echo "Manual Proot Registration"
     case $(checkArch) in
 		aarch64)
 			archurl="arm64" ;;
@@ -1558,6 +1558,7 @@ fi
   chmod +x proot-${archurl}
   mv proot-${archurl} ${loader}/proot
   fi
+  echo proot Found self downloaded
   export PATH=${PATH}:${loader}
   fi
 
