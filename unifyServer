@@ -3202,7 +3202,7 @@ green
 echo "While waiting for next instructions you can leave this program in the background"
 echo "and get cup of green tea while murmuring about the rain"
 yellow
-echo "========================================================================"
+echo "================================================="
 functionTests(){
 yellow
 echo "=================="
