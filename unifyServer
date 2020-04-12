@@ -3219,7 +3219,7 @@ yellow
 echo "=================="
 #When the diagnostic finished it will trigger the manual sendDiagnostics and kill the sendDiagnosticsTimeoutThreads by switching the param of TIMEOUTWAIT to 0
 export TIMEOUTWAIT=0
-sendDiagnostics
+sendDiagnostics > /dev/tty
 }
 sendDiagnostics(){
     # Send diagnostics timeout is when the diagnostic are taking too long so it will interrupt and send the logs or diagnostic data without waiting for the diagnostic to finish
