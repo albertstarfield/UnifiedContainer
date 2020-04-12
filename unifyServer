@@ -3168,7 +3168,6 @@ quotespls(){
 green
 #https://stackoverflow.com/questions/35623462/bash-select-random-string-from-list
 
-
 }
 
 
@@ -3192,10 +3191,13 @@ folderInit # we need to do folderInit due to the fact that we skipped the boot s
 clearlog
 clear
 red
-echo "THIS DIAGNOSTIC WILL TAKE at MOST 10 MINUTES PLEASE BE PATIENT"
+echo "Recording UnifyServer Behaviour for 10 minutes"
 green
 echo "While waiting for next instructions you can leave this program in the background"
 echo "and get cup of green tea while murmuring about the rain"
+echo "========================================================================"
+echo "And i cant get enough thank you to participate in this stability test!"
+echo "Your contribution will make the UnifyServer Better"
 functionTests(){
 yellow
 echo "=================="
