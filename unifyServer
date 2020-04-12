@@ -3206,7 +3206,7 @@ echo "UnifyServer Rapid Analysis and Compatibility test"
 yellow
 echo "================================================="
 red
-echo "Recording UnifyServer Behaviour for 60 minutes"
+echo "Recording UnifyServer Behaviour for 10 minutes"
 green
 echo "While waiting for next instructions you can leave this program in the background"
 echo "and get cup of green tea while murmuring about the rain"
@@ -3216,7 +3216,7 @@ echo "================================================="
 functionTests(){
 yellow
 echo "=================="
-unset NOBOOT # we neeed to unset NOBOOT due to the fact NOBOOT parameter was exported globally
+export NOBOOT="" # we neeed to unset NOBOOT due to the fact NOBOOT parameter was exported globally caused a chaos while testing
 green
 export diagnosticTrigger=1
 echo "Triggering Install"  >> ${logs}/diagnostics.log 2>&1
