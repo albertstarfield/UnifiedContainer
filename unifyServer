@@ -3203,6 +3203,7 @@ echo "While waiting for next instructions you can leave this program in the back
 echo "and get cup of green tea while murmuring about the rain"
 yellow
 echo "================================================="
+
 functionTests(){
 yellow
 echo "=================="
@@ -3266,10 +3267,15 @@ echo "=================================================="
 
 
 sleep 1
-functionTests > /dev/null 2>&1 #mutes any error that occours and save for later  
+green
+echo "${pbadge} [THREAD] Experiment Started!"
+functionTests > /dev/null 2>&1 & #mutes any error that occours and save for later   
 export diagnosticThreadPID=$!
 # Launch sendDiagnostics with TIMEOUTWAIT TO wait functiontests to finish
 export TIMEOUTWAIT=1
+yellow
+echo "${pbadge} handing over to diagnostic timeout timer sendDiagnostics() ..."
+yellow
 sendDiagnostics
 export sendDiagnosticsTimeoutThreadPID=$!
 exit
