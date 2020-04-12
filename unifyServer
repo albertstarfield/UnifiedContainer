@@ -3190,14 +3190,19 @@ confirmation
 folderInit # we need to do folderInit due to the fact that we skipped the boot sequence so the folder and other variable does not initialize unless we do folderInit
 clearlog
 clear
+yellow
+echo "================================================="
+green
+echo "UnifyServer Rapid Analysis and Compatibility test"
+yellow
+echo "================================================="
 red
 echo "Recording UnifyServer Behaviour for 10 minutes"
 green
 echo "While waiting for next instructions you can leave this program in the background"
 echo "and get cup of green tea while murmuring about the rain"
+yellow
 echo "========================================================================"
-echo "And i cant get enough thank you to participate in this stability test!"
-echo "Your contribution will make the UnifyServer Better"
 functionTests(){
 yellow
 echo "=================="
