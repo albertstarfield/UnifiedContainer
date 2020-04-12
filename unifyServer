@@ -3217,9 +3217,6 @@ green
 env SCRIPTCALL=1 bash ${0} remove ContainerImportTestfromGithub  >> ${logs}/diagnostics.log  2>&1 
 yellow
 echo "=================="
-#When the diagnostic finished it will trigger the manual sendDiagnostics and kill the sendDiagnosticsTimeoutThreads by switching the param of TIMEOUTWAIT to 0
-export TIMEOUTWAIT=0
-sendDiagnostics > /dev/tty
 }
 sendDiagnostics(){
     # Send diagnostics timeout is when the diagnostic are taking too long so it will interrupt and send the logs or diagnostic data without waiting for the diagnostic to finish
@@ -3247,7 +3244,7 @@ echo "Thank you for joining the survey Your contribution will help unifyServer!"
 yellow
 echo "========[Send this link to the developer]========="
 green
-cat "${origindir}/diagnostic_result.txt" | sendLog 
+sendLog "${origindir}/diagnostic_result.txt" > /dev/tty
 yellow
 echo "=================================================="
 }
@@ -3260,7 +3257,6 @@ export diagnosticThreadPID=$!
 export TIMEOUTWAIT=1
 sendDiagnostics
 export sendDiagnosticsTimeoutThreadPID=$!
-
 exit
 
 
