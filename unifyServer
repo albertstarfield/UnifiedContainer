@@ -3163,6 +3163,15 @@ fi
 
 }
 
+#just for motivational things
+quotespls(){
+green
+#https://stackoverflow.com/questions/35623462/bash-select-random-string-from-list
+
+
+}
+
+
 #https://stackoverflow.com/questions/4013947/how-to-use-pastebin-from-shell-script
 sendLog() {
   if [[ $1 ]]; then
@@ -3184,25 +3193,24 @@ clearlog
 clear
 red
 echo "THIS DIAGNOSTIC WILL TAKE at MOST 10 MINUTES PLEASE BE PATIENT"
+green
+echo "While waiting for next instructions you can leave this program in the background"
+echo "and get cup of green tea while murmuring about the rain"
 functionTests(){
 yellow
 echo "=================="
 green
 echo "refresh"
 date >> ${logs}/diagnostics.log 2>&1
- env SCRIPTCALL=1 bash ${0} refresh yes >> ${logs}/diagnostics.log  2>&1 
-threadPID=$!
-sleep 360
-kill -9 ${threadPID} 
-echo "${threadCapsule}" 
+bash ${0} refresh yes >> ${logs}/diagnostics.log  2>&1 
 yellow
 echo "import"
 green
-env SCRIPTCALL=1 bash ${0} import 'https://github.com/Questandachievement7Developer/container_importExample' >> ${logs}/diagnostics.log  2>&1 
+bash ${0} import 'https://github.com/Questandachievement7Developer/container_importExample' >> ${logs}/diagnostics.log  2>&1 
 yellow
 echo "list"
 green
-env SCRIPTCALL=1 bash ${0} list all >> ${logs}/diagnostics.log  2>&1 
+bash ${0} list all >> ${logs}/diagnostics.log  2>&1 
 yellow
 echo "refresh"
 green
@@ -3224,7 +3232,7 @@ if [ $TIMEOUTWAIT == 1 ]; then
 sleep 600
 clear
 red
-echo "${pbadge} UnifyServer takes too long to respond Killing Unifyserver and sending the diagnostics"
+echo "${pbadge} 10 Minutes Tracing Done!"
 kill -9 ${diagnosticThreadPID}
 else
 echo "Finished!"
