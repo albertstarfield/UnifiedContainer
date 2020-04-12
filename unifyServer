@@ -3199,7 +3199,7 @@ echo "UnifyServer Rapid Analysis and Compatibility test"
 yellow
 echo "================================================="
 red
-echo "Recording UnifyServer Behaviour for 60 minutes"
+echo "Recording UnifyServer Behaviour for 10 minutes"
 green
 echo "While waiting for next instructions you can leave this program in the background"
 echo "and get cup of green tea while murmuring about the rain"
