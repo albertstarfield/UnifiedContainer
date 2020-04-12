@@ -721,7 +721,7 @@ containerManagerAdd(){
     if [ -f ${containersLair}/defaultSeq ] && [ -f ${containersLair}/guranteedSeqIntegrity ]; then
     #echo "Optimization Enabled"
       mkdir ${containersLair}/${SecondaryParam}
-      ${userspacebackend} ${symlinkfix} tar -C "${containersLair}/${SecondaryParam}" -xf "${containersLair}/defaultSeq" >> ${logs}/rootfsOptimizedCopyOperation.log 2>&1
+      ${userspacebackend} ${symlinkfix} busybox tar -C "${containersLair}/${SecondaryParam}" -xvf "${containersLair}/defaultSeq" >> ${logs}/rootfsOptimizedCopyOperation.log 2>&1
       #mv ${containersLair}/${SecondaryParam}/default/* ${containersLair}/${SecondaryParam} #this is unused since the tar compressed directly from the directory
       #rm -rf ${containersLair}/${SecondaryParam}/default
   else
@@ -1669,7 +1669,9 @@ if [ "$first" != 1 ];then
 	cd "$folder"
   yellow
 	echo "${pbadge} 🗜️ decompressing bootstrap image"
-	${userspacebackend} ${symlinkfix} tar -vxf ${cur}/${tarball} --exclude='dev' --exclude='firmware' --exclude='kernel' >> ${logs}/rootfsExtract.log 2>&1
+    # for android high version %n are not allowed in android! this caused by glibc
+    #in order to compensate the error use a static binary like busybox
+	${userspacebackend} ${symlinkfix} busybox tar -vxf ${cur}/${tarball} --exclude='dev' --exclude='firmware' --exclude='kernel' >> ${logs}/rootfsExtract.log 2>&1
   if [ ! -z ${subfolder} ]; then
   ${userspacebackend} ${symlinkfix} cp -rua ${subfolder}*/* .
   rm -rf *${subfolder}*
@@ -2811,7 +2813,7 @@ cd ${origindir}
 if [ ! -f ${containersLair}/defaultSeq ] || [ ! -f ${containersLair}/guranteedSeqIntegrity ]; then
 cd ${defaultContainer}
 echo "${pbadge} 🧳 Optimizing System "
-tar cvzf ${containersLair}/defaultSeq . >> ${logs}/rootfsOptimization.log 2>&1
+busybox tar cvzf ${containersLair}/defaultSeq . >> ${logs}/rootfsOptimization.log 2>&1
 echo 1 > ${containersLair}/guranteedSeqIntegrity # flag for integrity if it finishes compressing
 echo "${pbadge} 🧳 Optimizing System Done "
 else
