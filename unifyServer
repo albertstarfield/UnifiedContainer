@@ -3215,7 +3215,6 @@ functionTests(){
 yellow
 echo "=================="
 unset NOBOOT # we neeed to unset NOBOOT due to the fact NOBOOT parameter was exported globally
-
 green
 export diagnosticTrigger=1
 echo "Triggering Install"  >> ${logs}/diagnostics.log 2>&1
