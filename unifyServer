@@ -3247,7 +3247,7 @@ echo "Thank you for joining the survey Your contribution will help unifyServer!"
 yellow
 echo "========[Send this link to the developer]========="
 green
-sendLog ${origindir}/diagnostic_result.txt
+cat "${origindir}/diagnostic_result.txt" | sendLog 
 yellow
 echo "=================================================="
 }
