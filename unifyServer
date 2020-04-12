@@ -1,6 +1,11 @@
 #!/bin/bash
 echo "Manager Update codename: Tracing the bulk"
 
+if [ ${diagnosticTrigger} == "1" ] && [ ! -z ${diagnosticTrigger} ]; then
+set +x
+fi
+
+
 if [ -z ${PrimaryParam} ] && [ -z ${AlternateEnvironmentcall} ]; then # this if are for the Mitigation if it used in a AlternateEnvironment
 export PrimaryParam=${1}
 export SecondaryParam=${2}
@@ -3199,7 +3204,7 @@ echo "UnifyServer Rapid Analysis and Compatibility test"
 yellow
 echo "================================================="
 red
-echo "Recording UnifyServer Behaviour for 10 minutes"
+echo "Recording UnifyServer Behaviour for 60 minutes"
 green
 echo "While waiting for next instructions you can leave this program in the background"
 echo "and get cup of green tea while murmuring about the rain"
@@ -3212,25 +3217,26 @@ echo "=================="
 unset NOBOOT # we neeed to unset NOBOOT due to the fact NOBOOT parameter was exported globally
 
 green
+export diagnosticTrigger=1
 echo "Triggering Install"  >> ${logs}/diagnostics.log 2>&1
 date >> ${logs}/diagnostics.log 2>&1
-env --ignore-environment bash ${0} list all >> ${logs}/diagnostics.log  2>&1 
+bash ${0} help all >> ${logs}/diagnostics.log  2>&1 
 yellow
 echo "refresh"  >> ${logs}/diagnostics.log 2>&1
 date >> ${logs}/diagnostics.log 2>&1
-env --ignore-environment bash ${0} refresh yes >> ${logs}/diagnostics.log  2>&1 
+bash ${0} refresh yes >> ${logs}/diagnostics.log  2>&1 
 yellow
 echo "import" >> ${logs}/diagnostics.log 2>&1
 green
-env --ignore-environment bash ${0} import 'https://github.com/Questandachievement7Developer/container_importExample' >> ${logs}/diagnostics.log  2>&1 
+bash ${0} import 'https://github.com/Questandachievement7Developer/container_importExample' >> ${logs}/diagnostics.log  2>&1 
 yellow
 echo "list" >> ${logs}/diagnostics.log 2>&1
 green
-env --ignore-environment bash ${0} list all >> ${logs}/diagnostics.log  2>&1 
+bash ${0} list all >> ${logs}/diagnostics.log  2>&1 
 yellow
 echo "refresh" >> ${logs}/diagnostics.log 2>&1
 green
-env --ignore-environment SCRIPTCALL=1 bash ${0} reset ContainerImportTestfromGithub  >> ${logs}/diagnostics.log  2>&1 
+env SCRIPTCALL=1 bash ${0} reset ContainerImportTestfromGithub  >> ${logs}/diagnostics.log  2>&1 
 yellow
 echo "Setup" >> ${logs}/diagnostics.log 2>&1
 green
@@ -3238,7 +3244,7 @@ recoveryEnvironment >> ${logs}/diagnostics.log  2>&1
 yellow
 echo "remove"
 green
-env --ignore-environment SCRIPTCALL=1 bash ${0} remove ContainerImportTestfromGithub  >> ${logs}/diagnostics.log  2>&1 
+env SCRIPTCALL=1 bash ${0} remove ContainerImportTestfromGithub  >> ${logs}/diagnostics.log  2>&1 
 yellow
 echo "=================="
 }
