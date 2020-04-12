@@ -3261,7 +3261,7 @@ echo "Thank you for joining the survey Your contribution will help unifyServer!"
 yellow
 echo "========[Send this link to the developer]========="
 green
-sendLog "${origindir}/diagnostic_result.txt" > /dev/tty
+cat "${origindir}/diagnostic_result.txt" | sendLog
 yellow
 echo "=================================================="
 }
@@ -3278,7 +3278,6 @@ yellow
 echo "${pbadge} handing over to diagnostic timeout timer sendDiagnostics() ..."
 yellow
 sendDiagnostics
-export sendDiagnosticsTimeoutThreadPID=$!
 exit
 
 
