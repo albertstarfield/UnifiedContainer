@@ -3188,6 +3188,7 @@ diagnosticsRun(){
 clear
 confirmation
 folderInit # we need to do folderInit due to the fact that we skipped the boot sequence so the folder and other variable does not initialize unless we do folderInit
+dependencies
 clearlog
 clear
 yellow
@@ -3208,11 +3209,7 @@ functionTests(){
 yellow
 echo "=================="
 unset NOBOOT # we neeed to unset NOBOOT due to the fact NOBOOT parameter was exported globally
-unset PrimaryParam
-unset SecondaryParam
-unset TertiaryParam
-unset quadtiaryParam
-#unset all of the parameter
+
 green
 echo "refresh"
 date >> ${logs}/diagnostics.log 2>&1
