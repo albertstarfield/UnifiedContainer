@@ -3286,9 +3286,7 @@ uname -a >> ${origindir}/diagnostic_result.txt
 echo "++++++++++MountPoint+++++++++++"
 mount >> ${origindir}/diagnostic_result.txt
 echo "MOUNTPOINTEND+++++++++++++-----------"
-echo "++++++++++++DevicesProbe+++++++++++++"
-find /sys >> ${origindir}/diagnostic_result.txt
-echo "DevicesProbeEnd+++++++++++++-----------"
+
 echo "Commmit Version $(git log -1 --format=%cd)" >> ${origindir}/diagnostic_result.txt
 for a in $(ls ${logs}) ; do
 echo "++++++++FILE_${a}++++++++"
