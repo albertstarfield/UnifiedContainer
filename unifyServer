@@ -11,7 +11,7 @@ export quadtiaryParam=""
 fi
 
 
-if [ -z ${PrimaryParam} ] && [ -z ${AlternateEnvironment} ]; then # this if are for the Mitigation if it used in a AlternateEnvironment
+if [ -z ${foreignenvironment} ] || [ ${foreignenvironment} == "0" ]; then # this if are for the Mitigation if it used in a AlternateEnvironment
 export PrimaryParam=${1}
 export SecondaryParam=${2}
 export TertiaryParam=${3}
