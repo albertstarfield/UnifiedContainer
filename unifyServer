@@ -13,7 +13,9 @@ export TertiaryParam=${3}
 export quadtiaryParam=${4}
 fi
 #set -x
-#echo DEBUG PARAM CHECK ${PrimaryParam} ${SecondaryParam}
+if [ ${DEVELENV} == "1" ] && [ ! -z ${DEVELENV} ]; then
+echo DEBUG PARAM CHECK ${PrimaryParam} ${SecondaryParam}
+fi
 export managerGitlink="https://github.com/Questandachievement7Developer/UnifiedContainer"
 export PATH="$PATH:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/mnt/c/Windows/system32:/mnt/c/Windows:/mnt/c/Windows/System32/Wbem:/mnt/c/Windows/System32/WindowsPowerShell/v1.0/:/mnt/c/Windows/System32/OpenSSH/:/mnt/c/ProgramData/chocolatey/bin"
 #proot Seccomp Acceleration SEGFAULT CRASHES FIX SIGNAL 11 TERMINATION
@@ -3200,7 +3202,8 @@ clear
 confirmation
 folderInit # we need to do folderInit due to the fact that we skipped the boot sequence so the folder and other variable does not initialize unless we do folderInit
 dependencies
-clearlog
+#clearlog 
+#How about we send the full diagnostics? so we see what does the person did wrong?
 clear
 yellow
 echo "================================================="
@@ -3304,10 +3307,6 @@ echo "${pbadge} handing over to diagnostic timeout timer sendDiagnostics() ..."
 yellow
 sendDiagnostics
 exit
-
-
-
-
 
 fi
 
