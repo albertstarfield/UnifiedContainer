@@ -3266,17 +3266,17 @@ if [ $TIMEOUTWAIT == 1 ]; then
 yellow
 echo "${pbadge} [sendDiagnostics()] I have been launched! "
 echo "${pbadge} [sendDiagnostics()] Dont worry we will be done in the next 60 Minutes "
-sleep 600
+sleep 100
 echo "${pbadge} [sendDiagnostics()] journalizing it 50 minutes left"
-sleep 600
+sleep 100
 echo "${pbadge} [sendDiagnostics()] Intresting 40 minutes left"
-sleep 600
+sleep 100
 echo "${pbadge} [sendDiagnostics()] GNU/Linux are great and 30 minutes left"
-sleep 600
+sleep 100
 echo "${pbadge} [sendDiagnostics()] I see the finish line 20 Minutes left"
-sleep 600
+sleep 100
 echo "${pbadge} [sendDiagnostics()] We are almost done ! 10 minutes left"
-sleep 600
+sleep 100
 
 #http://morningcoffee.io/killing-a-process-and-all-of-its-descendants.html
 echo "${pbadge} [sendDiagnostics()] 60 Minutes Tracing Done!"
