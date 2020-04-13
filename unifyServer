@@ -3287,7 +3287,10 @@ cat "${origindir}/diagnostic_result.txt" | sendLog
 yellow
 echo "=================================================="
 }
-
+#testing through debug mode
+if [ ! -z $@ ]; then
+${1} ${2} ${3} ${4}
+else
 
 sleep 1
 green
@@ -3306,7 +3309,7 @@ exit
 
 
 
-
+fi
 
 
 }
