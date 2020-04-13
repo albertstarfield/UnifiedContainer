@@ -3,10 +3,15 @@ echo "Manager Update codename: Tracing the bulk"
 
 if [ ${diagnosticTrigger} == "1" ] && [ ! -z ${diagnosticTrigger} ]; then
 set -x
+export PrimaryParam=""
+export SecondaryParam=""
+export TertiaryParam=""
+export quadtiaryParam=""
+# a bug has been known tha
 fi
 
 
-if [ -z ${PrimaryParam} ] && [ -z ${AlternateEnvironmentcall} ]; then # this if are for the Mitigation if it used in a AlternateEnvironment
+if [ -z ${PrimaryParam} ] && [ -z ${AlternateEnvironment} ]; then # this if are for the Mitigation if it used in a AlternateEnvironment
 export PrimaryParam=${1}
 export SecondaryParam=${2}
 export TertiaryParam=${3}
