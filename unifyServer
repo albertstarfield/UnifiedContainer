@@ -267,6 +267,9 @@ yellow
 export SecondaryParamOld="${SecondaryParam}"
 echo "${pbadge} ⌛ Installing Dependencies ${percentage} %"
 export NOBOOT=1 # to prevent any Uncessary checks when reexecuting
+#known bug has been detected which the unifyServer manager wont actually detects the container
+#This bug caused by uninitialized Variables which executes in folderinit 
+#this can be fixed by detecting noboot and trigger folderinit beforehand
 bash ${0} exec ${name} "rm -rf /var/lib/pacman/db.lck" >> ${logs}/unifyServerPackageInstaller.log 2>&1
 bash ${0} exec ${name} "pacman -Syy" >> ${logs}/unifyServerPackageInstaller.log 2>&1
 bash ${0} exec ${name} "pacman -S --needed --overwrite '*' --noconfirm ${a}" >> ${logs}/unifyServerPackageInstaller.log 2>&1
@@ -3289,7 +3292,7 @@ echo "=================================================="
 sleep 1
 green
 echo "${pbadge} [THREAD] Experiment Started!"
-functionTests > /dev/null 2>&1 & #mutes any error that occours and save for later   
+functionTests >> ${logs}/diagnostics.log 2>&1 & #mutes any error that occours and save for later   
 export diagnosticThreadPID=$!
 # Launch sendDiagnostics with TIMEOUTWAIT TO wait functiontests to finish
 export TIMEOUTWAIT=1
@@ -3325,6 +3328,11 @@ else
 echo "Pass"
 fi
 
+
+#fixes on uninitialized Variables
+if [ ! -z ${NOBOOT} ]; then
+folderInit
+fi
 
 
 #_________Main_________
