@@ -3272,26 +3272,25 @@ echo "${pbadge} [sendDiagnostics()] We are almost done observing the behaviour"
 sleep 200
 green
 echo "${pbadge} [sendDiagnostics()] 10 Minutes Tracing Done!"
-kill -9 ${diagnosticThreadPID}
+kill -9 -- -${diagnosticThreadPID}
 else
 echo "Finished!"
-kill -9 ${sendDiagnosticsTimeoutThreadPID}
+kill -9 -- -${sendDiagnosticsTimeoutThreadPID}
 fi
 echo Compiling Logs and adding headers
-export compiledlogs="$(cat ${logs}/*.log)"
 echo "++++++unifySERVER DIAGNOSTIC LOG++++++" > ${origindir}/diagnostic_result.txt
 echo "++++++DO NOT SHARE TO ANYONE IN ORDER TO PRESERVE YOUR PRIVACY TO THE FULLEST++++++" >> ${origindir}/diagnostic_result.txt
 date >> ${origindir}/diagnostic_result.txt
 uname -a >> ${origindir}/diagnostic_result.txt
 echo "Commmit Version $(git log -1 --format=%cd)" >> ${origindir}/diagnostic_result.txt
-echo ${compiledlogs} >> ${origindir}/diagnostic_result.txt
+cat ${logs}/*.log >> ${origindir}/diagnostic_result.txt
 clear
 green
 echo "Thank you for joining the survey Your contribution will help unifyServer!"
 yellow
 echo "========[Send this link to the developer]========="
 green
-cat "${origindir}/diagnostic_result.txt" | sendLog
+sendLog "${origindir}/diagnostic_result.txt"
 yellow
 echo "=================================================="
 }
