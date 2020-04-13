@@ -3271,6 +3271,7 @@ sleep 200
 echo "${pbadge} [sendDiagnostics()] We are almost done observing the behaviour"
 sleep 200
 green
+#http://morningcoffee.io/killing-a-process-and-all-of-its-descendants.html
 echo "${pbadge} [sendDiagnostics()] 10 Minutes Tracing Done!"
 kill -9 -- -${diagnosticThreadPID}
 else
@@ -3282,7 +3283,18 @@ echo "++++++unifySERVER DIAGNOSTIC LOG++++++" > ${origindir}/diagnostic_result.t
 echo "++++++DO NOT SHARE TO ANYONE IN ORDER TO PRESERVE YOUR PRIVACY TO THE FULLEST++++++" >> ${origindir}/diagnostic_result.txt
 date >> ${origindir}/diagnostic_result.txt
 uname -a >> ${origindir}/diagnostic_result.txt
+echo "++++++++++MountPoint+++++++++++"
+mount >> ${origindir}/diagnostic_result.txt
+echo "MOUNTPOINTEND+++++++++++++-----------"
+echo "++++++++++++DevicesProbe+++++++++++++"
+find /sys >> ${origindir}/diagnostic_result.txt
+echo "DevicesProbeEnd+++++++++++++-----------"
 echo "Commmit Version $(git log -1 --format=%cd)" >> ${origindir}/diagnostic_result.txt
+for a in $(ls ${logs}) ; do
+echo "++++++++FILE_${a}++++++++"
+cat ${a} >> ${origindir}/diagnostic_result.txt
+echo "=======END FILE_${a}======="
+done
 cat ${logs}/*.log >> ${origindir}/diagnostic_result.txt
 clear
 green
