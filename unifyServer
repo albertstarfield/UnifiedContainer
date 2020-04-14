@@ -155,8 +155,10 @@ launchcontainerSvcFG(){
   cd "${containersLair}/${SecondaryParam}"
   if [ ! -f svcID ]; then
   green
+  APIcall pwmCall_enable_wakelockcall
   echo "⏳ Launching container ${SecondaryParam}"
   bash start-bootstrap.sh bash /init
+  APIcall pwmCall_disable_wakelockcall
 else
   red
   echo "${pbadge} ❌ Container currently is running if you believe that the container is not running ❌"
