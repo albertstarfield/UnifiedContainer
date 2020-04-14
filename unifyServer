@@ -1641,15 +1641,15 @@ if [ "$first" != 1 ];then
     #wget -r --no-parent -A 'bar.*.tar.gz' http://url/dir/ #https://unix.stackexchange.com/questions/117988/wget-with-wildcards-in-http-downloads
     case `checkArch` in #since Archlinux have a variable download link so we have to define each download link for each architechture
 		aarch64)
-			archurl="arm64" ; specialarchtype="arm" ; downloadcompass="http://os.archlinuxarm.org/os/ArchLinuxARM-aarch64-latest.tar.gz"  ;;
+			archurl="arm64" ; specialarchtype="arm"; repoArch="aarch64" ; downloadcompass="http://os.archlinuxarm.org/os/ArchLinuxARM-aarch64-latest.tar.gz"  ;;
 		arm)
-			archurl="armhf" ;specialarchtype="arm" ; downloadcompass="http://os.archlinuxarm.org/os/ArchLinuxARM-armv7-latest.tar.gz" ;;
+			archurl="armhf" ;specialarchtype="arm" ; repoArch="arm" ; downloadcompass="http://os.archlinuxarm.org/os/ArchLinuxARM-armv7-latest.tar.gz" ;;
     armv7*)
-  		archurl="armhf" ;specialarchtype="arm" ; downloadcompass="http://os.archlinuxarm.org/os/ArchLinuxARM-armv7-latest.tar.gz" ;;
+  		archurl="armhf" ;specialarchtype="arm" ; repoArch="armv7h" ; downloadcompass="http://os.archlinuxarm.org/os/ArchLinuxARM-armv7-latest.tar.gz" ;;
 		amd64)
-			archurl="amd64" ; subfolder="root.x86_64" ;  specialarchtype="" ; downloadcompass="https://github.com/Questandachievement7Developer/UnifiedContainer/releases/download/ArchrootfsDownloadamd64/archlinux-bootstrap-2020.03.01-x86_64.tar.gz" ;;
+			archurl="amd64" ; subfolder="root.x86_64" ; repoArch="x86_64" ;  specialarchtype="" ; downloadcompass="https://github.com/Questandachievement7Developer/UnifiedContainer/releases/download/ArchrootfsDownloadamd64/archlinux-bootstrap-2020.03.01-x86_64.tar.gz" ;;
 		*86_64)
-			archurl="amd64"; subfolder="root.x86_64" ; specialarchtype='' ; downloadcompass='https://github.com/Questandachievement7Developer/UnifiedContainer/releases/download/ArchrootfsDownloadamd64/archlinux-bootstrap-2020.03.01-x86_64.tar.gz' ;;
+			archurl="amd64"; subfolder="root.x86_64" ; repoArch="x86_64" ; specialarchtype='' ; downloadcompass='https://github.com/Questandachievement7Developer/UnifiedContainer/releases/download/ArchrootfsDownloadamd64/archlinux-bootstrap-2020.03.01-x86_64.tar.gz' ;;
 		*)
 			echo "❌ Unsupported architecture ❌"; exit 1 ;;
 		esac
@@ -1907,7 +1907,8 @@ SyncFirst   = pacman
 #XferCommand = /usr/bin/curl -C - -f %u > %o
 #XferCommand = /usr/bin/wget --passive-ftp -c -O %o %u
 #CleanMethod = KeepInstalled
-Architecture = auto
+#Architecture = auto
+Architecture = ${repoArch}
 
 # Pacman won't upgrade packages listed in IgnorePkg and members of IgnoreGroup
 IgnorePkg   = linux
@@ -2084,7 +2085,8 @@ SyncFirst    = manjaro-system archlinux-keyring manjaro-keyring
 #XferCommand = /usr/bin/wget --passive-ftp -c -O %o %u
 #CleanMethod = KeepInstalled
 #UseDelta    = 0.7
-Architecture = auto
+#Architecture = auto
+Architecture = ${repoArch}
 # Pacman won't upgrade packages listed in IgnorePkg and members of IgnoreGroup
 IgnorePkg   = linux
 #IgnoreGroup =
