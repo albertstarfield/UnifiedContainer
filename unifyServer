@@ -3021,6 +3021,9 @@ APIcall(){
     echo "${pbadge} Function is not yet implemented"
   }
   #__________________________
+  disk_preload(){
+  dd if="${1}" of=/dev/null bs=1M count=2
+  }
   if [ ${distro} == "termux" ]; then
     #systemUI calls
     #echo "Using Termux API"
