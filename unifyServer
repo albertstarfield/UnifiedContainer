@@ -1676,7 +1676,8 @@ if [ "$first" != 1 ];then
     green
     echo "${pbadge} Download acceleration is available"
     rm -rf ${tarball}
-    aria2c --max-connection-per-server=16 --min-split-size=1M ${downloadcompass} -o ${tarball} >> ${logs}/DownloadloadTarballCheck.log 2>&1
+    echo "Downloading using aria2c Safe and sound" >> ${logs}/DownloadloadTarballCheck.log 2>&1
+    aria2c --max-connection-per-server=16 --min-split-size=1M ${downloadcompass} -o ${tarball} 
     else
     wget ${downloadcompass} -O ${tarball} >> ${logs}/DonwloadloadTarballCheck.log 2>&1
     fi
