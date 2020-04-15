@@ -157,6 +157,7 @@ launchcontainerSvcFG(){
   green
   APIcall pwmCall_enable_wakelockcall
   echo "⏳ Launching container ${SecondaryParam}"
+  APIcall disk_cache rootfs #Preload all the files
   bash start-bootstrap.sh bash /init
   APIcall pwmCall_disable_wakelockcall
 else
@@ -3022,7 +3023,10 @@ APIcall(){
   }
   #__________________________
   disk_preload(){
-  dd if="${1}" of=/dev/null bs=1M count=2
+  for a in $( find ${1} ); do
+  echo "Caching ${a}" >> ${logs}/RAMCACHE_APICALL.log
+  dd if="${a}" of=/dev/null bs=1M count=2 >> ${logs}/RAMCACHE_APICALL.log 2>&1
+  done
   }
   if [ ${distro} == "termux" ]; then
     #systemUI calls
