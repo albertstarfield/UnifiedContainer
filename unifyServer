@@ -157,7 +157,7 @@ launchcontainerSvcFG(){
   green
   APIcall pwmCall_enable_wakelockcall
   echo "⏳ Launching container ${SecondaryParam}"
-  APIcall disk_cache rootfs #Preload all the files
+  APIcall disk_preload rootfs #Preload all the files
   bash start-bootstrap.sh bash /init
   APIcall pwmCall_disable_wakelockcall
 else
@@ -210,7 +210,7 @@ launchcontainerSHELL(){
   green
   echo "${pbadge} 🌟 Have fun 🌟"
   #bash start-bootstrap.sh screenfetch
-  APIcall disk_cache "rootfs/usr" #Cache the binaries so it is faster to manage things
+  APIcall disk_preload "rootfs/usr" #Cache the binaries so it is faster to manage things
   bash start-bootstrap.sh "fish --login"
   exit
 }
@@ -2837,6 +2837,8 @@ echo 1 > ${containersLair}/guranteedSeqIntegrity # flag for integrity if it fini
 echo "${pbadge} 🧳 Optimizing System Done "
 else
 echo "${pbadge} 🧳 System has been optimized"
+echo "${pbadge} Preloading Cached archive to ram just in case"
+APIcall disk_preload "${contaienrsLair}/defaultseq"
 fi
 containerAheadOptimizationCache   > ${logs}/containerAheadOptimizationCache.log 2>&1 &
 #echo $! > ${maindir}/containerOptimizationPID
