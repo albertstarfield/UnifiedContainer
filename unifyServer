@@ -274,6 +274,7 @@ for b in ${packages}; do
 totalpackage=$((totalpackage + 1))
 done
 currentpackage=0
+bash ${0} exec ${name} "pacman -Syy" >> ${logs}/unifyServerPackageInstaller.log 2>&1
 for a in ${packages}; do
 currentpackage=$((currentpackage + 1))
 percentage=$((currentpackage * 100 / totalpackage))
@@ -286,7 +287,6 @@ export NOBOOT=1 # to prevent any Uncessary checks when reexecuting
 #This bug caused by uninitialized Variables which executes in folderinit 
 #this can be fixed by detecting noboot and trigger folderinit beforehand
 bash ${0} exec ${name} "rm -rf /var/lib/pacman/db.lck" >> ${logs}/unifyServerPackageInstaller.log 2>&1
-bash ${0} exec ${name} "pacman -Syy" >> ${logs}/unifyServerPackageInstaller.log 2>&1
 bash ${0} exec ${name} "pacman -S --needed --overwrite '*' --noconfirm ${a}" >> ${logs}/unifyServerPackageInstaller.log 2>&1
 bash ${0} exec ${name} "rm -rf /var/lib/pacman/db.lck" >> ${logs}/unifyServerPackageInstaller.log 2>&1
 #Efficient code seems to not working? I dont know why?
