@@ -1590,12 +1590,11 @@ if [ "$first" != 1 ];then
     #Well the problem is actually i put the o lowercase rather than the O capital
     echo "${pbadge} Downloading ${tarball}"
     if [ -z $(which aria2c) ] || [ ${iSHenv} == "1" ]; then #iSH cannot download multiple connection due to iOS constraints
-    wget ${downloadcompass} -O ${tarball} >> ${logs}/DonwloadloadTarballCheck.log 2>&1
-    else
+    wget ${downloadcompass} -O ${tarball}
       green
       echo "${pbadge} Download acceleration is available"
       rm -rf ${tarball}
-      aria2c --max-connection-per-server=16 --min-split-size=1M ${downloadcompass} -o ${tarball} >> ${logs}/DownloadloadTarballCheck.log 2>&1
+      aria2c --max-connection-per-server=16 --min-split-size=1M ${downloadcompass} -o ${tarball}
     fi
 		#wget "https://partner-images.canonical.com/core/disco/current/bootstrap-disco-core-cloudimg-${archurl}-root.tar.gz" -O $tarball
 	fi
