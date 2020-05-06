@@ -1604,9 +1604,9 @@ if [ "$first" != 1 ];then
       echo "${pbadge} ⚠️ Hazardous environment detected! ⚠️"
       echo "${pbadge} ⚠️ Automatically switch to advanced download manager ⚠️"
       yellow
-      echo "${pbadge} Increasing segmentation downloads"
+      echo "${pbadge} Increasing download segmentation and unlocking retry limit"
       #Fixes https://github.com/ish-app/ish/issues/220
-      aria2c --max-connection-per-server=1 --min-split-size=1148576 --async-dns=false ${downloadcompass} -o ${tarball} >> ${logs}/DownloadloadTarballCheck.log 2>&1
+      aria2c --max-connection-per-server=1 --min-split-size=1148576 --async-dns=false --max-tries=0 ${downloadcompass} -o ${tarball} >> ${logs}/DownloadloadTarballCheck.log 2>&1
     fi
 	fi
 	cur=`pwd`
