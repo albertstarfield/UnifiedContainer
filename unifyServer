@@ -1368,13 +1368,13 @@ fi
 distroDetection(){
 # DISTRO MANAGER DETECTION IS ALSO USED TO DETERMINE WHERE DOES THE SCRIPT RUN
 export ptracecompat='1' #flag ptrace compatibility based on the distro or kernel that its running
+export iSHenv="0"
 export linktosymlinkActivated=0
 export arch=$(uname -m)
 if [ ! -z $(which apk) ]; then
   echo "Alpine Distro"
   export packmanager=apk
   export installParameter="add"
-  export ptracecompat='1'
   export distro="alpine"
 fi
 
@@ -1409,6 +1409,7 @@ fi
     if [[ $(grep iSH /proc/version) ]]; then
       echo "Bash is running on iSH"
       echo "PTRACE ON iSH IS NOT SUPPORTED"
+      export iSHenv="1"
       export ptracecompat='0'
       export WSLenv="0"
     fi
@@ -1588,7 +1589,7 @@ if [ "$first" != 1 ];then
 
     #Well the problem is actually i put the o lowercase rather than the O capital
     echo "${pbadge} Downloading ${tarball}"
-    if [ ! -z $(which aria2c) ]; then
+    if [ ! -z $(which aria2c) ] || [ ${iSHenv} == "1" ]; then #iSH cannot download multiple connection due to iOS constraints
     green
     echo "${pbadge} Download acceleration is available"
     rm -rf ${tarball}
