@@ -1605,7 +1605,7 @@ if [ "$first" != 1 ];then
       echo "${pbadge} ⚠️ Automatically switch to advanced download manager ⚠️"
       yellow
       cho "${pbadge} Increasing segmentation downloads"
-      aria2c --max-connection-per-server=1 --min-split-size=256K ${downloadcompass} -o ${tarball} >> ${logs}/DownloadloadTarballCheck.log 2>&1
+      aria2c --max-connection-per-server=1 --min-split-size=1148576 ${downloadcompass} -o ${tarball} >> ${logs}/DownloadloadTarballCheck.log 2>&1
     fi
 	fi
 	cur=`pwd`
