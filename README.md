@@ -27,7 +27,7 @@
 6. CentOS
 ### :gear: NON PTRACE Machines
 1. WSL Distro
-2. iSH ( iOS shell ) ( i686 support Comming soon )
+2. iSH ( iOS shell ) ( Under heavy testing )
 3. Darwin x86_64 (macOS) (UNTESTED!)
 
 ### :camera: Tech demo screenshot
