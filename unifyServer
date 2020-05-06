@@ -1564,15 +1564,15 @@ if [ "$first" != 1 ];then
 		aarch64)
 			archurl="arm64" ; specialarchtype="arm" ; downloadcompass="http://os.archlinuxarm.org/os/ArchLinuxARM-aarch64-latest.tar.gz"  ;;
 		arm)
-			archurl="armhf" ;specialarchtype="arm" ; downloadcompass="http://os.archlinuxarm.org/os/ArchLinuxARM-armv7-latest.tar.gz" ;;
+			archurl="armhf" ; specialarchtype="arm" ; downloadcompass="http://os.archlinuxarm.org/os/ArchLinuxARM-armv7-latest.tar.gz" ;;
     armv7*)
-  		archurl="armhf" ;specialarchtype="arm" ; downloadcompass="http://os.archlinuxarm.org/os/ArchLinuxARM-armv7-latest.tar.gz" ;;
+  		archurl="armhf" ; specialarchtype="arm" ; downloadcompass="http://os.archlinuxarm.org/os/ArchLinuxARM-armv7-latest.tar.gz" ;;
 		amd64)
-			archurl="amd64" ;specialarchtype="x86_64"  ; subfolder="root.x86_64" ; downloadcompass="https://github.com/Questandachievement7Developer/UnifiedContainer/releases/download/ArchrootfsDownloadamd64/archlinux-bootstrap-2020.03.01-x86_64.tar.gz" ;;
+			archurl="amd64" ; specialarchtype="x86_64"  ; subfolder="root.x86_64" ; downloadcompass="https://github.com/Questandachievement7Developer/UnifiedContainer/releases/download/ArchrootfsDownloadamd64/archlinux-bootstrap-2020.03.01-x86_64.tar.gz" ;;
 		*86_64)
-			archurl="amd64" ;specialarchtype="x86_64" ; subfolder="root.x86_64" ; downloadcompass='https://github.com/Questandachievement7Developer/UnifiedContainer/releases/download/ArchrootfsDownloadamd64/archlinux-bootstrap-2020.03.01-x86_64.tar.gz' ;;
+			archurl="amd64" ; specialarchtype="x86_64" ; subfolder="root.x86_64" ; downloadcompass='https://github.com/Questandachievement7Developer/UnifiedContainer/releases/download/ArchrootfsDownloadamd64/archlinux-bootstrap-2020.03.01-x86_64.tar.gz' ;;
     i686)
-  		archurl="i686" ;specialarchtype="i686" ; downloadcompass='https://github.com/Questandachievement7Developer/UnifiedContainer/releases/download/rootfsarch686/arch32.tar.gz' ;;
+  		archurl="i686" ; specialarchtype="i686" ; downloadcompass='https://github.com/Questandachievement7Developer/UnifiedContainer/releases/download/rootfsarch686/arch32.tar.gz' ;;
 		*)
 			echo "❌ Unsupported architecture ❌"; exit 1 ;;
 		esac
@@ -1605,15 +1605,22 @@ if [ "$first" != 1 ];then
       echo "${pbadge} ⚠️ Automatically switch to advanced download manager ⚠️"
       yellow
       echo "${pbadge} Increasing download segmentation and unlocking retry limit"
+      green
+      echo "${pbadge} Download started!"
+      echo "Please wait for 30 Minutes"
       #Fixes https://github.com/ish-app/ish/issues/220
+      #since we dont expect people going to stay on the terminal for more than 1 minutes and probably turn off the phone we going to allow the aria2c to retry the download for unlimited amount of time and segmented
+      #This problem seems occouring in iSH build 66 and in iOS 13.4.1
       aria2c --max-connection-per-server=1 --min-split-size=1148576 --async-dns=false --max-tries=0 ${downloadcompass} -o ${tarball} >> ${logs}/DownloadloadTarballCheck.log 2>&1
     fi
 	fi
 	cur=`pwd`
 	mkdir -p "$folder"
 	cd "$folder"
-  yellow
+  green
 	echo "${pbadge} 🗜️ decompressing bootstrap image"
+  yellow
+  echo "${pbadge} This may take 10 minutes or more depending on the environment that is being installed"
 	${userspacebackend} ${symlinkfix} tar -vxf ${cur}/${tarball} --exclude='dev' --exclude='firmware' --exclude='kernel' >> ${logs}/rootfsExtract.log 2>&1
   if [ ! -z ${subfolder} ]; then
   ${userspacebackend} ${symlinkfix} cp -rua ${subfolder}*/* .
@@ -2089,47 +2096,47 @@ cat > "$mirrorlistpacman" <<- EOF
 ##
 
 ## Belarus
-#Server = http://mirror.datacenter.by/pub/archlinux32/\$arch/\$repo/
-#Server = https://mirror.datacenter.by/pub/archlinux32/\$arch/\$repo/
+Server = http://mirror.datacenter.by/pub/archlinux32/\$arch/\$repo/
+Server = https://mirror.datacenter.by/pub/archlinux32/\$arch/\$repo/
 
 ## France
-#Server = http://archlinux32.agoctrl.org/\$arch/\$repo/
-#Server = https://archlinux32.agoctrl.org/\$arch/\$repo/
+Server = http://archlinux32.agoctrl.org/\$arch/\$repo/
+Server = https://archlinux32.agoctrl.org/\$arch/\$repo/
 
 ## Germany
-#Server = http://de.mirror.archlinux32.org/\$arch/\$repo/
-#Server = https://de.mirror.archlinux32.org/\$arch/\$repo/
-#Server = http://ger.mirror.archlinux32.org/\$arch/\$repo/
-#Server = https://ger.mirror.archlinux32.org/\$arch/\$repo/
-#Server = http://mirror.archlinux32.org/\$arch/\$repo/
-#Server = https://mirror.archlinux32.org/\$arch/\$repo/
-#Server = http://mirror.archlinux32.oss/\$arch/\$repo/
+Server = http://de.mirror.archlinux32.org/\$arch/\$repo/
+Server = https://de.mirror.archlinux32.org/\$arch/\$repo/
+Server = http://ger.mirror.archlinux32.org/\$arch/\$repo/
+Server = https://ger.mirror.archlinux32.org/\$arch/\$repo/
+Server = http://mirror.archlinux32.org/\$arch/\$repo/
+Server = https://mirror.archlinux32.org/\$arch/\$repo/
+Server = http://mirror.archlinux32.oss/\$arch/\$repo/
 
 ## Greece
-#Server = http://gr.mirror.archlinux32.org/\$arch/\$repo/
+Server = http://gr.mirror.archlinux32.org/\$arch/\$repo/
 
 ## India
-#Server = http://ind.mirror.archlinux32.org/\$arch/\$repo/
-#Server = https://ind.mirror.archlinux32.org/\$arch/\$repo/
+Server = http://ind.mirror.archlinux32.org/\$arch/\$repo/
+Server = https://ind.mirror.archlinux32.org/\$arch/\$repo/
 
 ## Japan
-#Server = http://jpn.mirror.archlinux32.org/\$arch/\$repo/
-#Server = https://jpn.mirror.archlinux32.org/\$arch/\$repo/
+Server = http://jpn.mirror.archlinux32.org/\$arch/\$repo/
+Server = https://jpn.mirror.archlinux32.org/\$arch/\$repo/
 
 ## Russia
-#Server = http://mirror.yandex.ru/archlinux32/\$arch/\$repo/
-#Server = https://mirror.yandex.ru/archlinux32/\$arch/\$repo/
+Server = http://mirror.yandex.ru/archlinux32/\$arch/\$repo/
+Server = https://mirror.yandex.ru/archlinux32/\$arch/\$repo/
 
 ## Switzerland
-#Server = http://archlinux32.andreasbaumann.cc/\$arch/\$repo/
-#Server = https://archlinux32.andreasbaumann.cc/\$arch/\$repo/
+Server = http://archlinux32.andreasbaumann.cc/\$arch/\$repo/
+Server = https://archlinux32.andreasbaumann.cc/\$arch/\$repo/
 
 ## United States
-#Server = https://32.arlm.tyzoid.com/\$arch/\$repo/
-#Server = http://mirror.clarkson.edu/archlinux32/\$arch/\$repo/
-#Server = https://mirror.clarkson.edu/archlinux32/\$arch/\$repo/
-#Server = http://mirror.math.princeton.edu/pub/archlinux32/\$arch/\$repo/
-#Server = https://mirror.math.princeton.edu/pub/archlinux32/\$arch/\$repo/
+Server = https://32.arlm.tyzoid.com/\$arch/\$repo/
+Server = http://mirror.clarkson.edu/archlinux32/\$arch/\$repo/
+Server = https://mirror.clarkson.edu/archlinux32/\$arch/\$repo/
+Server = http://mirror.math.princeton.edu/pub/archlinux32/\$arch/\$repo/
+Server = https://mirror.math.princeton.edu/pub/archlinux32/\$arch/\$repo/
 
 EOF
 
