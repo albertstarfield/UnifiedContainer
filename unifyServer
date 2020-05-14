@@ -1611,7 +1611,8 @@ if [ "$first" != 1 ];then
       #Fixes https://github.com/ish-app/ish/issues/220
       #since we dont expect people going to stay on the terminal for more than 1 minutes and probably turn off the phone we going to allow the aria2c to retry the download for unlimited amount of time and segmented
       #This problem seems occouring in iSH build 66 and in iOS 13.4.1
-      aria2c --max-connection-per-server=16 --lowest-speed-limit=128K --timeout=10 --min-split-size=1148576 --async-dns=false --max-tries=0 ${downloadcompass} -o ${tarball} >> ${logs}/DownloadloadTarballCheck.log 2>&1
+      # time out 1 second with minimum speed of 128k due to indihome super slow speed compensation
+      aria2c --max-connection-per-server=16 --lowest-speed-limit=128K --timeout=1 --min-split-size=1148576 --async-dns=false --max-tries=0 ${downloadcompass} -o ${tarball} >> ${logs}/DownloadloadTarballCheck.log 2>&1
     fi
 	fi
 	cur=`pwd`
