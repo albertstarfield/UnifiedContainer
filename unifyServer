@@ -1655,7 +1655,7 @@ if [ "$first" != 1 ];then
         echo "please be aware that if you downloaded wrong rootfs or corrupted"
         echo "your installation will bootloop!"
         green
-        cp ${origindir}/sideloadRootfs/rootfs.tar.gz ${tarball}
+        cp ${origindir}/sideloadRootfs/arch32.tar.gz ${tarball}
       else
       yellow
       clear
