@@ -1369,6 +1369,7 @@ distroDetection(){
 # DISTRO MANAGER DETECTION IS ALSO USED TO DETERMINE WHERE DOES THE SCRIPT RUN
 export ptracecompat='1' #flag ptrace compatibility based on the distro or kernel that its running
 export iSHenv="0"
+export BLINDBOOT="0"
 export linktosymlinkActivated=0
 export arch=$(uname -m)
 if [ ! -z $(which apk) ]; then
@@ -1410,6 +1411,7 @@ fi
       echo "Bash is running on iSH"
       echo "PTRACE ON iSH IS NOT SUPPORTED"
       export iSHenv="1"
+      export BLINDBOOT="1"
       export ptracecompat='0'
       export WSLenv="0"
     fi
@@ -1657,7 +1659,7 @@ bin=start-bootstrap.sh
 echo "${pbadge} 🚀 writing launch script"
 cat > $bin <<- EOM
 #!/bin/bash
-echo BOOTLOADER revision 023
+echo BOOTLOADER revision 027
 containerID=\$(cat containerID)
 cd \$(dirname \$0)
 ## unset LD_PRELOAD in case termux-exec is installed
@@ -1672,8 +1674,19 @@ unset LD_PRELOAD
 ###############################ROOT MANAGER ##########################
 
 
+if [ \${BLINDBOOT} == "1" ]; then
+echo "WARNING THIS IS USING BAREBONE BLIND BOOTING METHOD!"
+echo "YOUR PROGRAM WILL NOT WORK PROPERLY!"
+command="chroot"
+command+=" ${folder}"
+command+=" /bin/env -i"
+command+=" PATH=/usr/local/sbin:/usr/local/bin:/bin:/usr/bin:/sbin:/usr/sbin:/usr/games:/usr/local/games"
+command+=" HOME=/root"
+command+=" /bin/bash"
+fi
 
-if [ -f \${maindir}/NOPTRACE ]; then
+
+if [ -f \${maindir}/NOPTRACE ] && [ \${BLINDBOOT} == "0" ] ; then
 #chroot version
 echo "[Progress] Sanitizing Mount points"
 echo "system control fs"
@@ -1707,7 +1720,8 @@ command+=" PATH=/usr/local/sbin:/usr/local/bin:/bin:/usr/bin:/sbin:/usr/sbin:/us
 command+=" LANG=C.UTF-8"
 command+=" HOME=/root"
 command+=" /bin/bash --login"
-else
+fi
+if [ ! -f \${maindir}/NOPTRACE ]  && [ \${BLINDBOOT} == "0" ] ; then
   echo "prootdefine"
   #proot version
 command="proot"
