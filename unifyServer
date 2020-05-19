@@ -1,22 +1,37 @@
 #!/bin/bash
+#!/bin/bash
 echo "Manager Update codename: Tracing the bulk"
+
+if [ ${diagnosticTrigger} == "1" ] && [ ! -z ${diagnosticTrigger} ]; then
+set -x
+export PrimaryParam=""
+export SecondaryParam=""
+export TertiaryParam=""
+export quadtiaryParam=""
+# a bug has been known tha
+fi
+
+
+if [ -z ${foreignenvironment} ] || [ ${foreignenvironment} == "0" ]; then # this if are for the Mitigation if it used in a AlternateEnvironment
 export PrimaryParam=${1}
 export SecondaryParam=${2}
 export TertiaryParam=${3}
 export quadtiaryParam=${4}
+fi
 #set -x
-#echo DEBUG PARAM CHECK ${PrimaryParam} ${SecondaryParam}
-
-export PATH="${PATH}:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/mnt/c/Program Files (x86)/Common Files/Oracle/Java/javapath:/mnt/c/Windows/system32:/mnt/c/Windows:/mnt/c/Windows/System32/Wbem:/mnt/c/Windows/System32/WindowsPowerShell/v1.0/:/mnt/c/Windows/System32/OpenSSH/:/mnt/c/ProgramData/chocolatey/bin:/mnt/c/Program Files/AMD/AMDuProf/bin:/mnt/c/Program Files/Intel/WiFi/bin/:/mnt/c/Program Files/Common Files/Intel/WirelessCommon/:/mnt/c/tools/php74:/mnt/c/ProgramData/ComposerSetup/bin:/mnt/c/Program Files/Git/cmd:/mnt/c/Program Files/OpenJDK/jdk-13.0.2/bin"
-#proot Seccomp Acceleration SEGFAULT CRASHES FIX
-#export PROOT_NO_SECCOMP=1
+if [ ${DEVELENV} == "1" ] && [ ! -z ${DEVELENV} ]; then
+echo DEBUG PARAM CHECK ${PrimaryParam} ${SecondaryParam}
+fi
+export managerGitlink="https://github.com/Questandachievement7Developer/UnifiedContainer"
+export PATH="$PATH:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/mnt/c/Windows/system32:/mnt/c/Windows:/mnt/c/Windows/System32/Wbem:/mnt/c/Windows/System32/WindowsPowerShell/v1.0/:/mnt/c/Windows/System32/OpenSSH/:/mnt/c/ProgramData/chocolatey/bin"
+#proot Seccomp Acceleration SEGFAULT CRASHES FIX SIGNAL 11 TERMINATION
+export PROOT_NO_SECCOMP=1
 export newInstall=0
 
 
 
 
 export initDir="$(pwd)"
-
 
 red(){
 printf '\e[38;5;210m' > /dev/tty
@@ -1105,22 +1120,47 @@ if [ ${WSLenv} == "1" ] && [ ! -z ${WSLenv} ]; then
 installTarget="/bin"
 else
 installTarget="${HOME}/bin"
+mkdir ${installTarget}
 fi
 fi
 managerExec="${installTarget}/bay"
-echo "#!/bin/sh" > "${managerExec}"
-echo "cd ${origindir} ; bash ./unifyServer \$1 \$2 \$3 \$4 " >> "${managerExec}"
+cat > "${managerExec}" <<- EOM
+#!/bin/sh
+if [ ! -d ${origindir} ] ;then
+echo "This is strange Why there isnt a unifyServer Folder here?"
+git clone ${managerGitlink} ${origindir}
+else
+cd ${origindir}
+if [ ! -z "\$(cat unifyServer)" ]; then
+bash ./unifyServer \$1 \$2 \$3 \$4
+else
+echo "This is Really strange and i dont like it! how in the world the actual installation exists but there isnt any code inside??!?!"
+bash recovery
+fi
+fi
+EOM
 chmod 777 "${managerExec}"
-echo "${pbadge} Installation is successfull bay"
 
 managerExec="${installTarget}/unifyServer"
-echo "#!/bin/sh" > "${managerExec}"
-echo "cd ${origindir} ; bash ./unifyServer \$1 \$2 \$3 \$4 " >> "${managerExec}"
+cat > "${managerExec}" <<- EOM
+#!/bin/sh
+if [ ! -d ${origindir} ] ;then
+echo "This is strange Why there isnt a unifyServer Folder here?"
+git clone ${managerGitlink} ${origindir}
+else
+cd ${origindir}
+if [ ! -z "\$(cat unifyServer)" ]; then
+bash ./unifyServer \$1 \$2 \$3 \$4
+else
+echo "This is Really strange and i dont like it! how in the world the actual installation exists but there isnt any code inside??!?!"
+bash recovery
+fi
+fi
+EOM
 chmod 777 "${managerExec}"
-echo "${pbadge} Installation is successfull pbadge"
+
 exit
 }
-
 upgradeMainContainer(){
 ${userspacebackend} ${symlinkfix} rm -rf ${defaultContainer}
 export newInstall=1
@@ -3235,9 +3275,215 @@ else
 fi
 }
 
+
+recoveryEnvironment(){
+if [ ! -d ${recoveryEnvironmentDir}/.git ] || [ ! -f ${recoveryEnvironmentDir}/unifyServer ]; then
+echo "${pbadge} Recovery Files not found This is a dangerous thing!"
+echo "${pbadge} Please wait... while we creating current version recovery"
+cp -v ${origindir}/unifyServer ${recoveryEnvironmentDir}
+cp -rv ${origindir}/.git ${recoveryEnvironmentDir}
+echo "${pbadge} Critical core has been backed up!"
+echo "${pbadge} Creating Recovery Wizard"
+output="${origindir}/recovery"
+cat > "${output}" <<- EOM
+#!/bin/bash
+clear
+echo "Recovering unifyServer!"
+cp -r "${recoveryEnvironmentDir}/*" "${origindir}"
+echo "Updating UnifyServer"
+git reset --hard
+git pull
+echo "Recovering All containers"
+for a in \$(cat ${origindir}/containers.txt ); do
+bay fix \${a}
+done
+echo "Finished Recovery"
+EOM
+chmod +x ${origindir}/recovery
+else
+echo "${pbadge} Recovery environment Present! Do no harm!"
+fi
+
+}
+
+#https://stackoverflow.com/questions/4013947/how-to-use-pastebin-from-shell-script
+sendLog() {
+  if [[ $1 ]]; then
+    curl -F 'sprunge=<-' "http://sprunge.us" <"$1"
+  else
+    curl -F 'sprunge=<-' "http://sprunge.us"
+  fi
+}
+
+clearlog(){
+rm -rf ${logs}/*.log
+}
+
+diagnosticsRun(){
+clear
+confirmation
+folderInit # we need to do folderInit due to the fact that we skipped the boot sequence so the folder and other variable does not initialize unless we do folderInit
+dependencies
+#clearlog
+#How about we send the full diagnostics? so we see what does the person did wrong?
+clear
+yellow
+echo "================================================="
+green
+echo "UnifyServer Rapid Analysis and Compatibility test"
+yellow
+echo "================================================="
+red
+echo "Recording UnifyServer Behaviour for 10 minutes"
+green
+echo "While waiting for next instructions you can leave this program in the background"
+echo "and get cup of green tea while murmuring about the rain"
+yellow
+echo "================================================="
+
+functionTests(){
+yellow
+echo "=================="
+export NOBOOT="" # we neeed to unset NOBOOT due to the fact NOBOOT parameter was exported globally caused a chaos while testing
+green
+export diagnosticTrigger=1
+echo "Triggering Install"  >> ${logs}/diagnostics.log 2>&1
+date >> ${logs}/diagnostics.log 2>&1
+bash ${0} help all >> ${logs}/diagnostics.log  2>&1
+yellow
+echo "refresh"  >> ${logs}/diagnostics.log 2>&1
+date >> ${logs}/diagnostics.log 2>&1
+bash ${0} refresh yes >> ${logs}/diagnostics.log  2>&1
+yellow
+echo "import" >> ${logs}/diagnostics.log 2>&1
+green
+bash ${0} import 'https://github.com/Questandachievement7Developer/container_importExample' >> ${logs}/diagnostics.log  2>&1
+yellow
+echo "list" >> ${logs}/diagnostics.log 2>&1
+green
+bash ${0} list all >> ${logs}/diagnostics.log  2>&1
+yellow
+echo "refresh" >> ${logs}/diagnostics.log 2>&1
+green
+env SCRIPTCALL=1 bash ${0} reset ContainerImportTestfromGithub  >> ${logs}/diagnostics.log  2>&1
+yellow
+echo "Setup" >> ${logs}/diagnostics.log 2>&1
+green
+recoveryEnvironment >> ${logs}/diagnostics.log  2>&1
+yellow
+echo "remove"
+green
+env SCRIPTCALL=1 bash ${0} remove ContainerImportTestfromGithub  >> ${logs}/diagnostics.log  2>&1
+yellow
+echo "=================="
+}
+sendDiagnostics(){
+    # Send diagnostics timeout is when the diagnostic are taking too long so it will interrupt and send the logs or diagnostic data without waiting for the diagnostic to finish
+if [ $TIMEOUTWAIT == 1 ]; then
+yellow
+echo "${pbadge} [sendDiagnostics()] I have been launched! "
+echo "${pbadge} [sendDiagnostics()] Dont worry we will be done in the next 10 Minutes "
+sleep 100
+echo "${pbadge} [sendDiagnostics()] journalizing it "
+sleep 100
+echo "${pbadge} [sendDiagnostics()] Intresting "
+sleep 100
+echo "${pbadge} [sendDiagnostics()] GNU/Linux are great "
+sleep 100
+echo "${pbadge} [sendDiagnostics()] I see the finish line "
+sleep 100
+echo "${pbadge} [sendDiagnostics()] We are almost done ! "
+sleep 100
+
+#http://morningcoffee.io/killing-a-process-and-all-of-its-descendants.html
+echo "${pbadge} [sendDiagnostics()] 10 Minutes Tracing Done!"
+kill -9 -- -${diagnosticThreadPID}
+kill $(ps -s $diagnosticThreadPID -o pid=)
+else
+echo "Finished!"
+kill -9 -- -${sendDiagnosticsTimeoutThreadPID}
+fi
+echo Compiling Logs and adding headers
+echo "++++++unifySERVER DIAGNOSTIC LOG++++++" > ${origindir}/diagnostic_result.txt
+echo "++++++DO NOT SHARE TO ANYONE IN ORDER TO PRESERVE YOUR PRIVACY TO THE FULLEST++++++" >> ${origindir}/diagnostic_result.txt
+date >> ${origindir}/diagnostic_result.txt
+uname -a >> ${origindir}/diagnostic_result.txt
+echo "++++++++++MountPoint+++++++++++" >> ${origindir}/diagnostic_result.txt
+mount >> ${origindir}/diagnostic_result.txt
+echo "MOUNTPOINTEND+++++++++++++-----------" >> ${origindir}/diagnostic_result.txt
+
+echo "Commmit Version $(git log -1 --format=%cd)" >> ${origindir}/diagnostic_result.txt
+for a in $(ls ${logs}) ; do
+echo "++++++++FILE_${a}++++++++" >> ${origindir}/diagnostic_result.txt
+cat ${a} >> ${origindir}/diagnostic_result.txt
+echo "=======END FILE_${a}=======" >> ${origindir}/diagnostic_result.txt
+done
+cat ${logs}/*.log >> ${origindir}/diagnostic_result.txt
+clear
+green
+echo "Thank you for joining the survey Your contribution will help unifyServer!"
+yellow
+echo "========[Send this link to the developer]========="
+green
+sendLog "${origindir}/diagnostic_result.txt"
+yellow
+echo "=================================================="
+
+}
+#testing through debug mode
+if [ ! -z $@ ]; then
+${1} ${2} ${3} ${4}
+else
+
+sleep 1
+green
+echo "${pbadge} [THREAD] Experiment Started!"
+functionTests >> ${logs}/diagnostics.log 2>&1 & #mutes any error that occours and save for later
+export diagnosticThreadPID=$!
+# Launch sendDiagnostics with TIMEOUTWAIT TO wait functiontests to finish
+export TIMEOUTWAIT=1
+yellow
+echo "${pbadge} handing over to diagnostic timeout timer sendDiagnostics() ..."
+yellow
+sendDiagnostics
+exit
+
+fi
+
+
+}
+
+
+
+
+#Checks if there is a diagnostic mode invoked
+# or what we called is a DGM
+if [ ! -z ${PrimaryParam} ] && [ ${PrimaryParam} == "diagnostic" ]; then
+export NOBOOT=1
+diagnosticsRun
+else
+echo "Pass"
+fi
+
+if [ ! -z ${PrimaryParam} ] && [ ${PrimaryParam} == "debug" ]; then
+export NOBOOT=1
+debugFunct
+else
+echo "Pass"
+fi
+
+
+#fixes on uninitialized Variables
+if [ ! -z ${NOBOOT} ]; then
+folderInit
+fi
+
+
+
 #_________Main_________
 if [ -z ${NOBOOT} ]; then #whether skip checks or not
 #only if it is used for nonmodular purposes
+recoveryEnvironment  >> ${logs}/recoveryEnvironment.log 2>&1 #creating recovery environment
 intro
 yellow
 echo "${pbadge} 📁 [1/8] Checking Folders"
