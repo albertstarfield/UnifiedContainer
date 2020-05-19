@@ -1648,7 +1648,7 @@ if [ "$first" != 1 ];then
       red
       echo "${pbadge} ⚠️ Hazardous environment detected! ⚠️"
       echo "${pbadge} Please insert downloaded rootfs.tar.gz manually! onto the sideloadRootfs folder"
-      if [ -f ${origindir}/sideloadRootfs/rootfs.tar.gz ]; then
+      if [ -f ${origindir}/sideloadRootfs/arch32.tar.gz ]; then
         green
         echo "iSH sideloadRootfs Initiated!"
         yellow
