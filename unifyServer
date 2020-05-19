@@ -1651,15 +1651,22 @@ if [ "$first" != 1 ];then
       if [ -f ${origindir}/sideloadRootfs/rootfs.tar.gz ]; then
         green
         echo "iSH sideloadRootfs Initiated!"
+        yellow
+        echo "please be aware that if you downloaded wrong rootfs or corrupted"
+        echo "your installation will bootloop!"
+        green
         cp ${origindir}/sideloadRootfs/rootfs.tar.gz ${tarball}
       else
       yellow
+      clear
       echo "================================================"
       echo "We will attempt to download automatically"
       echo "However i do recommend you to download manually from this link"
       echo "${downloadcompass}"
-      echo "and then rename it to rootfs.tar.gz and copy to the sideloadRootfs folder through the finder"
+      echo "and copy to the sideloadRootfs folder through the finder"
       echo "================================================"
+      echo The download will start within 60 seconds
+      sleep 60
       mkdir ${origindir}/sideloadRootfs
       echo "${pbadge} ⚠️ Automatically switch to advanced download manager ⚠️"
       yellow
