@@ -1319,7 +1319,7 @@ exit
 folderInit(){
 export origindir=$(pwd)
 export maindir="${initDir}/containersys"
-
+export recoveryEnvironmentDir="${origindir}/managerbackup"
 export presistentStorage="${maindir}/presistent_storage"
 export containersLair="${maindir}/containers"
 export defaultContainer="${containersLair}/default"
@@ -1334,6 +1334,9 @@ export APIHAL=${maindir}/sysIO
 export APIHAL_INPUT=${APIHAL}/input
 export APIHAL_OUTPUT=${APIHAL}/output
 export containerFilesList="${maindir}/containers.txt"
+if [ ! -d ${recoveryEnvironmentDir} ]; then
+mkdir ${recoveryEnvironmentDir}
+fi
 if [ ! -d ${maindir} ]; then
   mkdir ${maindir}
 fi
