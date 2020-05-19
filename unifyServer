@@ -1644,6 +1644,20 @@ if [ "$first" != 1 ];then
     if [ ${iSHenv} == "1" ]; then
       red
       echo "${pbadge} ⚠️ Hazardous environment detected! ⚠️"
+      echo "${pbadge} Please insert downloaded rootfs.tar.gz manually! onto the sideloadRootfs folder"
+      if [ -f ${origindir}/sideloadRootfs/rootfs.tar.gz ]; then
+        green
+        echo "iSH sideloadRootfs Initiated!"
+        cp ${origindir}/sideloadRootfs/rootfs.tar.gz ${tarball}
+      else
+      yellow
+      echo "================================================"
+      echo "We will attempt to download automatically"
+      echo "However i do recommend you to download manually from this link"
+      echo "${downloadcompass}"
+      echo "and then rename it to rootfs.tar.gz and copy to the sideloadRootfs folder through the finder"
+      echo "================================================"
+      mkdir ${origindir}/sideloadRootfs
       echo "${pbadge} ⚠️ Automatically switch to advanced download manager ⚠️"
       yellow
       echo "${pbadge} Increasing download segmentation and unlocking retry limit"
@@ -1656,6 +1670,7 @@ if [ "$first" != 1 ];then
       # time out 1 second with minimum speed of 128k due to indihome super slow speed compensation
       # only one connection allowed to prevent segmentation corruption
       aria2c --max-connection-per-server=1 --lowest-speed-limit=128K --timeout=1 --min-split-size=1148576 --async-dns=false --max-tries=0 ${downloadcompass} -o ${tarball} >> ${logs}/DownloadloadTarballCheck.log 2>&1
+    fi
     fi
 	fi
 	cur=`pwd`
