@@ -1,6 +1,27 @@
 #!/bin/bash
 #!/bin/bash
 echo "Manager Update codename: Tracing the bulk"
+#if some assholes decided to not include which in the rootfs
+if [ ! -f /bin/which ]; then
+
+
+if [ -f /bin/busybox ]; then
+which(){
+busybox which
+}
+fi
+#but what if another asshole doesnt want to include busybox due to business reason?
+
+if [ -f /bin/toybox ]; then
+which(){
+toybox which
+}
+
+fi
+fi
+
+
+
 
 if [ ${diagnosticTrigger} == "1" ] && [ ! -z ${diagnosticTrigger} ]; then
 set -x
