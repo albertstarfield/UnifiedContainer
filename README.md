@@ -27,7 +27,7 @@
 6. CentOS
 ### :gear: NON PTRACE Machines
 1. WSL Distro
-2. ~~iSH ( iOS shell ) ~~( Doesnt work due to the missing instruction set  )
+2. ~~iSH ( iOS shell )~~ ( Doesnt work due to the missing instruction set  )
 3. Darwin x86_64 (macOS) (UNTESTED!)
 
 ### :camera: Tech demo screenshot
