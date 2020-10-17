@@ -278,6 +278,7 @@ containerManagerAdd ${name}
 fi
 
 ImportedContainerPackageManager(){
+APIcall pwmCall_enable_wakelockcall
 echo "${GITSOURCE}" > ${containersLair}/${name}/origin #add the source link first so if the installs fails user can easily reset the container
 echo "${packages}" > ${containersLair}/${name}/rootfs/packages
 export totalpackage=0
@@ -305,6 +306,7 @@ green
 echo "${pbadge} ✔️ Done Installing ${a} "
 done
 
+
 }
 
 ImportedContainerPackageManager
@@ -324,6 +326,7 @@ green
 APIcall systemUI_notifysend "✨Container_${SecondaryParam}_Successfully_Installed✨"
 echo "${GITSOURCE}" > ${containersLair}/${name}/origin
 echo "${pbadge} ✨import done✨"
+APIcall pwmCall_disable_wakelockcall
 exit
 }
 
@@ -702,6 +705,7 @@ echo "  tar -cC '$dir' . | docker load"
 
 
 containerManagerExport(){
+APIcall pwmCall_enable_wakelockcall
   if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
     red
     echo "${pbadge} ❌ Container does not exists please create the container first ❌"
@@ -726,6 +730,7 @@ nano ${containerExport}/${name}/init
 #echo "pacman -Syu --noconfirm ; echo Default setup done" > ${containerExport}/${name}/setup
 green
 echo "${pbadge} ✨export done✨"
+APIcall pwmCall_disable_wakelockcall
 exit
 }
 
@@ -1617,7 +1622,7 @@ ptraceCompatibilityPolice(){
 
 
 bootstrapSetup(){
-
+APIcall pwmCall_enable_wakelockcall
 folder=rootfs
 tarball="bootstrap.tar.gz"
 if [ "$first" != 1 ];then
@@ -2962,6 +2967,7 @@ echo "${pbadge} 😄Yippie yay your installation is successfull😄"
 echo a > success
 echo "${pbadge} Trimming installation"
 rm -rf ${folder}/usr/lib/firmware/*
+APIcall pwmCall_disable_wakelockcall
 else
   red
 echo "============================================================================="
