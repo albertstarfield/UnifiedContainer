@@ -1,5 +1,5 @@
 #!/bin/bash
-#!/bin/bash
+
 echo "Manager Update codename: Tracing the bulk"
 #if some assholes decided to not include which in the rootfs
 if [ ! -f /bin/which ]; then
@@ -1464,14 +1464,14 @@ fi
     export distro="centOSGNU"
     fi
 
-    if [[ $(grep Microsoft /proc/version) ]]; then
+    if [[ $( uname -a | grep Microsoft ) ]]; then
       echo "Bash is running on WSL"
       echo "PTRACE ON WSL 1 IS NOT SUPPORTED"
       export ptracecompat='0'
       export WSLenv="1"
     fi
 
-    if [[ $(grep iSH /proc/version) ]]; then
+    if [[ $( uname -a | grep iSH ) ]]; then
       echo "Bash is running on iSH"
       echo "PTRACE ON iSH IS NOT SUPPORTED"
       export iSHenv="1"
