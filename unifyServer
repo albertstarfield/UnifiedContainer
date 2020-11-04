@@ -1862,8 +1862,6 @@ if [ "\$2" == "/init" ]; then
 echo a > boot
 fi
 
-clear
-echo "${pbadge} Welcome to \${SecondaryParam} Hope you enjoy your stay"
 
 echo EXEC
 if [ -z "\$1" ];then
