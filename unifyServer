@@ -2973,7 +2973,15 @@ else
 echo "============================================================================="
 echo "${pbadge} 🥺THE CONTAINER FAILED DURING INSTALL AND VERIFICATION🥺"
 echo "============================================================================"
-
+errorcount=$(( $errorcount + 1 ))
+if [ $errorcount -gt 3 ]; then
+red
+echo Halt!
+echo "Infinite loop detected"
+echo "Please investigate the operation above!"
+sleep 69696969696
+exit
+fi
 if [ ${DEVELMODE} == "1" ] && [ ! -z ${DEVELMODE} ]; then
   # IF YOU RUN ON SUDO PLEASE MAKE SURE TO USE $ sudo env DEVELMODE=1 ./unifyServer
 echo "${pbadge} Dropping into shell mode"
@@ -3037,6 +3045,7 @@ export svcPID_notifyBusIOThread=$!
 }
 
 defaultContainerSetup(){
+
 if [ ${newInstall} == "0" ] && [ -f ${defaultContainer}/success ]; then
 echo 1 > ${defaultContainer}/success
 fi
@@ -3554,6 +3563,7 @@ echo "${pbadge} 💽 [5/8] Updating Manager"
 fetchUpdateManager >> ${logs}/ManagerUpdate.log 2>&1
 yellow
 echo "${pbadge} 💽 [6/8] Checking Default Container"
+export errorcount=0
 defaultContainerSetup
 yellow
 echo "${pbadge} 💽 [7/8] Cache validation Check"
