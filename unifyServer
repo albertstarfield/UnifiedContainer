@@ -3542,11 +3542,11 @@ fi
 #_________Main_________
 if [ -z ${NOBOOT} ]; then #whether skip checks or not
 #only if it is used for nonmodular purposes
-recoveryEnvironment  >> ${logs}/recoveryEnvironment.log 2>&1 #creating recovery environment
 intro
 yellow
 echo "${pbadge} 📁 [1/8] Checking Folders"
 folderInit
+recoveryEnvironment  >> ${logs}/recoveryEnvironment.log 2>&1 #creating recovery environment
 intro
 yellow
 echo "${pbadge} 🚒 [2/8] Checking and installing dependencies"
