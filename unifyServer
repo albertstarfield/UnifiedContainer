@@ -1,28 +1,79 @@
 #!/bin/bash
 
-echo "Manager Update codename: Tracing the bulk"
+# ------------------[Important NOTE!]-----------------------------
+# ⌛ Note : Tidying up required for the reboot of Unified Container
+# ⌛ TODO : Convert UnifiedContainer from Arch Linux to Alpine for Maximum Compatibility with iOS
+# ⌛ TODO : Design UnifiedContainer To make sure it doesnt require Termux or any Repository for its first run for four architechture x86_64 x86 armv7l arm64
+# ⌛ TODO : Do a paper on this Project, because of this Tidying up the code and trimming the unecessary code is required!!
+# ⌛ TODO : Divide the code section to groups
+# ⌛ TODO : Change the license to GPL V2 for compatibility 
+# Progress State : Proot Impelementation 
+# ----------------------------------------------------------------
+
+
+# Initialization Base Program -------------------------------------------------------------------
+
+
+#----- Colouring and Text Section
+export initDir="$(pwd)"
+red(){
+printf '\e[38;5;210m' > /dev/tty
+}
+yellow(){
+printf '\e[38;5;221m' > /dev/tty
+}
+green(){
+printf '\e[38;5;042m' > /dev/tty
+}
+blue(){
+printf '\e[38;5;039m' > /dev/tty
+}
+gray(){
+printf '\e[38;5;037m' > /dev/tty
+}
+export red='\e[38;5;210m'
+export yellow='\e[38;5;221m'
+export green='\e[38;5;042m'
+export blue='\e[38;5;039m'
+export gray='\e[38;5;037m'
+export pbadge="[Unified Container Manager]:"
+
+intro(){
+if [ ${newInstall} == '1' ] && [ ! -z ${newInstall} ]; then
+  clear
+blue
+echo "==================================================================="
+green
+echo "😊 Warm welcome from QuestandachievementStudio Members 😊"
+echo "🎆✨ Welcome to unifiedContainer Project✨🎆"
+echo "👉 Heavily Inspired by docker, multipass, termuxarch sdrausty, and neoOli bootstrap 👍"
+echo "👉 Code sourced from MFDGaming NeoOli and Stackoverflow 👍"
+blue
+echo "==================================================================="
+sleep 4
+fi
+}
+#-----
+
+#ROM Detection Section----
 #if some assholes decided to not include which in the rootfs
 if [ ! -f /bin/which ]; then
-
-
 if [ -f /bin/busybox ]; then
 which(){
 busybox which
 }
 fi
 #but what if another asshole doesnt want to include busybox due to business reason?
-
 if [ -f /bin/toybox ]; then
 which(){
 toybox which
 }
-
 fi
 fi
+#--------
 
 
-
-
+#-------Program Parameter Check
 if [ ${diagnosticTrigger} == "1" ] && [ ! -z ${diagnosticTrigger} ]; then
 set -x
 export PrimaryParam=""
@@ -49,57 +100,6 @@ export PATH="$PATH:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:
 export PROOT_NO_SECCOMP=1
 export newInstall=0
 
-
-
-
-export initDir="$(pwd)"
-
-red(){
-printf '\e[38;5;210m' > /dev/tty
-}
-
-yellow(){
-printf '\e[38;5;221m' > /dev/tty
-}
-green(){
-printf '\e[38;5;042m' > /dev/tty
-}
-blue(){
-printf '\e[38;5;039m' > /dev/tty
-}
-
-gray(){
-printf '\e[38;5;037m' > /dev/tty
-}
-
-export red='\e[38;5;210m'
-export yellow='\e[38;5;221m'
-export green='\e[38;5;042m'
-export blue='\e[38;5;039m'
-export gray='\e[38;5;037m'
-
-
-export pbadge="[Unified Container Manager]:"
-
-
-intro(){
-
-if [ ${newInstall} == '1' ] && [ ! -z ${newInstall} ]; then
-  clear
-blue
-echo "==================================================================="
-green
-echo "😊 Warm welcome from questandachievement7Developer 😊"
-echo "🎆✨ Welcome to unifiedContainer Project✨🎆"
-echo "👉 Heavily Inspired by docker, multipass, termuxarch sdrausty, and neoOli bootstrap 👍"
-echo "👉 Code sourced from MFDGaming NeoOli and Stackoverflow 👍"
-blue
-echo "==================================================================="
-
-sleep 4
-fi
-}
-
 paramCheck(){
 #echo DEBUG PARAM CHECK ${PrimaryParam} ${SecondaryParam}
 if [ -z ${PrimaryParam} ]; then
@@ -122,7 +122,454 @@ if [ ${SecondaryParam} == "default" ]; then
   echo "${pbadge} Welco.. wait thats illegal! "
   exit
 fi
+}
 
+#Detect current Distro that is likely to be present
+distroDetection(){
+# DISTRO MANAGER DETECTION IS ALSO USED TO DETERMINE WHERE DOES THE SCRIPT RUN and Directory Builder
+export ptracecompat='1' #flag ptrace compatibility based on the distro or kernel that its running
+export iSHenv="0"
+export termuxenv="0"
+export BLINDBOOT="0"
+export linktosymlinkActivated=0
+export arch=$(uname -m)
+if [ ! -z $(which apk) ]; then
+  echo "Alpine Distro"
+  export packmanager=apk
+  export installParameter="add"
+  export distro="alpine"
+fi
+
+if [ ! -z $(which apt) ]; then
+export packmanager="apt"
+export installParameter="install -y"
+export distro="debianGNU"
+fi
+    if [ ! -z $(which pkg) ]; then
+    export packmanager=pkg
+    export installParameter="install -y"
+    export linktosymlinkActivated=1
+    echo Termux Detected
+    export distro="termux"
+    export termuxenv="1"
+
+    fi
+
+
+    if [ ! -z $(which yum) ]; then
+    export packmanager="yum"
+    export installParameter="install -y"
+    export distro="centOSGNU"
+    fi
+
+    if [[ $( uname -a | grep Microsoft ) ]]; then
+      echo "Bash is running on WSL"
+      echo "PTRACE ON WSL 1 IS NOT SUPPORTED"
+      export ptracecompat='0'
+      export WSLenv="1"
+    fi
+
+    if [[ $( uname -a | grep iSH ) ]]; then
+      echo "Bash is running on iSH"
+      echo "PTRACE ON iSH IS NOT SUPPORTED"
+      export iSHenv="1"
+      export BLINDBOOT="1"
+      export ptracecompat='0'
+      export WSLenv="0"
+    fi
+
+    if [ ! -z $(which pacman) ]; then
+    export packmanager="pacman"
+    export installParameter="-Sy --noconfirm"
+    export distro="archlinux"
+    echo Redownloading Databases
+    pacman -Syy
+    fi
+
+    if [ ! -z $(which easy_install) ]; then
+    export pyPacman="easy_install"
+    export pyInstallParam=""
+    fi
+
+    if [ ! -z $(which add-apt-repository) ]; then
+    export packmanager="apt-get"
+    export installParameter="install -y"
+    fi
+
+    if [ ! -z $(which pip) ]; then
+    export pyPacman="pip"
+    export pyInstallParam="install"
+    fi
+
+
+}
+
+# Building Directory for the UnifiedContainer
+folderInit(){
+export origindir=$(pwd)
+export maindir="${initDir}/containersys"
+export rootfsprootRepoCache="${maindir}/rootfsprootRepoCache"
+export recoveryEnvironmentDir="${origindir}/managerbackup"
+export presistentStorage="${maindir}/presistent_storage"
+export containersLair="${maindir}/containers"
+export defaultContainer="${containersLair}/default"
+export unasignedContainer="${containersLair}/unasigned"
+export loader="${rootfsprootRepoCache}/proot" #loader moved into rootfsprootRepoCache
+export TMPFolder="${maindir}/tmp"
+export apkTMPFolder="${TMPFolder}/pacmanCache" #basically will accelerate pacman Caches
+export unasignedContainerTMP="${TMPFolder}/unasigned"
+export logs="${maindir}/logs"
+export containerExport=${maindir}/containerExport
+export APIHAL=${maindir}/sysIO
+export APIHAL_INPUT=${APIHAL}/input
+export APIHAL_OUTPUT=${APIHAL}/output
+export containerFilesList="${maindir}/containers.txt"
+if [ ! -d ${recoveryEnvironmentDir} ]; then
+mkdir ${recoveryEnvironmentDir}
+fi
+
+
+if [ ! -d ${rootfsprootRepoCache} ]; then
+  mkdir ${rootfsprootRepoCache}
+  cp rootfsprootRepoCache ${rootfsprootRepoCache}
+  backdir=$(pwd)
+  cd ${rootfsprootRepoCache}
+  tar -xvf rootfsprootRepoCache
+  cd ${backdir}
+fi
+
+
+if [ ! -d ${maindir} ]; then
+  mkdir ${maindir}
+fi
+
+if [ ! -d ${APIHAL} ]; then
+  mkdir ${APIHAL}
+fi
+
+if [ ! -d ${APIHAL_INPUT} ]; then
+  mkdir ${APIHAL_INPUT}
+fi
+
+if [ ! -d ${APIHAL_OUTPUT} ]; then
+  mkdir ${APIHAL_OUTPUT}
+fi
+
+if [ ! -d ${presistentStorage} ]; then
+  mkdir ${presistentStorage}
+fi
+
+if [ ! -d ${containerExport} ]; then
+  mkdir ${containerExport}
+fi
+
+if [ ! -d ${TMPFolder} ]; then
+  mkdir ${TMPFolder}
+fi
+
+if [ ! -d ${apkTMPFolder} ]; then
+  mkdir ${apkTMPFolder}
+fi
+
+if [ ! -d ${logs} ]; then
+  mkdir ${logs}
+fi
+
+if [ ! -d ${containersLair} ]; then
+  mkdir ${containersLair}
+fi
+
+if [ ! -d ${defaultContainer} ]; then
+  mkdir ${defaultContainer}
+  export newInstall=1
+else
+  export newInstall=0
+fi
+
+if [ ! -d ${loader} ]; then
+  mkdir ${loader}
+fi
+
+}
+#------
+
+
+#Environment Compatible API Calls detection
+
+APIcall(){
+  dummyResponse(){
+  echo "${pbadge} Current version of API Abstraction Layer is unsupported for your current environment"
+  }
+  #This function is basically like a API abstraction layer
+  #red
+  #echo "${pbadge} Function is not implemented"
+  #echo '[DEBUG] APIcall() function only supported for termux '
+  #yellow
+  #echo "${pbadge} Detecting available API"
+  #echo '[WARN] Wakelock, Notification, Humain interface input, Sensors may not work on current version'#
+
+  #____________________________
+  #Hardware Acceleration Setup
+  #OpenCL
+  opencl_forward(){
+    echo "${pbadge} Function is not yet implemented"
+  }
+  #__________________________
+  if [ ${distro} == "termux" ]; then
+    #systemUI calls
+    #echo "Using Termux API"
+    systemUI_notifysend(){ termux-notification "${1}" "${2}" "${3}" "${4}" ;}
+    systemUI_directNotification(){ termux-toast "${1}" "${2}" "${3}" "${4}" ;}
+    systemUI_nativeDownload(){ termux-download "${1}" "${2}" "${3}" "${4}" ;}
+    systemUI_clipboard_get(){ termux-clipboard-get; }
+    systemUI_clipboard_set(){ termux-clipboard-set; }
+    systemUI_authFingerprint(){ termux-fingerprint; }
+    #Power management calls
+    pwmCall_batterystat(){ termux-battery-status; }
+    pwmCall_enable_wakelockcall(){ termux-wake-lock; }
+    pwmCall_disable_wakelockcall(){ termux-wake-unlock; }
+    pwmCall_brightnessAdjust(){ termux-brightness; }
+    #Sensors call
+    sense_Retrievesensor(){ termux-sensor; }
+    #radiocall
+    tele_sms_read(){ termux-sms-list; }
+    tele_sms_send(){ termux-sms-send; }
+    tele_voice_call(){ termux-telephony-call ${1} ${2} ${3} ;}
+    #hardware access
+    hw_usb(){ termux-usb ${1} ${2} ${3} ;}
+  fi
+  if [ ${distro} == "debianGNU" ] || [ ${distro} == "iSH" ] || [ ${distro} == "debian" ] || [ ${distro} == "archlinux" ]; then
+    #systemUI calls
+    #echo "Using Generic GNU/Linux calls"
+    systemUI_notifysend(){ echo [INFO] ${pbadge}; }
+    if [ ! -z $(which xmessage) ]; then
+    systemUI_directNotification(){ xmessage; }
+  else
+    systemUI_directNotification(){ echo [INFO] ${pbadge}; }
+  fi
+  if [ ${WSLenv} == "1" ] && [ ! -z ${WSLenv} ]; then
+    #echo "Using WSL specific calls"
+  systemUI_directNotification(){ powershell.exe New-BurntToastNotification -Text "${1}" "${2}" "${3}" "${4}" ; }
+  systemUI_notifysend(){ powershell.exe New-BurntToastNotification -Text "${1}" "${2}" "${3}" "${4}"; }
+fi
+    alias systemUI_sensorpoll="dummyResponse"
+    if [ ! -z $(which aria2c) ]; then
+    systemUI_nativeDownload(){ aria2c; }
+  else
+    systemUI_nativeDownload(){ wget; }
+  fi
+    if [ ! -z $(which xclip) ]; then
+    systemUI_clipboard_get(){ xclip; }
+    systemUI_clipboard_set(){ xclip -selection c; }
+  else
+    alias systemUI_clipboard_get="dummyResponse"
+    alias systemUI_clipboard_set="dummyResponse"
+  fi
+    alias systemUI_authFingerprint="dummyResponse"
+    #Power management calls
+    if [ ! -d /proc/acpi ]; then
+    alias pwmCall_batterystat="termux-battery-status"
+    alias pwmCall_enable_wakelockcall="termux-wake-lock"
+    alias pwmCall_disable_wakelockcall="termux-wake-unlock"
+    alias pwmCall_brightnessAdjust="termux-brightness"
+  else
+    alias pwmCall_batterystat="dummyResponse"
+    alias pwmCall_enable_wakelockcall="dummyResponse"
+    alias pwmCall_disable_wakelockcall="dummyResponse"
+    alias pwmCall_brightnessAdjust="dummyResponse"
+  fi
+    #Sensors call
+    export sense_Retrievesensor="dummyResponse"
+    #radiocall
+    alias tele_sms_read="dummyResponse"
+    alias tele_sms_send="dummyResponse"
+    alias tele_voice_call="dummyResponse"
+    #hardware access
+    hw_usb(){ lsusb ; }
+  fi
+  # use distroDetection to determine its API usage
+  # API that is need to be implemented are but not limited
+  # Wakelock, Notification, Humain interface input, Sensors
+
+#125
+#https://unix.stackexchange.com/questions/1496/why-doesnt-my-bash-script-recognize-aliases
+#First of all, as ddeimeke said, aliases by default are not expanded in non-interactive shells.
+#Second, .bashrc is not read by non-interactive shells unless you set the BASH_ENV environment variable.
+#But most importantly: don't do that! Please? One day you will move that script somewhere where the necessary aliases are not set and it will break again.
+#Instead set and use environment variables as shortcuts in your script:
+  "${1}" "${2}" "${3}" "${4}" &
+}
+
+
+#----Auto Debugging Functions
+#https://stackoverflow.com/questions/4013947/how-to-use-pastebin-from-shell-script
+sendLog() {
+  if [[ $1 ]]; then
+    curl -F 'sprunge=<-' "http://sprunge.us" <"$1"
+  else
+    curl -F 'sprunge=<-' "http://sprunge.us"
+  fi
+}
+
+clearlog(){
+rm -rf ${logs}/*.log
+}
+
+diagnosticsRun(){
+clear
+confirmation
+folderInit # we need to do folderInit due to the fact that we skipped the boot sequence so the folder and other variable does not initialize unless we do folderInit
+dependencies
+#clearlog
+#How about we send the full diagnostics? so we see what does the person did wrong?
+clear
+yellow
+echo "================================================="
+green
+echo "UnifyServer Rapid Analysis and Compatibility test"
+yellow
+echo "================================================="
+red
+echo "Recording UnifyServer Behaviour for 10 minutes"
+green
+echo "While waiting for next instructions you can leave this program in the background"
+echo "and get cup of green tea while murmuring about the rain"
+yellow
+echo "================================================="
+
+functionTests(){
+yellow
+echo "=================="
+export NOBOOT="" # we neeed to unset NOBOOT due to the fact NOBOOT parameter was exported globally caused a chaos while testing
+green
+export diagnosticTrigger=1
+echo "Triggering Install"  >> ${logs}/diagnostics.log 2>&1
+date >> ${logs}/diagnostics.log 2>&1
+bash ${0} help all >> ${logs}/diagnostics.log  2>&1
+yellow
+echo "refresh"  >> ${logs}/diagnostics.log 2>&1
+date >> ${logs}/diagnostics.log 2>&1
+bash ${0} refresh yes >> ${logs}/diagnostics.log  2>&1
+yellow
+echo "import" >> ${logs}/diagnostics.log 2>&1
+green
+bash ${0} import 'https://github.com/Questandachievement7Developer/container_importExample' >> ${logs}/diagnostics.log  2>&1
+yellow
+echo "list" >> ${logs}/diagnostics.log 2>&1
+green
+bash ${0} list all >> ${logs}/diagnostics.log  2>&1
+yellow
+echo "refresh" >> ${logs}/diagnostics.log 2>&1
+green
+env SCRIPTCALL=1 bash ${0} reset ContainerImportTestfromGithub  >> ${logs}/diagnostics.log  2>&1
+yellow
+echo "Setup" >> ${logs}/diagnostics.log 2>&1
+green
+recoveryEnvironment >> ${logs}/diagnostics.log  2>&1
+yellow
+echo "remove"
+green
+env SCRIPTCALL=1 bash ${0} remove ContainerImportTestfromGithub  >> ${logs}/diagnostics.log  2>&1
+yellow
+echo "=================="
+}
+sendDiagnostics(){
+    # Send diagnostics timeout is when the diagnostic are taking too long so it will interrupt and send the logs or diagnostic data without waiting for the diagnostic to finish
+if [ $TIMEOUTWAIT == 1 ]; then
+yellow
+echo "${pbadge} [sendDiagnostics()] I have been launched! "
+echo "${pbadge} [sendDiagnostics()] Dont worry we will be done in the next 10 Minutes "
+sleep 100
+echo "${pbadge} [sendDiagnostics()] journalizing it "
+sleep 100
+echo "${pbadge} [sendDiagnostics()] Intresting "
+sleep 100
+echo "${pbadge} [sendDiagnostics()] GNU/Linux are great "
+sleep 100
+echo "${pbadge} [sendDiagnostics()] I see the finish line "
+sleep 100
+echo "${pbadge} [sendDiagnostics()] We are almost done ! "
+sleep 100
+
+#http://morningcoffee.io/killing-a-process-and-all-of-its-descendants.html
+echo "${pbadge} [sendDiagnostics()] 10 Minutes Tracing Done!"
+kill -9 -- -${diagnosticThreadPID}
+kill $(ps -s $diagnosticThreadPID -o pid=)
+else
+echo "Finished!"
+kill -9 -- -${sendDiagnosticsTimeoutThreadPID}
+fi
+echo Compiling Logs and adding headers
+echo "++++++unifySERVER DIAGNOSTIC LOG++++++" > ${origindir}/diagnostic_result.txt
+echo "++++++DO NOT SHARE TO ANYONE IN ORDER TO PRESERVE YOUR PRIVACY TO THE FULLEST++++++" >> ${origindir}/diagnostic_result.txt
+date >> ${origindir}/diagnostic_result.txt
+uname -a >> ${origindir}/diagnostic_result.txt
+echo "++++++++++MountPoint+++++++++++" >> ${origindir}/diagnostic_result.txt
+mount >> ${origindir}/diagnostic_result.txt
+echo "MOUNTPOINTEND+++++++++++++-----------" >> ${origindir}/diagnostic_result.txt
+
+echo "Commmit Version $(git log -1 --format=%cd)" >> ${origindir}/diagnostic_result.txt
+for a in $(ls ${logs}) ; do
+echo "++++++++FILE_${a}++++++++" >> ${origindir}/diagnostic_result.txt
+cat ${a} >> ${origindir}/diagnostic_result.txt
+echo "=======END FILE_${a}=======" >> ${origindir}/diagnostic_result.txt
+done
+cat ${logs}/*.log >> ${origindir}/diagnostic_result.txt
+clear
+green
+echo "Thank you for joining the survey Your contribution will help unifyServer!"
+yellow
+echo "========[Send this link to the developer]========="
+green
+sendLog "${origindir}/diagnostic_result.txt"
+yellow
+echo "=================================================="
+
+}
+#testing through debug mode
+if [ ! -z $@ ]; then
+${1} ${2} ${3} ${4}
+else
+
+sleep 1
+green
+echo "${pbadge} [THREAD] Experiment Started!"
+functionTests >> ${logs}/diagnostics.log 2>&1 & #mutes any error that occours and save for later
+export diagnosticThreadPID=$!
+# Launch sendDiagnostics with TIMEOUTWAIT TO wait functiontests to finish
+export TIMEOUTWAIT=1
+yellow
+echo "${pbadge} handing over to diagnostic timeout timer sendDiagnostics() ..."
+yellow
+sendDiagnostics
+exit
+
+fi
+
+
+}
+#---------------------
+
+
+
+#TUI USER DISPLAY Section
+debugFunct(){
+sleep 4
+clear
+echo "================================================================="
+red
+echo " Do it at your own risk! You are on your own"
+echo " Please refer to the code when calling a function "
+echo "${pbadge} DEBUG MODE !"
+echo
+green
+console(){
+printf "\n unifyManager dbg console > "
+read a
+${a}
+console
+}
+console
 }
 
 
@@ -148,109 +595,207 @@ confirmation(){
 fi
 }
 
-nuke(){
-  if [ -z ${removalretry}]; then
-confirmation
-fi
-red
-APIcall systemUI_notifysend "💣_Your_instlalation_is_being_nuked_💣"
-echo "${pbadge} 💣 Nuking the installation 💣"
-${userspacebackend} ${symlinkfix} rm -rf ${maindir}
-if [ -d "${maindir}" ]; then
-  red
-  echo "${pbadge} ❌ Container Nuking failure Retrying! ❌"
-  export removalretry=1
-  nuke
-fi
-green
-echo "${pbadge} ✔️  Nuking complete ✔️ "
+help_unifyServer(){
+yellow
+echo "${pbadge} Here are the commands"
+echo "To launch container"
+echo "${0} launch <containerName>"
+echo "To Launch container in foreground"
+echo "${0} launchfg <containerName>"
+echo .
+echo "To Stop container"
+echo "${0} stop <containerName>"
+echo .
+echo "To Read Container Log"
+echo "${0} logs <containerName>"
+echo .
+echo "To Grant local storage for the container"
+echo "${0} exposeStorage <containerName>"
+echo .
+echo "To isolate local storage from the container"
+echo "${0} deexposeStorage <containerName>"
+echo .
+echo "To Grant system Library for the container"
+echo "${0} exposeSystemLibs <containerName>"
+echo .
+echo "To isolate system Library from the container"
+echo "${0} deexposeSystemLibs <containerName>"
+echo .
+echo "Export Container Configuration "
+echo "${0} exportCont <containerName>"
+echo .
+echo "reset container to default configuration"
+echo "${0} reset <containerName>"
+echo .
+echo "List all the container and its status"
+echo "${0} list All"
+echo .
+echo "reset Everything"
+echo "DO THIS ONLY WHEN YOU HAVE A PROBLEM LIKE CORRUPTED INSTALLATION"
+echo "${0} nuke yes"
+echo .
+echo "refresh main container"
+echo "refresh main container to upgrade new bootloader version or fix unpredicter errors"
+echo "${0} refresh yes"
+echo .
+echo "install program"
+echo "This allows the unifiedContainer Technology to be installed and called easily "
+echo "When program is installed it can be called \$bay param param"
+echo "${0} install yes"
+echo .
+echo "to enter the container Shell"
+echo "${0} shell <containerName>"
+echo .
+echo "to import container from the git server "
+echo "${0} import <git repo link>"
+echo .
+echo "Fix container installation failures "
+echo "${0} fix <containerName>"
+echo .
+echo "to update the container that imported from the git server"
+echo "${0} update <containerName>"
+echo .
+echo "to export File or directory from host "
+echo "${0} exportFile <containerName> <Source dir or File container> <Target dir on Host>"
+echo .
+echo "upgrade Container to newer version"
+echo "${0} upgrade <containerName>"
+echo .
+echo "To execute a command on a container"
+echo "${0} exec <containerName> <command>"
+echo .
+echo "To add container"
+echo "${0} add <containerName>"
+echo .
+echo "To remove Container"
+echo "${0} remove <containerName>"
+echo .
+echo "To edit exec Routines container"
+echo "${0} edit_routines <containerName>"
 exit
 }
 
-launchcontainerSvcFG(){
-  if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
-    red
-    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
-    exit
+paramintrepreter(){
+case ${PrimaryParam} in
+  debug)
+    debugFunct ;;
+  importFile)
+    sysFileExchangeImport ;;
+  exportFile)
+    sysFileExchangeExport ;;
+  launch)
+    launchcontainerSvc ;;
+  install)
+    linkManagerPath ;;
+  refresh)
+    upgradeMainContainer ;;
+  logs)
+    containerManagerLogs ;;
+  launchfg)
+    launchcontainerSvcFG ;;
+  import)
+    containerManagerImport ;;
+  exportCont)
+    containerManagerExport ;;
+  exposeStorage)
+    containerManagerExposeStorage ;;
+  deexposeStorage)
+    containerManagerDeExposeStorage ;;
+  exposeSystemLibs)
+    containerManagerExposeSystemLibrary ;;
+  deexposeSystemLibs)
+    containerManagerDeExposeSystemLibrary ;;
+  reset)
+    containerManagerReset ;;
+  list)
+    containerManagerList ;;
+  stop)
+      launchcontainerKill ;;
+  nuke)
+    nuke ;;
+  shell)
+    launchcontainerSHELL ;;
+  exec)
+    executeContainerCMD ;;
+  add)
+    containerManagerAdd ;;
+  upgrade)
+    containerManagerUpgrade ;;
+  update)
+    containerManagerUpdate ;;
+  fix)
+    containerManagerUpdate ;;
+  remove)
+    containerManagerrm ;;
+  edit_routines)
+    editroutinesContainer ;;
+  *)
+    menuUI ;;
+esac
+}
+# if the bash is recognized this one rather the real one
+# then it have a big problem
+
+# bash does not recognize this function
+
+menuUI(){
+  HEIGHT=15
+  WIDTH=80
+  CHOICE_HEIGHT=18
+  BACKTITLE="unifyServer"
+  TITLE="unifyServer Menu"
+  OPTIONS=(
+  "launch" "Launch a container as a daemon"
+  "launchfg" "Launch a container in foreground"
+  "stop" "Stop a container daemon"
+  "add" "Add a container"
+  "remove" "remove a container"
+  "reset" "reset a container"
+  "fix" "Fix a container (only for Remote imported container)"
+  "list all" "List and the status of contaieners"
+  "shell" "Enters the container shell"
+  "exportCont" "export container configuration into containersys/ExportedContainer"
+  "nuke yes" "Reset the whole installation"
+  "exitUI" "exits the UI manager")
+
+  mission=$(dialog --clear \
+                  --backtitle "$BACKTITLE" \
+                  --title "Select Action" \
+                  --menu "$MENU" \
+                  $HEIGHT $WIDTH $CHOICE_HEIGHT \
+                  "${OPTIONS[@]}" \
+                  2>&1 >/dev/tty)
+
+echo "if you are stuck do ctrl+c it wont damage anything"
+  commandExecutor(){
+    if [ ! -z $2 ]; then
+    secondParam=${1}
   fi
-  cd "${containersLair}/${SecondaryParam}"
-  if [ ! -f svcID ]; then
-  green
-  echo "⏳ Launching container ${SecondaryParam}"
-  bash start-bootstrap.sh bash /init
-else
-  red
-  echo "${pbadge} ❌ Container currently is running if you believe that the container is not running ❌"
-  echo "${0} stop ${SecondaryParam}"
-fi
-  exit
+    if [ -z $2 ]; then
+      secondParam=$(dialog --title "Insert the second parameter" \
+      --backtitle "$BACKTITLE" \
+      --inputbox "Enter the second parameter" 8 60 )
+    fi
+    echo Processing ${1}
+    ${1} ${secondParam} ${3} ${4} ${5}
+  }
+commandExecutor "${mission}"
+exit
 }
 
-launchcontainerSvc(){
-  if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
-    red
-    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
-    exit
-  fi
-  cd "${containersLair}/${SecondaryParam}"
-  green
-  echo "⏳ Launching container ${SecondaryParam}"
-  bash start-bootstrap.sh bash /init > "${logs}/containers_${SecondaryParam}.log" 2>&1 &
-  echo $! > svcID
-  cat "${logs}/containers_${SecondaryParam}.log"
-  APIcall systemUI_notifysend "Container_${SecondaryParam}_Successfully_Launched"
+
+exitUI(){
   exit
 }
+#-------------------------
 
-launchcontainerKill(){
-  if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
-    red
-    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
-    exit
-  fi
-  yellow
-  echo "${pbadge} 🛑 Stopping Container"
-  kill -9 $(cat ${containersLair}/${SecondaryParam}/svcID)
-  green
-  APIcall systemUI_notifysend "Container_${SecondaryParam}_Successfully_Stopped"
-  echo "${pbadge} ✔️ Container Stopped"
-  exit
-}
 
-launchcontainerSHELL(){
-  if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
-    red
-    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
-    exit
-  fi
-  cd "${containersLair}/${SecondaryParam}"
-  echo Launching container ${SecondaryParam}
-  green
-  echo "${pbadge} 🌟 Have fun 🌟"
-  #bash start-bootstrap.sh screenfetch
-  bash start-bootstrap.sh "fish --login"
-  exit
-}
 
-executeContainerCMD(){
-  if [ ! -z $@ ] ; then
-    SecondaryParam=${1}
-    TertiaryParam=${2}
-  fi
-  if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
-    red
-    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
-    exit
-  fi
-  cd "${containersLair}/${SecondaryParam}"
-  yellow
-  echo "${pbadge} 🏃‍ Executing ${TertiaryParam} on ${SecondaryParam}"
-  bash start-bootstrap.sh "${TertiaryParam}"
-  if [ -z $@ ] ; then
-  exit
-fi
-}
+#----------------------------------------------------------------- Program Initialization END
 
+#----------- Container Management
+# for Adding Container, Exporting, Deleting, or Full RESET of the Unified Container
+#Import Container from git server
 containerManagerImport(){
   if [ ! -z $@ ] ; then
     SecondaryParam=${1}
@@ -330,380 +875,7 @@ APIcall pwmCall_disable_wakelockcall
 exit
 }
 
-containerManagerPullDockerImage(){ #HELP Pull an image from Docker Hub:\nBOCKER pull <name> <tag>
-######################################## TO BE IMPLEMENTED #########################################
-mobyfrozenImagePull(){
-set -eo pipefail
-# hello-world                      latest              ef872312fe1b        3 months ago        910 B
-# hello-world                      latest              ef872312fe1bbc5e05aae626791a47ee9b032efa8f3bda39cc0be7b56bfe59b9   3 months ago        910 B
-
-# debian                           latest              f6fab3b798be        10 weeks ago        85.1 MB
-# debian                           latest              f6fab3b798be3174f45aa1eb731f8182705555f89c9026d8c1ef230cbf8301dd   10 weeks ago        85.1 MB
-
-# check if essential commands are in our PATH
-for cmd in curl jq go; do
-	if ! command -v $cmd &> /dev/null; then
-		echo >&2 "error: \"$cmd\" not found!"
-		exit 1
-	fi
-done
-
-usage() {
-	echo "usage: $0 dir image[:tag][@digest] ..."
-	echo "       $0 /tmp/old-hello-world hello-world:latest@sha256:8be990ef2aeb16dbcb9271ddfe2610fa6658d13f6dfb8bc72074cc1ca36966a7"
-	[ -z "$1" ] || exit "$1"
-}
-
-dir="$1" # dir for building tar in
-shift || usage 1 >&2
-
-[ $# -gt 0 -a "$dir" ] || usage 2 >&2
-mkdir -p "$dir"
-
-# hacky workarounds for Bash 3 support (no associative arrays)
-images=()
-rm -f "$dir"/tags-*.tmp
-manifestJsonEntries=()
-doNotGenerateManifestJson=
-# repositories[busybox]='"latest": "...", "ubuntu-14.04": "..."'
-
-# bash v4 on Windows CI requires CRLF separator
-newlineIFS=$'\n'
-if [ "$(go env GOHOSTOS)" = 'windows' ]; then
-	major=$(echo ${BASH_VERSION%%[^0.9]} | cut -d. -f1)
-	if [ "$major" -ge 4 ]; then
-		newlineIFS=$'\r\n'
-	fi
-fi
-
-registryBase='https://registry-1.docker.io'
-authBase='https://auth.docker.io'
-authService='registry.docker.io'
-
-# https://github.com/moby/moby/issues/33700
-fetch_blob() {
-	local token="$1"
-	shift
-	local image="$1"
-	shift
-	local digest="$1"
-	shift
-	local targetFile="$1"
-	shift
-	local curlArgs=("$@")
-
-	local curlHeaders="$(
-		curl -S "${curlArgs[@]}" \
-			-H "Authorization: Bearer $token" \
-			"$registryBase/v2/$image/blobs/$digest" \
-			-o "$targetFile" \
-			-D-
-	)"
-	curlHeaders="$(echo "$curlHeaders" | tr -d '\r')"
-	if grep -qE "^HTTP/[0-9].[0-9] 3" <<< "$curlHeaders"; then
-		rm -f "$targetFile"
-
-		local blobRedirect="$(echo "$curlHeaders" | awk -F ': ' 'tolower($1) == "location" { print $2; exit }')"
-		if [ -z "$blobRedirect" ]; then
-			echo >&2 "error: failed fetching '$image' blob '$digest'"
-			echo "$curlHeaders" | head -1 >&2
-			return 1
-		fi
-
-		curl -fSL "${curlArgs[@]}" \
-			"$blobRedirect" \
-			-o "$targetFile"
-	fi
-}
-
-# handle 'application/vnd.docker.distribution.manifest.v2+json' manifest
-handle_single_manifest_v2() {
-	local manifestJson="$1"
-	shift
-
-	local configDigest="$(echo "$manifestJson" | jq --raw-output '.config.digest')"
-	local imageId="${configDigest#*:}" # strip off "sha256:"
-
-	local configFile="$imageId.json"
-	fetch_blob "$token" "$image" "$configDigest" "$dir/$configFile" -s
-
-	local layersFs="$(echo "$manifestJson" | jq --raw-output --compact-output '.layers[]')"
-	local IFS="$newlineIFS"
-	local layers=($layersFs)
-	unset IFS
-
-	echo "Downloading '$imageIdentifier' (${#layers[@]} layers)..."
-	local layerId=
-	local layerFiles=()
-	for i in "${!layers[@]}"; do
-		local layerMeta="${layers[$i]}"
-
-		local layerMediaType="$(echo "$layerMeta" | jq --raw-output '.mediaType')"
-		local layerDigest="$(echo "$layerMeta" | jq --raw-output '.digest')"
-
-		# save the previous layer's ID
-		local parentId="$layerId"
-		# create a new fake layer ID based on this layer's digest and the previous layer's fake ID
-		layerId="$(echo "$parentId"$'\n'"$layerDigest" | sha256sum | cut -d' ' -f1)"
-		# this accounts for the possibility that an image contains the same layer twice (and thus has a duplicate digest value)
-
-		mkdir -p "$dir/$layerId"
-		echo '1.0' > "$dir/$layerId/VERSION"
-
-		if [ ! -s "$dir/$layerId/json" ]; then
-			local parentJson="$(printf ', parent: "%s"' "$parentId")"
-			local addJson="$(printf '{ id: "%s"%s }' "$layerId" "${parentId:+$parentJson}")"
-			# this starter JSON is taken directly from Docker's own "docker save" output for unimportant layers
-			jq "$addJson + ." > "$dir/$layerId/json" <<- 'EOJSON'
-				{
-					"created": "0001-01-01T00:00:00Z",
-					"container_config": {
-						"Hostname": "",
-						"Domainname": "",
-						"User": "",
-						"AttachStdin": false,
-						"AttachStdout": false,
-						"AttachStderr": false,
-						"Tty": false,
-						"OpenStdin": false,
-						"StdinOnce": false,
-						"Env": null,
-						"Cmd": null,
-						"Image": "",
-						"Volumes": null,
-						"WorkingDir": "",
-						"Entrypoint": null,
-						"OnBuild": null,
-						"Labels": null
-					}
-				}
-			EOJSON
-		fi
-
-		case "$layerMediaType" in
-			application/vnd.docker.image.rootfs.diff.tar.gzip)
-				local layerTar="$layerId/layer.tar"
-				layerFiles=("${layerFiles[@]}" "$layerTar")
-				# TODO figure out why "-C -" doesn't work here
-				# "curl: (33) HTTP server doesn't seem to support byte ranges. Cannot resume."
-				# "HTTP/1.1 416 Requested Range Not Satisfiable"
-				if [ -f "$dir/$layerTar" ]; then
-					# TODO hackpatch for no -C support :'(
-					echo "skipping existing ${layerId:0:12}"
-					continue
-				fi
-				local token="$(curl -fsSL "$authBase/token?service=$authService&scope=repository:$image:pull" | jq --raw-output '.token')"
-				fetch_blob "$token" "$image" "$layerDigest" "$dir/$layerTar" --progress
-				;;
-
-			*)
-				echo >&2 "error: unknown layer mediaType ($imageIdentifier, $layerDigest): '$layerMediaType'"
-				exit 1
-				;;
-		esac
-	done
-
-	# change "$imageId" to be the ID of the last layer we added (needed for old-style "repositories" file which is created later -- specifically for older Docker daemons)
-	imageId="$layerId"
-
-	# munge the top layer image manifest to have the appropriate image configuration for older daemons
-	local imageOldConfig="$(jq --raw-output --compact-output '{ id: .id } + if .parent then { parent: .parent } else {} end' "$dir/$imageId/json")"
-	jq --raw-output "$imageOldConfig + del(.history, .rootfs)" "$dir/$configFile" > "$dir/$imageId/json"
-
-	local manifestJsonEntry="$(
-		echo '{}' | jq --raw-output '. + {
-			Config: "'"$configFile"'",
-			RepoTags: ["'"${image#library\/}:$tag"'"],
-			Layers: '"$(echo '[]' | jq --raw-output ".$(for layerFile in "${layerFiles[@]}"; do echo " + [ \"$layerFile\" ]"; done)")"'
-		}'
-	)"
-	manifestJsonEntries=("${manifestJsonEntries[@]}" "$manifestJsonEntry")
-}
-
-while [ $# -gt 0 ]; do
-	imageTag="$1"
-	shift
-	image="${imageTag%%[:@]*}"
-	imageTag="${imageTag#*:}"
-	digest="${imageTag##*@}"
-	tag="${imageTag%%@*}"
-
-	# add prefix library if passed official image
-	if [[ "$image" != *"/"* ]]; then
-		image="library/$image"
-	fi
-
-	imageFile="${image//\//_}" # "/" can't be in filenames :)
-
-	token="$(curl -fsSL "$authBase/token?service=$authService&scope=repository:$image:pull" | jq --raw-output '.token')"
-
-	manifestJson="$(
-		curl -fsSL \
-			-H "Authorization: Bearer $token" \
-			-H 'Accept: application/vnd.docker.distribution.manifest.v2+json' \
-			-H 'Accept: application/vnd.docker.distribution.manifest.list.v2+json' \
-			-H 'Accept: application/vnd.docker.distribution.manifest.v1+json' \
-			"$registryBase/v2/$image/manifests/$digest"
-	)"
-	if [ "${manifestJson:0:1}" != '{' ]; then
-		echo >&2 "error: /v2/$image/manifests/$digest returned something unexpected:"
-		echo >&2 "  $manifestJson"
-		exit 1
-	fi
-
-	imageIdentifier="$image:$tag@$digest"
-
-	schemaVersion="$(echo "$manifestJson" | jq --raw-output '.schemaVersion')"
-	case "$schemaVersion" in
-		2)
-			mediaType="$(echo "$manifestJson" | jq --raw-output '.mediaType')"
-
-			case "$mediaType" in
-				application/vnd.docker.distribution.manifest.v2+json)
-					handle_single_manifest_v2 "$manifestJson"
-					;;
-				application/vnd.docker.distribution.manifest.list.v2+json)
-					layersFs="$(echo "$manifestJson" | jq --raw-output --compact-output '.manifests[]')"
-					IFS="$newlineIFS"
-					layers=($layersFs)
-					unset IFS
-
-					found=""
-					# parse first level multi-arch manifest
-					for i in "${!layers[@]}"; do
-						layerMeta="${layers[$i]}"
-						maniArch="$(echo "$layerMeta" | jq --raw-output '.platform.architecture')"
-						if [ "$maniArch" = "$(go env GOARCH)" ]; then
-							digest="$(echo "$layerMeta" | jq --raw-output '.digest')"
-							# get second level single manifest
-							submanifestJson="$(
-								curl -fsSL \
-									-H "Authorization: Bearer $token" \
-									-H 'Accept: application/vnd.docker.distribution.manifest.v2+json' \
-									-H 'Accept: application/vnd.docker.distribution.manifest.list.v2+json' \
-									-H 'Accept: application/vnd.docker.distribution.manifest.v1+json' \
-									"$registryBase/v2/$image/manifests/$digest"
-							)"
-							handle_single_manifest_v2 "$submanifestJson"
-							found="found"
-							break
-						fi
-					done
-					if [ -z "$found" ]; then
-						echo >&2 "error: manifest for $maniArch is not found"
-						exit 1
-					fi
-					;;
-				*)
-					echo >&2 "error: unknown manifest mediaType ($imageIdentifier): '$mediaType'"
-					exit 1
-					;;
-			esac
-			;;
-
-		1)
-			if [ -z "$doNotGenerateManifestJson" ]; then
-				echo >&2 "warning: '$imageIdentifier' uses schemaVersion '$schemaVersion'"
-				echo >&2 "  this script cannot (currently) recreate the 'image config' to put in a 'manifest.json' (thus any schemaVersion 2+ images will be imported in the old way, and their 'docker history' will suffer)"
-				echo >&2
-				doNotGenerateManifestJson=1
-			fi
-
-			layersFs="$(echo "$manifestJson" | jq --raw-output '.fsLayers | .[] | .blobSum')"
-			IFS="$newlineIFS"
-			layers=($layersFs)
-			unset IFS
-
-			history="$(echo "$manifestJson" | jq '.history | [.[] | .v1Compatibility]')"
-			imageId="$(echo "$history" | jq --raw-output '.[0]' | jq --raw-output '.id')"
-
-			echo "Downloading '$imageIdentifier' (${#layers[@]} layers)..."
-			for i in "${!layers[@]}"; do
-				imageJson="$(echo "$history" | jq --raw-output ".[${i}]")"
-				layerId="$(echo "$imageJson" | jq --raw-output '.id')"
-				imageLayer="${layers[$i]}"
-
-				mkdir -p "$dir/$layerId"
-				echo '1.0' > "$dir/$layerId/VERSION"
-
-				echo "$imageJson" > "$dir/$layerId/json"
-
-				# TODO figure out why "-C -" doesn't work here
-				# "curl: (33) HTTP server doesn't seem to support byte ranges. Cannot resume."
-				# "HTTP/1.1 416 Requested Range Not Satisfiable"
-				if [ -f "$dir/$layerId/layer.tar" ]; then
-					# TODO hackpatch for no -C support :'(
-					echo "skipping existing ${layerId:0:12}"
-					continue
-				fi
-				token="$(curl -fsSL "$authBase/token?service=$authService&scope=repository:$image:pull" | jq --raw-output '.token')"
-				fetch_blob "$token" "$image" "$imageLayer" "$dir/$layerId/layer.tar" --progress
-			done
-			;;
-
-		*)
-			echo >&2 "error: unknown manifest schemaVersion ($imageIdentifier): '$schemaVersion'"
-			exit 1
-			;;
-	esac
-
-	echo
-
-	if [ -s "$dir/tags-$imageFile.tmp" ]; then
-		echo -n ', ' >> "$dir/tags-$imageFile.tmp"
-	else
-		images=("${images[@]}" "$image")
-	fi
-	echo -n '"'"$tag"'": "'"$imageId"'"' >> "$dir/tags-$imageFile.tmp"
-done
-
-echo -n '{' > "$dir/repositories"
-firstImage=1
-for image in "${images[@]}"; do
-	imageFile="${image//\//_}" # "/" can't be in filenames :)
-	image="${image#library\/}"
-
-	[ "$firstImage" ] || echo -n ',' >> "$dir/repositories"
-	firstImage=
-	echo -n $'\n\t' >> "$dir/repositories"
-	echo -n '"'"$image"'": { '"$(cat "$dir/tags-$imageFile.tmp")"' }' >> "$dir/repositories"
-done
-echo -n $'\n}\n' >> "$dir/repositories"
-
-rm -f "$dir"/tags-*.tmp
-
-if [ -z "$doNotGenerateManifestJson" ] && [ "${#manifestJsonEntries[@]}" -gt 0 ]; then
-	echo '[]' | jq --raw-output ".$(for entry in "${manifestJsonEntries[@]}"; do echo " + [ $entry ]"; done)" > "$dir/manifest.json"
-else
-	rm -f "$dir/manifest.json"
-fi
-
-echo "Download of images into '$dir' complete."
-echo "Use something like the following to load the result into a Docker daemon:"
-echo "  tar -cC '$dir' . | docker load"
-}
-  	#token="$(curl -sL -o /dev/null -D- -H 'X-Docker-Token: true' "https://index.docker.io/v1/repositories/$1/images" | tr -d '\r' | awk -F ': *' '$1 == "X-Docker-Token" { print $2 }')"
-    token="$(curl -sL -o /dev/null -D- -H 'X-Docker-Token: true' "https://index.docker.io/v2/repositories/$1/images" | tr -d '\r' | awk -F ': *' '$1 == "X-Docker-Token" { print $2 }')"
-    echo "Docker ${token}"
-    #registry='https://registry-1.docker.io/v1'
-    registry='https://registry-1.docker.io/v2'
-    #/v2/<name>/manifests/<reference>
-  	#id="$(curl -sL -H "Authorization: Token $token" "$registry/repositories/$1/tags/$2" | sed 's/"//g')"
-    id="$(curl -sL -H "Authorization: Token $token" "$registry/repositories/$1/tags/$2" | sed 's/"//g')"
-    echo "Docker ID ${id}"
-  	[[ "${#id}" -ne 64 ]] && echo "No image named '$1:$2' exists" && exit 1
-  	ancestry="$(curl -sL -H "Authorization: Token $token" "$registry/images/$id/ancestry")"
-  	IFS=',' && ancestry=(${ancestry//[\[\] \"]/}) && IFS=' \n\t'; tmp_uuid="$(uuidgen)" && mkdir /tmp/"$tmp_uuid"
-  	for id in "${ancestry[@]}"; do
-  		curl -#L -H "Authorization: Token $token" "$registry/images/$id/layer" -o /tmp/"$tmp_uuid"/layer.tar
-  		tar xf /tmp/"$tmp_uuid"/layer.tar -C /tmp/"$tmp_uuid" && rm /tmp/"$tmp_uuid"/layer.tar
-  	done
-  	echo "$1:$2" > /tmp/"$tmp_uuid"/img.source
-  	bocker_init /tmp/"$tmp_uuid" && rm -rf /tmp/"$tmp_uuid"
-}
-
-
-
+#Export Container
 containerManagerExport(){
 APIcall pwmCall_enable_wakelockcall
   if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
@@ -734,7 +906,7 @@ APIcall pwmCall_disable_wakelockcall
 exit
 }
 
-
+#Add a blank container
 containerManagerAdd(){
   if [ ! -z $@ ] ; then
     SecondaryParam=${1}
@@ -778,6 +950,7 @@ fi
 
 }
 
+#Reset Container
 containerManagerReset(){
   if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
     red
@@ -806,7 +979,7 @@ containerManagerReset(){
 
 }
 
-
+#Delete Container
 containerManagerrm(){
   if [ -z ${removalretry} ]; then
   confirmation
@@ -838,8 +1011,28 @@ fi
   fi
 
 }
+# Reset The Whole UnifiedContainer
+nuke(){
+  if [ -z ${removalretry}]; then
+confirmation
+fi
+red
+APIcall systemUI_notifysend "💣_Your_instlalation_is_being_nuked_💣"
+echo "${pbadge} 💣 Nuking the installation 💣"
+${userspacebackend} ${symlinkfix} rm -rf ${maindir}
+if [ -d "${maindir}" ]; then
+  red
+  echo "${pbadge} ❌ Container Nuking failure Retrying! ❌"
+  export removalretry=1
+  nuke
+fi
+green
+echo "${pbadge} ✔️  Nuking complete ✔️ "
+exit
+}
 
-editroutinesContainer(){
+#Editing the init script of the container
+editroutinesContainer(){ 
 if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
     red
     echo "${pbadge} ❌ Container does not exists please create the container first ❌"
@@ -850,6 +1043,7 @@ else
 fi
 }
 
+#Seeing the logs of the container
 containerManagerLogs(){
 if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
     red
@@ -859,6 +1053,295 @@ else
     less "${logs}/containers_${SecondaryParam}.log"
 fi
 }
+
+# Export File from the container to the host
+sysFileExchangeExport(){
+if [ -z ${quadtiaryParam}] || [ -z ${TertiaryParam} ]; then
+    red
+    echo "${pbadge} ❌ You forgot to put source or destination ❌"
+    exit
+fi
+if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
+    red
+    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
+    exit
+else
+${userspacebackend} ${symlinkfix} cp -ruavH "${TertiaryParam}" "${containersLair}/${SecondaryParam}/rootfs/${quadtiaryParam}"
+exit
+fi
+}
+
+#Import File from the host into the container
+sysFileExchangeImport(){
+if [ -z ${quadtiaryParam}] || [ -z ${TertiaryParam} ]; then
+    red
+    echo "${pbadge} ❌ You forgot to put source or destination ❌"
+    exit
+fi
+if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
+    red
+    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
+    exit
+else
+${userspacebackend} ${symlinkfix} cp -ruavH "${quadtiaryParam}" "${containersLair}/${SecondaryParam}/rootfs/${quadtiaryParam}"
+exit
+fi
+}
+
+#Upgrade the main template container to a newer fresher version
+upgradeMainContainer(){
+${userspacebackend} ${symlinkfix} rm -rf ${defaultContainer}
+export newInstall=1
+defaultContainerSetup
+}
+
+#Upgrade or Update the Container
+containerManagerUpgrade(){
+  if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
+    red
+    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
+    exit
+  else
+cd ${containersLair}/${SecondaryParam}
+yellow
+echo "${pbadge} ⌛ Upgrading container"
+${userspacebackend} ${symlinkfix} cp -ruaH "${defaultContainer}/*" "${containersLair}/${SecondaryParam}" >> ${logs}/rootfsCopyOperation.log 2>&1
+green
+echo "${pbadge} ✔️ Container has been upgraded "
+exit
+  fi
+}
+
+#Disable The External Storage Expose Mode
+containerManagerDeExposeStorage(){
+  if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
+    red
+    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
+    exit
+  else
+rm ${containersLair}/${SecondaryParam}/grantStorage
+green
+echo "${pbadge} ✔️ Local Storage Denied "
+exit
+fi
+}
+
+#Disable System Library mode for the Container
+containerManagerDeExposeSystemLibrary(){
+  if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
+    red
+    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
+    exit
+  else
+rm ${containersLair}/${SecondaryParam}/grantSystemLibrary
+green
+echo "${pbadge} ✔️ System Library Blocked "
+exit
+fi
+
+}
+# Enable System Library Mode for the Container
+containerManagerExposeSystemLibrary(){
+  if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
+    red
+    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
+    exit
+  else
+echo 1 > ${containersLair}/${SecondaryParam}/grantSystemLibrary
+green
+echo "${pbadge} ✔️ System Library Granted "
+exit
+fi
+
+}
+# Update Container
+containerManagerUpdate(){
+  if [ ! -z $@ ] ; then
+    SecondaryParam=${1}
+    TertiaryParam=${2}
+  fi
+  if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
+    red
+    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
+    exit
+  else
+    export updateContainer=1
+    if [ ! -f "${containersLair}/${SecondaryParam}/origin" ]; then
+      red
+      echo "${pbadge} ❌ This feature is not available for locally created container ❌"
+      exit
+    fi
+containerManagerImport "$(cat ${containersLair}/${SecondaryParam}/origin)"
+echo "${pbadge} ✔️ Container Updated "
+fi
+if [ -z $@ ]; then
+exit
+fi
+}
+
+#Enable Storage to be exposed on the specific container
+containerManagerExposeStorage(){
+  if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
+    red
+    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
+    exit
+  else
+echo a > ${containersLair}/${SecondaryParam}/grantStorage
+green
+echo "${pbadge} ✔️ Local Storage Granted "
+exit
+fi
+
+}
+
+#Lists the status and the available Container
+containerManagerList(){
+list=$(cat ${containerFilesList})
+clear
+yellow
+echo "=============[ Containers Status ]=============="
+for a in ${list}; do
+  blue
+echo "================================================"
+green
+echo "----💽 Container: ${a}"
+echo "Container ID : $(cat ${containersLair}/${a}/containerID)"
+if [ -f ${containersLair}/${a}/origin ];then
+echo "🗺️ Origin : $(cat ${containersLair}/${a}/origin)"
+else
+echo "🗺️ Origin : Created Locally"
+fi
+yellow
+echo "----ℹ️ Status:"
+echo "Disk Info: "
+echo $(du -s ${containersLair}/${a}/rootfs)
+echo "Local Data Access Permission :"
+if [ -f ${containersLair}/${a}/grantStorage ]; then
+  green
+echo "✔️ Container have a local storage Access"
+else
+  red
+echo "❌The Container is isolated from the local storage"
+fi
+if [ ! -d ${presistentStorage}/$(cat ${containersLair}/${a}/containerID) ]; then
+  red
+echo "❌The Container does not support presistent storage yet"
+yellow
+echo "ALERT WITHOUT THE SUPPORT OF PRESISTENT STORAGE THE CONTAINER WHEN RESET or REMOVED WILL NOT SAVE DATA"
+echo "Please upgrade as soon as possible"
+else
+green
+echo "✔️ The container supports presistent storage"
+fi
+yellow
+echo "----📜 Container Boot status : "
+if [ -f ${containersLair}/${a}/boot ]; then
+  green
+echo "✔️ Container is booted up"
+echo "✔️ Container init ID : $(cat ${containersLair}/${a}/svcID)"
+else
+  red
+echo "❌Container is Not booted up"
+fi
+blue
+echo "================================================"
+done
+exit
+}
+
+
+#-------
+#---------------------------------------END of Container Management
+
+
+#Container Process Management --------------------------------------
+#Launch Container init process service in foreground
+launchcontainerSvcFG(){
+  if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
+    red
+    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
+    exit
+  fi
+  cd "${containersLair}/${SecondaryParam}"
+  if [ ! -f svcID ]; then
+  green
+  echo "⏳ Launching container ${SecondaryParam}"
+  bash start-bootstrap.sh bash /init
+else
+  red
+  echo "${pbadge} ❌ Container currently is running if you believe that the container is not running ❌"
+  echo "${0} stop ${SecondaryParam}"
+fi
+  exit
+}
+#Launch Container init process service in background
+launchcontainerSvc(){
+  if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
+    red
+    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
+    exit
+  fi
+  cd "${containersLair}/${SecondaryParam}"
+  green
+  echo "⏳ Launching container ${SecondaryParam}"
+  bash start-bootstrap.sh bash /init > "${logs}/containers_${SecondaryParam}.log" 2>&1 &
+  echo $! > svcID
+  cat "${logs}/containers_${SecondaryParam}.log"
+  APIcall systemUI_notifysend "Container_${SecondaryParam}_Successfully_Launched"
+  exit
+}
+#Kill Container init process service from the background
+launchcontainerKill(){
+  if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
+    red
+    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
+    exit
+  fi
+  yellow
+  echo "${pbadge} 🛑 Stopping Container"
+  kill -9 $(cat ${containersLair}/${SecondaryParam}/svcID)
+  green
+  APIcall systemUI_notifysend "Container_${SecondaryParam}_Successfully_Stopped"
+  echo "${pbadge} ✔️ Container Stopped"
+  exit
+}
+#Launch Container Shell
+launchcontainerSHELL(){
+  if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
+    red
+    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
+    exit
+  fi
+  cd "${containersLair}/${SecondaryParam}"
+  echo Launching container ${SecondaryParam}
+  green
+  echo "${pbadge} 🌟 Have fun 🌟"
+  #bash start-bootstrap.sh screenfetch
+  bash start-bootstrap.sh "fish --login"
+  exit
+}
+
+#Execute Shell Command inside the container
+executeContainerCMD(){
+  if [ ! -z $@ ] ; then
+    SecondaryParam=${1}
+    TertiaryParam=${2}
+  fi
+  if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
+    red
+    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
+    exit
+  fi
+  cd "${containersLair}/${SecondaryParam}"
+  yellow
+  echo "${pbadge} 🏃‍ Executing ${TertiaryParam} on ${SecondaryParam}"
+  bash start-bootstrap.sh "${TertiaryParam}"
+  if [ -z $@ ] ; then
+  exit
+fi
+}
+#---------------------------END Container Process Management
+
 
 installBin(){
 echo ${PATH}
@@ -886,62 +1369,6 @@ for a in \$(cat ${containerFilesList}); do
 done
 EOM
 }
-
-
-
-
-sysFileExchangeExport(){
-if [ -z ${quadtiaryParam}] || [ -z ${TertiaryParam} ]; then
-    red
-    echo "${pbadge} ❌ You forgot to put source or destination ❌"
-    exit
-fi
-if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
-    red
-    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
-    exit
-else
-${userspacebackend} ${symlinkfix} cp -ruavH "${TertiaryParam}" "${containersLair}/${SecondaryParam}/rootfs/${quadtiaryParam}"
-exit
-fi
-}
-
-sysFileExchangeImport(){
-if [ -z ${quadtiaryParam}] || [ -z ${TertiaryParam} ]; then
-    red
-    echo "${pbadge} ❌ You forgot to put source or destination ❌"
-    exit
-fi
-if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
-    red
-    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
-    exit
-else
-${userspacebackend} ${symlinkfix} cp -ruavH "${quadtiaryParam}" "${containersLair}/${SecondaryParam}/rootfs/${quadtiaryParam}"
-exit
-fi
-}
-
-
-debugFunct(){
-sleep 4
-clear
-echo "================================================================="
-red
-echo " Do it at your own risk! You are on your own"
-echo " Please refer to the code when calling a function "
-echo "${pbadge} DEBUG MODE !"
-echo
-green
-console(){
-printf "\n unifyManager dbg console > "
-read a
-${a}
-console
-}
-console
-}
-
 
 
 help_unifyServer(){
@@ -1187,234 +1614,7 @@ chmod 777 "${managerExec}"
 
 exit
 }
-upgradeMainContainer(){
-${userspacebackend} ${symlinkfix} rm -rf ${defaultContainer}
-export newInstall=1
-defaultContainerSetup
-}
 
-containerManagerUpgrade(){
-  if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
-    red
-    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
-    exit
-  else
-cd ${containersLair}/${SecondaryParam}
-yellow
-echo "${pbadge} ⌛ Upgrading container"
-${userspacebackend} ${symlinkfix} cp -ruaH "${defaultContainer}/*" "${containersLair}/${SecondaryParam}" >> ${logs}/rootfsCopyOperation.log 2>&1
-green
-echo "${pbadge} ✔️ Container has been upgraded "
-exit
-  fi
-}
-containerManagerDeExposeStorage(){
-  if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
-    red
-    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
-    exit
-  else
-rm ${containersLair}/${SecondaryParam}/grantStorage
-green
-echo "${pbadge} ✔️ Local Storage Denied "
-exit
-fi
-
-}
-
-containerManagerDeExposeSystemLibrary(){
-  if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
-    red
-    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
-    exit
-  else
-rm ${containersLair}/${SecondaryParam}/grantSystemLibrary
-green
-echo "${pbadge} ✔️ System Library Blocked "
-exit
-fi
-
-}
-
-containerManagerExposeSystemLibrary(){
-  if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
-    red
-    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
-    exit
-  else
-echo 1 > ${containersLair}/${SecondaryParam}/grantSystemLibrary
-green
-echo "${pbadge} ✔️ System Library Granted "
-exit
-fi
-
-}
-
-containerManagerUpdate(){
-  if [ ! -z $@ ] ; then
-    SecondaryParam=${1}
-    TertiaryParam=${2}
-  fi
-  if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
-    red
-    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
-    exit
-  else
-    export updateContainer=1
-    if [ ! -f "${containersLair}/${SecondaryParam}/origin" ]; then
-      red
-      echo "${pbadge} ❌ This feature is not available for locally created container ❌"
-      exit
-    fi
-containerManagerImport "$(cat ${containersLair}/${SecondaryParam}/origin)"
-echo "${pbadge} ✔️ Container Updated "
-fi
-if [ -z $@ ]; then
-exit
-fi
-}
-
-containerManagerExposeStorage(){
-  if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
-    red
-    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
-    exit
-  else
-echo a > ${containersLair}/${SecondaryParam}/grantStorage
-green
-echo "${pbadge} ✔️ Local Storage Granted "
-exit
-fi
-
-}
-
-containerManagerList(){
-list=$(cat ${containerFilesList})
-clear
-yellow
-echo "=============[ Containers Status ]=============="
-for a in ${list}; do
-  blue
-echo "================================================"
-green
-echo "----💽 Container: ${a}"
-echo "Container ID : $(cat ${containersLair}/${a}/containerID)"
-if [ -f ${containersLair}/${a}/origin ];then
-echo "🗺️ Origin : $(cat ${containersLair}/${a}/origin)"
-else
-echo "🗺️ Origin : Created Locally"
-fi
-yellow
-echo "----ℹ️ Status:"
-echo "Disk Info: "
-echo $(du -s ${containersLair}/${a}/rootfs)
-echo "Local Data Access Permission :"
-if [ -f ${containersLair}/${a}/grantStorage ]; then
-  green
-echo "✔️ Container have a local storage Access"
-else
-  red
-echo "❌The Container is isolated from the local storage"
-fi
-if [ ! -d ${presistentStorage}/$(cat ${containersLair}/${a}/containerID) ]; then
-  red
-echo "❌The Container does not support presistent storage yet"
-yellow
-echo "ALERT WITHOUT THE SUPPORT OF PRESISTENT STORAGE THE CONTAINER WHEN RESET or REMOVED WILL NOT SAVE DATA"
-echo "Please upgrade as soon as possible"
-else
-green
-echo "✔️ The container supports presistent storage"
-fi
-yellow
-echo "----📜 Container Boot status : "
-if [ -f ${containersLair}/${a}/boot ]; then
-  green
-echo "✔️ Container is booted up"
-echo "✔️ Container init ID : $(cat ${containersLair}/${a}/svcID)"
-else
-  red
-echo "❌Container is Not booted up"
-fi
-blue
-echo "================================================"
-done
-exit
-}
-
-folderInit(){
-export origindir=$(pwd)
-export maindir="${initDir}/containersys"
-export recoveryEnvironmentDir="${origindir}/managerbackup"
-export presistentStorage="${maindir}/presistent_storage"
-export containersLair="${maindir}/containers"
-export defaultContainer="${containersLair}/default"
-export unasignedContainer="${containersLair}/unasigned"
-export loader="${maindir}/loader"
-export TMPFolder="${maindir}/tmp"
-export PACMANTMPFolder="${TMPFolder}/pacmanCache" #basically will accelerate pacman Caches
-export unasignedContainerTMP="${TMPFolder}/unasigned"
-export logs="${maindir}/logs"
-export containerExport=${maindir}/containerExport
-export APIHAL=${maindir}/sysIO
-export APIHAL_INPUT=${APIHAL}/input
-export APIHAL_OUTPUT=${APIHAL}/output
-export containerFilesList="${maindir}/containers.txt"
-if [ ! -d ${recoveryEnvironmentDir} ]; then
-mkdir ${recoveryEnvironmentDir}
-fi
-if [ ! -d ${maindir} ]; then
-  mkdir ${maindir}
-fi
-
-if [ ! -d ${APIHAL} ]; then
-  mkdir ${APIHAL}
-fi
-
-if [ ! -d ${APIHAL_INPUT} ]; then
-  mkdir ${APIHAL_INPUT}
-fi
-
-if [ ! -d ${APIHAL_OUTPUT} ]; then
-  mkdir ${APIHAL_OUTPUT}
-fi
-
-if [ ! -d ${presistentStorage} ]; then
-  mkdir ${presistentStorage}
-fi
-
-if [ ! -d ${containerExport} ]; then
-  mkdir ${containerExport}
-fi
-
-if [ ! -d ${TMPFolder} ]; then
-  mkdir ${TMPFolder}
-fi
-
-if [ ! -d ${PACMANTMPFolder} ]; then
-  mkdir ${PACMANTMPFolder}
-fi
-
-if [ ! -d ${logs} ]; then
-  mkdir ${logs}
-fi
-
-if [ ! -d ${containersLair} ]; then
-  mkdir ${containersLair}
-fi
-
-if [ ! -d ${defaultContainer} ]; then
-  mkdir ${defaultContainer}
-  export newInstall=1
-else
-  export newInstall=0
-fi
-
-if [ ! -d ${loader} ]; then
-  mkdir ${loader}
-fi
-
-}
 
 
 SUrequest(){
@@ -1434,149 +1634,41 @@ fi
 }
 
 
-distroDetection(){
-# DISTRO MANAGER DETECTION IS ALSO USED TO DETERMINE WHERE DOES THE SCRIPT RUN
-export ptracecompat='1' #flag ptrace compatibility based on the distro or kernel that its running
-export iSHenv="0"
-export BLINDBOOT="0"
-export linktosymlinkActivated=0
-export arch=$(uname -m)
-if [ ! -z $(which apk) ]; then
-  echo "Alpine Distro"
-  export packmanager=apk
-  export installParameter="add"
-  export distro="alpine"
-fi
-
-if [ ! -z $(which apt) ]; then
-export packmanager="apt"
-export installParameter="install -y"
-export distro="debianGNU"
-fi
-    if [ ! -z $(which pkg) ]; then
-    export packmanager=pkg
-    export installParameter="install -y"
-    export linktosymlinkActivated=1
-    echo Termux Detected
-    export distro="termux"
-
-    fi
-
-
-    if [ ! -z $(which yum) ]; then
-    export packmanager="yum"
-    export installParameter="install -y"
-    export distro="centOSGNU"
-    fi
-
-    if [[ $( uname -a | grep Microsoft ) ]]; then
-      echo "Bash is running on WSL"
-      echo "PTRACE ON WSL 1 IS NOT SUPPORTED"
-      export ptracecompat='0'
-      export WSLenv="1"
-    fi
-
-    if [[ $( uname -a | grep iSH ) ]]; then
-      echo "Bash is running on iSH"
-      echo "PTRACE ON iSH IS NOT SUPPORTED"
-      export iSHenv="1"
-      export BLINDBOOT="1"
-      export ptracecompat='0'
-      export WSLenv="0"
-    fi
-
-    if [ ! -z $(which pacman) ]; then
-    export packmanager="pacman"
-    export installParameter="-Sy --noconfirm"
-    export distro="archlinux"
-    echo Redownloading Databases
-    pacman -Syy
-    fi
-
-    if [ ! -z $(which easy_install) ]; then
-    export pyPacman="easy_install"
-    export pyInstallParam=""
-    fi
-
-    if [ ! -z $(which add-apt-repository) ]; then
-    export packmanager="apt-get"
-    export installParameter="install -y"
-    fi
-
-    if [ ! -z $(which pip) ]; then
-    export pyPacman="pip"
-    export pyInstallParam="install"
-    fi
-
-
-}
-
 
 dependencies(){
 if [ ${newInstall} == "1" ]; then
-##SPECIAL TREATMENT NOT A DISTRO DETECTION
-if [ ! -z $(which add-apt-repository) ]; then
-  echo Apt detected doing some special treatment
-  echo Refreshing Repo
-  apt-get update
-  add-apt-repository universe
-fi
-
-
+  #Detect the Distro
   distroDetection
-  export distComplete="$(uname -a)"
-
-  requirements="chroot busybox wget git proot aria2 aria2c xclip dialog nano"
- echo "echo Installing 🔧" > ${TMPFolder}/SUINSTALL
-  for i in ${requirements}; do
-    green
-    echo "echo ${pbadge} Installing 🔧 ${i}" >> ${TMPFolder}/SUINSTALL
-    echo "${packmanager} ${installParameter} ${i}" >> ${TMPFolder}/SUINSTALL
-  done
-# This installation scheme were changed due to the fact old SU request created a unresolvable and wierd bug like Missing (Expected fi) from intrepretation
-if [ ${packmanager} != "pkg" ] && [ -z ${rootRequested} ]; then
-su -c "bash ${TMPFolder}/SUINSTALL"
-else
-bash ${TMPFolder}/SUINSTALL
-fi
-# https://github.com/Windos/BurntToast
-# https://codelearn.me/2019/01/13/wsl-windows-toast.html
-if [ ${WSLenv} == "1" ] && [ ! -z ${WSLenv} ]; then
-  echo "Installing Powershell WSL bridge"
-  powershell.exe -Command "Start-Process PowerShell 'Install-Module -Name BurntToast' -Verb RunAs"
-  powershell.exe -Command "Start-Process PowerShell 'Set-ExecutionPolicy RemoteSigned -Scope CurrentUser' -Verb RunAs"
-  powershell.exe -Command "Start-Process PowerShell 'Import-Module BurntToast' -Verb RunAs"
-fi
-
-
-#alternative for proot
+#Load and install Proot from the $rootfsprootRepoCache
   if [ -z $(which proot) ]; then
     echo "proot not available?"
     case $(checkArch) in
 		aarch64)
-			archurl="arm64" ;;
+			archfile_termux="aarch64" ; archfile_universal="arm64" ;;
 		arm)
-			archurl="arm" ;;
+			archfile_termux="arm" ; archfile_universal="arm" ;;
 		amd64)
-			archurl="x86_64" ;;
+			archfile_termux="x86_64"  ; archfile_universal="x86_64" ;;
 		i*86)
-			archurl="x86" ;;
-		x86_64)
-			archurl="x86_64" ;;
+			archfile_termux="i686" ; archfile_universal="x86" ;;
+		*86_64)
+			archfile_termux="x86_64" ; archfile_universal="x86_64" ;;
 		*)
 			echo "unknown architecture"; exit 1 ;;
 		esac
-  if [ ! -f ${loader}/proot ]; then
-  wget "https://github.com/proot-me/proot-static-build/blob/master/static/proot-${archurl}"
-  chmod +x proot-${archurl}
-  mv proot-${archurl} ${loader}/proot
   fi
-  export PATH=${PATH}:${loader}
+  echo "Detected Architecture ${archurl} with the detection of unsupported environment of termux $termuxenv "
+  echo "Loading The appropriate Proot"
+  if [ ${termuxenv} == 1 ]; then #because termux loves to do its own way we need to install it into the environment
+  echo "Installing Termux Special Proot"
+  dpkg -i ${rootfsprootRepoCache}/proot/termux/proot_${archfile_termux}.deb
+  else
+  echo "Loading Portable Binary proot"
+  cp -v ${rootfsprootRepoCache}/proot/universal/proot_${archfile_universal} ${rootfsprootRepoCache}/proot/universal/proot
+  chmod +x ${rootfsprootRepoCache}/proot/universal/proot
+  export PATH=${PATH}:${rootfsprootRepoCache}/proot/universal/
   fi
 
-else
-  distroDetection
-echo Does not need dependencies install
 fi
 
 
@@ -1590,12 +1682,10 @@ if [ -z $(which git) ] || [ -z $(which busybox) ] || [ -z $(which chroot) ]; the
 echo "${pbadge} DEPENDENCIES ARE NOT INSTALLED ABORTING LAUNCH"
 exit
 fi
-
-
-
 }
 
 checkArch(){
+#Check Current Architecture
 currarch=$(uname -m)
 echo ${currarch}
 }
@@ -1626,6 +1716,10 @@ APIcall pwmCall_enable_wakelockcall
 folder=rootfs
 tarball="bootstrap.tar.gz"
 if [ "$first" != 1 ];then
+#NOTE :
+#Download Compass in here is to represent what rootfs that is the most compatible with the architechture that currently running!
+
+
 	if [  ${tarball} == $tarball ]; then
     yellow
 		echo "${pbadge} ⌛ downloading bootstrap-image"
@@ -1633,82 +1727,25 @@ if [ "$first" != 1 ];then
     #wget -r --no-parent -A 'bar.*.tar.gz' http://url/dir/ #https://unix.stackexchange.com/questions/117988/wget-with-wildcards-in-http-downloads
     case `checkArch` in #since Archlinux have a variable download link so we have to define each download link for each architechture
 		aarch64)
-			archurl="arm64" ; specialarchtype="arm" ; downloadcompass="http://os.archlinuxarm.org/os/ArchLinuxARM-aarch64-latest.tar.gz"  ;;
+			archurl="arm64" ; specialarchtype="arm64" ; downloadcompass="rootfs-arm64"  ;;
 		arm)
-			archurl="armhf" ; specialarchtype="arm" ; downloadcompass="http://os.archlinuxarm.org/os/ArchLinuxARM-armv7-latest.tar.gz" ;;
+			archurl="armhf" ; specialarchtype="arm" ; downloadcompass="rootfs-arm32" ;;
     armv7*)
-  		archurl="armhf" ; specialarchtype="arm" ; downloadcompass="http://os.archlinuxarm.org/os/ArchLinuxARM-armv7-latest.tar.gz" ;;
+  		archurl="armhf" ; specialarchtype="arm" ; downloadcompass="rootfs-arm32" ;;
 		amd64)
-			archurl="amd64" ; specialarchtype="x86_64"  ; subfolder="root.x86_64" ; downloadcompass="https://github.com/Questandachievement7Developer/UnifiedContainer/releases/download/ArchrootfsDownloadamd64/archlinux-bootstrap-2020.03.01-x86_64.tar.gz" ;;
+			archurl="amd64" ; specialarchtype="x86_64"  ; subfolder="root.x86_64" ; downloadcompass="rootfs-x86_64" ;;
 		*86_64)
-			archurl="amd64" ; specialarchtype="x86_64" ; subfolder="root.x86_64" ; downloadcompass='https://github.com/Questandachievement7Developer/UnifiedContainer/releases/download/ArchrootfsDownloadamd64/archlinux-bootstrap-2020.03.01-x86_64.tar.gz' ;;
+			archurl="amd64" ; specialarchtype="x86_64" ; subfolder="root.x86_64" ; downloadcompass='rootfs-x86_64' ;;
     i686)
-  		archurl="i686" ; specialarchtype="i686" ; downloadcompass='https://github.com/Questandachievement7Developer/UnifiedContainer/releases/download/rootfsarch686/arch32.tar.gz' ;;
+  		archurl="i686" ; specialarchtype="i686" ; downloadcompass='rootfs-x86' ;;
 		*)
 			echo "❌ Unsupported architecture ❌"; exit 1 ;;
 		esac
     echo exec
-    #https://github.com/MFDGaming/bootstrap-in-termux/blob/master/bootstrap.sh
-    #export UBUNTU_VERSION=19.10
-    #echo "${downloadcompass}"
-    #wget "https://github.com/Questandachievement7Developer/UnifiedContainer/releases/download/downloadableRootfs/${archurl}.gz" -O ${tarball}
-    #
-    #
-    #Running wget directly inside of the script will make the wget froze with no output even on verbose
-    #therefore to compensate this problem we need to output the wget to a external script
-
-
-    #Well the problem is actually i put the o lowercase rather than the O capital
-    echo "${pbadge} Downloading ${tarball}"
-    if [ -z $(which aria2c) ] && [ ${iSHenv} == "0" ]; then #iSH cannot download multiple connection due to iOS constraints
-    wget ${downloadcompass} -O ${tarball} >> ${logs}/DownloadloadTarballCheck.log 2>&1
+    #Since it is locally stored now and doesnt need package manager nor a rootfs download repo it just need to handle it
+    localBootstrapHandler ${downloadcompass}
+    # make sure the Handler knows to extract the required tarball and rename it to ${tarball}
   fi
-    if [ ! -z $(which aria2c) ] && [ ${iSHenv} == "0" ]; then
-      green
-      echo "${pbadge} Download acceleration is available"
-      rm -rf ${tarball}
-      aria2c --max-connection-per-server=16 --min-split-size=1M ${downloadcompass} -o ${tarball} >> ${logs}/DownloadloadTarballCheck.log 2>&1
-    fi
-		#wget "https://partner-images.canonical.com/core/disco/current/bootstrap-disco-core-cloudimg-${archurl}-root.tar.gz" -O $tarball
-    if [ ${iSHenv} == "1" ]; then
-      red
-      echo "${pbadge} ⚠️ Hazardous environment detected! ⚠️"
-      echo "${pbadge} Please insert downloaded rootfs.tar.gz manually! onto the sideloadRootfs folder"
-      if [ -f ${origindir}/sideloadRootfs/arch32.tar.gz ]; then
-        green
-        echo "iSH sideloadRootfs Initiated!"
-        yellow
-        echo "please be aware that if you downloaded wrong rootfs or corrupted"
-        echo "your installation will bootloop!"
-        green
-        cp ${origindir}/sideloadRootfs/arch32.tar.gz ${tarball}
-      else
-      yellow
-      clear
-      echo "================================================"
-      echo "We will attempt to download automatically"
-      echo "However i do recommend you to download manually from this link"
-      echo "${downloadcompass}"
-      echo "and copy to the sideloadRootfs folder through the finder"
-      echo "================================================"
-      echo The download will start within 60 seconds
-      sleep 60
-      mkdir ${origindir}/sideloadRootfs
-      echo "${pbadge} ⚠️ Automatically switch to advanced download manager ⚠️"
-      yellow
-      echo "${pbadge} Increasing download segmentation and unlocking retry limit"
-      green
-      echo "${pbadge} Download started!"
-      echo "Please wait keep the app on foreground"
-      #Fixes https://github.com/ish-app/ish/issues/220
-      #since we dont expect people going to stay on the terminal for more than 1 minutes and probably turn off the phone we going to allow the aria2c to retry the download for unlimited amount of time and segmented
-      #This problem seems occouring in iSH build 66 and in iOS 13.4.1
-      # time out 1 second with minimum speed of 128k due to indihome super slow speed compensation
-      # only one connection allowed to prevent segmentation corruption
-      aria2c --max-connection-per-server=1 --lowest-speed-limit=128K --timeout=1 --min-split-size=1148576 --async-dns=false --max-tries=0 ${downloadcompass} -o ${tarball} >> ${logs}/DownloadloadTarballCheck.log 2>&1
-    fi
-    fi
-	fi
 	cur=`pwd`
 	mkdir -p "$folder"
 	cd "$folder"
@@ -1785,7 +1822,7 @@ mount --bind /dev ${folder}/dev
 mount --bind /proc ${folder}/proc
 mount --bind /sys ${folder}/sys
 echo "[Progress] system storage Cachemount"
-mount --bind ${PACMANTMPFolder} ${folder}/InstallCache
+mount --bind ${apkTMPFolder} ${folder}/InstallCache
 echo "[Progress] manager storage Expose"
 if [ -d /sdcard ] && [ -f grantStorage ]; then
 mount --bind /sdcard ${folder}/exposed"
@@ -1844,7 +1881,7 @@ command+=" -b /proc"
 #command+=" -b /data/data/com.termux/files/home:/root"
 ############ uncomment the following line to mount /sdcard directly to /
 #command+=" -b /sdcard"
-command+=" -b ${PACMANTMPFolder}:${folder}/InstallCache"
+command+=" -b ${apkTMPFolder}:${folder}/InstallCache"
 command+=" -w /root"
 command+=" /bin/env -i"
 command+=" HOME=/root"
@@ -1918,999 +1955,16 @@ EOM
 chmod +x ${folder}/bin/sudo
 
 
-# Setting up mirrorlist
-pacmanconf="${folder}/etc/pacman.conf"
-mirrorlistpacman="${folder}/etc/pacman.d/mirrorlist"
-if [ ${specialarchtype} == 'arm' ]; then
-cat > "$pacmanconf" <<- EOF
-# /etc/pacman.conf
-# https://github.com/OLIMEX/archlinuxarm-olinuxino/blob/master/scripts/pacman.conf
-# See the pacman.conf(5) manpage for option and repository directives
-#
-#
-# GENERAL OPTIONS
-#
-[options]
-# The following paths are commented out with their default values listed.
-# If you wish to use different paths, uncomment and update the paths.
-#RootDir     = /
-#DBPath      = /var/lib/pacman/
-CacheDir    = /InstallCache
-#LogFile     = /var/log/pacman.log
-#GPGDir      = /etc/pacman.d/gnupg/
-HoldPkg     = pacman glibc
-# If upgrades are available for these packages they will be asked for first
-SyncFirst   = pacman
-#XferCommand = /usr/bin/curl -C - -f %u > %o
-#XferCommand = /usr/bin/wget --passive-ftp -c -O %o %u
-#CleanMethod = KeepInstalled
-Architecture = auto
-
-# Pacman won't upgrade packages listed in IgnorePkg and members of IgnoreGroup
-IgnorePkg   = linux
-#IgnoreGroup =
-
-#NoUpgrade   =
-#NoExtract   =
-
-# Misc options
-#UseSyslog
-#UseDelta
-#TotalDownload
-#CheckSpace
-#VerbosePkgLists
-
-# PGP signature checking
-# NOTE: None of this will work without running `pacman-key --init` first.
-# The compiled in default is equivalent to the following line. This requires
-# you to locally sign and trust packager keys using `pacman-key` for them to be
-# considered valid.
-#SigLevel = Optional TrustedOnly
-# If you wish to check signatures but avoid local sign and trust issues, use
-# the following line. This will treat any key imported into pacman's keyring as
-# trusted.
-#SigLevel = Optional TrustAll
-# For now, off by default unless you read the above.
-SigLevel = Never
-
-#
-# REPOSITORIES
-#   - can be defined here or included from another file
-#   - pacman will search repositories in the order defined here
-#   - local/custom mirrors can be added here or in separate files
-#   - repositories listed first will take precedence when packages
-#     have identical names, regardless of version number
-#   - URLs will have \$repo replaced by the name of the current repo
-#   - URLs will have $arch replaced by the name of the architecture
-#
-# Repository entries are of the format:
-#       [repo-name]
-#       Server = ServerName
-#       Include = IncludePath
-#
-# The header [repo-name] is crucial - it must be present and
-# uncommented to enable the repo.
-#
-# The testing repositories are disabled by default. To enable, uncomment the
-# repo name header and Include lines. You can add preferred servers immediately
-# after the header, and they will be used before the default mirrors.
-[core]
-SigLevel = Never
-Include = /etc/pacman.d/mirrorlist
-
-[extra]
-#SigLevel = PackageOptional
-Include = /etc/pacman.d/mirrorlist
-
-[community]
-#SigLevel = PackageOptional
-Include = /etc/pacman.d/mirrorlist
-
-[alarm]
-#SigLevel = PackageOptional
-Include = /etc/pacman.d/mirrorlist
-
-[aur]
-#SigLevel = PackageOptional
-Include = /etc/pacman.d/mirrorlist
-#[olinuxino]
-#Server = http://1024.cjb.net/archlinux/olinuxino
-# An example of a custom package repository.  See the pacman manpage for
-# tips on creating your own repositories.
-#[custom]
-#SigLevel = Optional TrustAll
-#Server = file:///home/custompkgs
-EOF
-
-cat > "$mirrorlistpacman" <<- EOF
-#
-# Arch Linux ARM repository mirrorlist
-# Generated on 2020-02-11
-#
-
-## Geo-IP based mirror selection and load balancing
-Server = http://mirror.archlinuxarm.org/\$arch/\$repo
-
-### Mirrors by country
-
-### Australia (not Austria!)
-## Sydney
-Server = http://au.mirror.archlinuxarm.org/\$arch/\$repo
-
-### Brazil
-## Sao Paulo
-Server = http://br2.mirror.archlinuxarm.org/\$arch/\$repo
-
-### Denmark
-## Aalborg
-Server = http://dk.mirror.archlinuxarm.org/\$arch/\$repo
-
-### Germany
-## Aachen
-Server = http://de3.mirror.archlinuxarm.org/\$arch/\$repo
-## Berlin
-Server = http://de.mirror.archlinuxarm.org/\$arch/\$repo
-## Coburg
-Server = http://de4.mirror.archlinuxarm.org/\$arch/\$repo
-## Falkenstein
-Server = http://eu.mirror.archlinuxarm.org/\$arch/\$repo
-Server = http://de5.mirror.archlinuxarm.org/\$arch/\$repo
-
-### Greece
-## Athens
-Server = http://gr.mirror.archlinuxarm.org/\$arch/\$repo
-
-### Hungary
-## Budapest
-Server = http://hu.mirror.archlinuxarm.org/\$arch/\$repo
-
-### Netherlands
-## Amsterdam
-Server = http://nl.mirror.archlinuxarm.org/\$arch/\$repo
-
-### Portugal
-## Aveiro
-Server = http://pt.mirror.archlinuxarm.org/\$arch/\$repo
-
-### Singapore
-Server = http://sg.mirror.archlinuxarm.org/\$arch/\$repo
-
-### South Africa
-## Johannesburg
-Server = https://za.mirror.archlinuxarm.org/\$arch/\$repo
-
-### Taiwan
-## New Taipei City
-Server = http://tw.mirror.archlinuxarm.org/\$arch/\$repo
-
-### United States
-## California
-Server = http://ca.us.mirror.archlinuxarm.org/\$arch/\$repo
-## Florida
-Server = http://fl.us.mirror.archlinuxarm.org/\$arch/\$repo
-## Illinois
-Server = http://il.us.mirror.archlinuxarm.org/\$arch/\$repo
-## New Jersey
-Server = http://nj.us.mirror.archlinuxarm.org/\$arch/\$repo
-
-### Vietnam
-## Da Nang
-Server = http://vn.mirror.archlinuxarm.org/\$arch/\$repo
-EOF
-fi
-
-if [ ${specialarchtype} == "i686" ]; then
-cat > "$pacmanconf" <<- EOF
-# /etc/pacman.conf
-# UNIFYSERVER PATCHED
-# See the pacman.conf(5) manpage for option and repository directives
-#
-# GENERAL OPTIONS
-#
-[options]
-# The following paths are commented out with their default values listed.
-# If you wish to use different paths, uncomment and update the paths.
-#RootDir     = /
-#DBPath      = /var/lib/pacman/
-CacheDir    = /InstallCache
-#LogFile     = /var/log/pacman.log
-#GPGDir      = /etc/pacman.d/gnupg/
-#HookDir     = /etc/pacman.d/hooks/
-HoldPkg      = pacman glibc manjaro-system
-# If upgrades are available for these packages they will be asked for first
-SyncFirst    = manjaro-system archlinux-keyring manjaro-keyring
-#XferCommand = /usr/bin/curl -C - -f %u > %o
-#XferCommand = /usr/bin/wget --passive-ftp -c -O %o %u
-#CleanMethod = KeepInstalled
-#UseDelta    = 0.7
-Architecture = auto
-# Pacman won't upgrade packages listed in IgnorePkg and members of IgnoreGroup
-IgnorePkg   = linux
-#IgnoreGroup =
-#NoUpgrade   =
-#NoExtract   =
-# Misc options
-#UseSyslog
-#Color
-#TotalDownload
-# We cannot check disk space from within a chroot environment
-#CheckSpace
-#VerbosePkgLists
-# By default, pacman accepts packages signed by keys that its local keyring
-# trusts (see pacman-key and its man page), as well as unsigned packages.
-SigLevel    = Required DatabaseOptional
-LocalFileSigLevel = Optional
-#RemoteFileSigLevel = Required
-
-# NOTE: You must run `pacman-key --init` before first using pacman; the local
-# keyring can then be populated with the keys of all official Manjaro Linux
-# packagers with `pacman-key --populate archlinux manjaro`.
-
-#
-# REPOSITORIES
-#   - can be defined here or included from another file
-#   - pacman will search repositories in the order defined here
-#   - local/custom mirrors can be added here or in separate files
-#   - repositories listed first will take precedence when packages
-#     have identical names, regardless of version number
-#   - URLs will have \$repo replaced by the name of the current repo
-#   - URLs will have $arch replaced by the name of the architecture
-#
-# Repository entries are of the format:
-#       [repo-name]
-#       Server = ServerName
-#       Include = IncludePath
-#
-# The header [repo-name] is crucial - it must be present and
-# uncommented to enable the repo.
-#
-# The testing repositories are disabled by default. To enable, uncomment the
-# repo name header and Include lines. You can add preferred servers immediately
-# after the header, and they will be used before the default mirrors.
-
-  [core]
-  SigLevel = Never
-  Include = /etc/pacman.d/mirrorlist
-
-  [extra]
-  SigLevel = Never
-  Include = /etc/pacman.d/mirrorlist
-
-  [community]
-  SigLevel = Never
-  Include = /etc/pacman.d/mirrorlist
-
-  # If you want to run 32 bit applications on your x86_64 system,
-  # enable the multilib repositories as required here.
-
-  [multilib]
-  SigLevel = Never
-  Include = /etc/pacman.d/mirrorlist
-
-  # An example of a custom package repository.  See the pacman manpage for
-  # tips on creating your own repositories.
-  #[custom]
-  #SigLevel = Optional TrustAll
-  #Server = file:///home/custompkgs
-EOF
-
-cat > "$mirrorlistpacman" <<- EOF
-##
-## Arch Linux 32 repository mirrorlist
-## Generated on 2020-05-06
-##
-
-## Belarus
-Server = http://mirror.datacenter.by/pub/archlinux32/\$arch/\$repo/
-Server = https://mirror.datacenter.by/pub/archlinux32/\$arch/\$repo/
-
-## France
-Server = http://archlinux32.agoctrl.org/\$arch/\$repo/
-Server = https://archlinux32.agoctrl.org/\$arch/\$repo/
-
-## Germany
-Server = http://de.mirror.archlinux32.org/\$arch/\$repo/
-Server = https://de.mirror.archlinux32.org/\$arch/\$repo/
-Server = http://ger.mirror.archlinux32.org/\$arch/\$repo/
-Server = https://ger.mirror.archlinux32.org/\$arch/\$repo/
-Server = http://mirror.archlinux32.org/\$arch/\$repo/
-Server = https://mirror.archlinux32.org/\$arch/\$repo/
-Server = http://mirror.archlinux32.oss/\$arch/\$repo/
-
-## Greece
-Server = http://gr.mirror.archlinux32.org/\$arch/\$repo/
-
-## India
-Server = http://ind.mirror.archlinux32.org/\$arch/\$repo/
-Server = https://ind.mirror.archlinux32.org/\$arch/\$repo/
-
-## Japan
-Server = http://jpn.mirror.archlinux32.org/\$arch/\$repo/
-Server = https://jpn.mirror.archlinux32.org/\$arch/\$repo/
-
-## Russia
-Server = http://mirror.yandex.ru/archlinux32/\$arch/\$repo/
-Server = https://mirror.yandex.ru/archlinux32/\$arch/\$repo/
-
-## Switzerland
-Server = http://archlinux32.andreasbaumann.cc/\$arch/\$repo/
-Server = https://archlinux32.andreasbaumann.cc/\$arch/\$repo/
-
-## United States
-Server = https://32.arlm.tyzoid.com/\$arch/\$repo/
-Server = http://mirror.clarkson.edu/archlinux32/\$arch/\$repo/
-Server = https://mirror.clarkson.edu/archlinux32/\$arch/\$repo/
-Server = http://mirror.math.princeton.edu/pub/archlinux32/\$arch/\$repo/
-Server = https://mirror.math.princeton.edu/pub/archlinux32/\$arch/\$repo/
-
-EOF
-
-fi
-
-
-if [ ${specialarchtype} == "x86_64" ]; then
-cat > "$pacmanconf" <<- EOF
-# /etc/pacman.conf
-# UNIFYSERVER PATCHED
-# See the pacman.conf(5) manpage for option and repository directives
-#
-# GENERAL OPTIONS
-#
-[options]
-# The following paths are commented out with their default values listed.
-# If you wish to use different paths, uncomment and update the paths.
-#RootDir     = /
-#DBPath      = /var/lib/pacman/
-CacheDir    = /InstallCache
-#LogFile     = /var/log/pacman.log
-#GPGDir      = /etc/pacman.d/gnupg/
-#HookDir     = /etc/pacman.d/hooks/
-HoldPkg      = pacman glibc manjaro-system
-# If upgrades are available for these packages they will be asked for first
-SyncFirst    = manjaro-system archlinux-keyring manjaro-keyring
-#XferCommand = /usr/bin/curl -C - -f %u > %o
-#XferCommand = /usr/bin/wget --passive-ftp -c -O %o %u
-#CleanMethod = KeepInstalled
-#UseDelta    = 0.7
-Architecture = auto
-# Pacman won't upgrade packages listed in IgnorePkg and members of IgnoreGroup
-IgnorePkg   = linux
-#IgnoreGroup =
-#NoUpgrade   =
-#NoExtract   =
-# Misc options
-#UseSyslog
-#Color
-#TotalDownload
-# We cannot check disk space from within a chroot environment
-#CheckSpace
-#VerbosePkgLists
-# By default, pacman accepts packages signed by keys that its local keyring
-# trusts (see pacman-key and its man page), as well as unsigned packages.
-SigLevel    = Required DatabaseOptional
-LocalFileSigLevel = Optional
-#RemoteFileSigLevel = Required
-
-# NOTE: You must run `pacman-key --init` before first using pacman; the local
-# keyring can then be populated with the keys of all official Manjaro Linux
-# packagers with `pacman-key --populate archlinux manjaro`.
-
-#
-# REPOSITORIES
-#   - can be defined here or included from another file
-#   - pacman will search repositories in the order defined here
-#   - local/custom mirrors can be added here or in separate files
-#   - repositories listed first will take precedence when packages
-#     have identical names, regardless of version number
-#   - URLs will have \$repo replaced by the name of the current repo
-#   - URLs will have $arch replaced by the name of the architecture
-#
-# Repository entries are of the format:
-#       [repo-name]
-#       Server = ServerName
-#       Include = IncludePath
-#
-# The header [repo-name] is crucial - it must be present and
-# uncommented to enable the repo.
-#
-# The testing repositories are disabled by default. To enable, uncomment the
-# repo name header and Include lines. You can add preferred servers immediately
-# after the header, and they will be used before the default mirrors.
-
-  [core]
-  SigLevel = Never
-  Include = /etc/pacman.d/mirrorlist
-
-  [extra]
-  SigLevel = Never
-  Include = /etc/pacman.d/mirrorlist
-
-  [community]
-  SigLevel = Never
-  Include = /etc/pacman.d/mirrorlist
-
-  # If you want to run 32 bit applications on your x86_64 system,
-  # enable the multilib repositories as required here.
-
-  [multilib]
-  SigLevel = Never
-  Include = /etc/pacman.d/mirrorlist
-
-  # An example of a custom package repository.  See the pacman manpage for
-  # tips on creating your own repositories.
-  #[custom]
-  #SigLevel = Optional TrustAll
-  #Server = file:///home/custompkgs
-EOF
-
-cat > "$mirrorlistpacman" <<- EOF
-  ##
-  ## Arch Linux repository mirrorlist
-  ## Generated on 2018-12-05
-  ##
-
-  ## Worldwide
-  Server = http://mirrors.evowise.com/archlinux/\$repo/os/\$arch
-  Server = http://mirror.rackspace.com/archlinux/\$repo/os/\$arch
-
-  ## Australia
-  Server = https://mirror.aarnet.edu.au/pub/archlinux/\$repo/os/\$arch
-  Server = http://archlinux.mirror.digitalpacific.com.au/\$repo/os/\$arch
-  Server = http://ftp.iinet.net.au/pub/archlinux/\$repo/os/\$arch
-  Server = http://mirror.internode.on.net/pub/archlinux/\$repo/os/\$arch
-  Server = http://archlinux.melbourneitmirror.net/\$repo/os/\$arch
-  Server = http://ftp.swin.edu.au/archlinux/\$repo/os/\$arch
-
-  ## Austria
-  Server = http://mirror.digitalnova.at/archlinux/\$repo/os/\$arch
-  Server = http://mirror.easyname.at/archlinux/\$repo/os/\$arch
-  Server = http://mirror.reisenbauer.ee/archlinux/\$repo/os/\$arch
-  Server = https://mirror.reisenbauer.ee/archlinux/\$repo/os/\$arch
-
-  ## Bangladesh
-  Server = http://mirror.xeonbd.com/archlinux/\$repo/os/\$arch
-
-  ## Belarus
-  Server = http://ftp.byfly.by/pub/archlinux/\$repo/os/\$arch
-  Server = http://mirror.datacenter.by/pub/archlinux/\$repo/os/\$arch
-
-  ## Belgium
-  Server = http://mirror.adct.be/arch/\$repo/os/\$arch
-  Server = http://archlinux.cu.be/\$repo/os/\$arch
-  Server = http://archlinux.mirror.kangaroot.net/\$repo/os/\$arch
-
-  ## Bosnia and Herzegovina
-  Server = http://archlinux.mirror.ba/\$repo/os/\$arch
-
-  ## Brazil
-  Server = http://br.mirror.archlinux-br.org/\$repo/os/\$arch
-  Server = http://archlinux.c3sl.ufpr.br/\$repo/os/\$arch
-  Server = http://www.caco.ic.unicamp.br/archlinux/\$repo/os/\$arch
-  Server = https://www.caco.ic.unicamp.br/archlinux/\$repo/os/\$arch
-  Server = http://linorg.usp.br/archlinux/\$repo/os/\$arch
-  Server = http://pet.inf.ufsc.br/mirrors/archlinux/\$repo/os/\$arch
-  Server = http://archlinux.pop-es.rnp.br/\$repo/os/\$arch
-  Server = http://mirror.ufam.edu.br/archlinux/\$repo/os/\$arch
-  Server = http://mirror.ufscar.br/archlinux/\$repo/os/\$arch
-
-  ## Bulgaria
-  Server = http://mirror.host.ag/archlinux/\$repo/os/\$arch
-  Server = https://mirrors.itbox.bg/archlinux/\$repo/os/\$arch
-  Server = http://mirrors.netix.net/archlinux/\$repo/os/\$arch
-  Server = http://mirrors.uni-plovdiv.net/archlinux/\$repo/os/\$arch
-  Server = https://mirrors.uni-plovdiv.net/archlinux/\$repo/os/\$arch
-
-  ## Canada
-  Server = http://mirror.cedille.club/archlinux/\$repo/os/\$arch
-  Server = http://archlinux.mirror.colo-serv.net/\$repo/os/\$arch
-  Server = http://mirror.csclub.uwaterloo.ca/archlinux/\$repo/os/\$arch
-  Server = https://mirror.csclub.uwaterloo.ca/archlinux/\$repo/os/\$arch
-  Server = http://mirror.its.dal.ca/archlinux/\$repo/os/\$arch
-  Server = http://muug.ca/mirror/archlinux/\$repo/os/\$arch
-  Server = https://muug.ca/mirror/archlinux/\$repo/os/\$arch
-  Server = http://archlinux.olanfa.rocks/\$repo/os/\$arch
-  Server = https://archlinux.olanfa.rocks/\$repo/os/\$arch
-  Server = http://archlinux.mirror.rafal.ca/\$repo/os/\$arch
-  Server = http://mirror.sergal.org/archlinux/\$repo/os/\$arch
-  Server = https://mirror.sergal.org/archlinux/\$repo/os/\$arch
-
-  ## Chile
-  Server = http://mirror.archlinux.cl/\$repo/os/\$arch
-
-  ## China
-  Server = http://mirrors.163.com/archlinux/\$repo/os/\$arch
-  Server = http://mirror.lzu.edu.cn/archlinux/\$repo/os/\$arch
-  Server = http://mirrors.neusoft.edu.cn/archlinux/\$repo/os/\$arch
-  Server = https://mirrors.neusoft.edu.cn/archlinux/\$repo/os/\$arch
-  Server = http://mirrors.shu.edu.cn/archlinux/\$repo/os/\$arch
-  Server = https://mirrors.shu.edu.cn/archlinux/\$repo/os/\$arch
-  Server = https://mirrors.shu6.edu.cn/archlinux/\$repo/os/\$arch
-  Server = https://mirrors.sjtug.sjtu.edu.cn/archlinux/\$repo/os/\$arch
-  Server = http://mirrors.tuna.tsinghua.edu.cn/archlinux/\$repo/os/\$arch
-  Server = https://mirrors.tuna.tsinghua.edu.cn/archlinux/\$repo/os/\$arch
-  Server = http://mirrors.ustc.edu.cn/archlinux/\$repo/os/\$arch
-  Server = https://mirrors.ustc.edu.cn/archlinux/\$repo/os/\$arch
-  Server = http://mirrors.xjtu.edu.cn/archlinux/\$repo/os/\$arch
-  Server = https://mirrors.xjtu.edu.cn/archlinux/\$repo/os/\$arch
-  Server = http://mirrors.zju.edu.cn/archlinux/\$repo/os/\$arch
-
-  ## Colombia
-  Server = http://mirrors.udenar.edu.co/archlinux/\$repo/os/\$arch
-  Server = http://mirror.upb.edu.co/archlinux/\$repo/os/\$arch
-  Server = http://mirror.venturasystems.tech/archlinux/\$repo/os/\$arch
-
-  ## Croatia
-  Server = http://archlinux.iskon.hr/\$repo/os/\$arch
-
-  ## Czechia
-  Server = http://mirror.dkm.cz/archlinux/\$repo/os/\$arch
-  Server = https://mirror.dkm.cz/archlinux/\$repo/os/\$arch
-  Server = http://ftp.fi.muni.cz/pub/linux/arch/\$repo/os/\$arch
-  Server = http://ftp.linux.cz/pub/linux/arch/\$repo/os/\$arch
-  Server = http://gluttony.sin.cvut.cz/arch/\$repo/os/\$arch
-  Server = https://gluttony.sin.cvut.cz/arch/\$repo/os/\$arch
-  Server = http://mirrors.nic.cz/archlinux/\$repo/os/\$arch
-  Server = http://ftp.sh.cvut.cz/arch/\$repo/os/\$arch
-  Server = https://ftp.sh.cvut.cz/arch/\$repo/os/\$arch
-  Server = http://mirror.vpsfree.cz/archlinux/\$repo/os/\$arch
-
-  ## Denmark
-  Server = http://mirrors.dotsrc.org/archlinux/\$repo/os/\$arch
-  Server = https://mirrors.dotsrc.org/archlinux/\$repo/os/\$arch
-  Server = http://ftp.klid.dk/ftp/archlinux/\$repo/os/\$arch
-  Server = http://mirror.one.com/archlinux/\$repo/os/\$arch
-  Server = https://mirror.one.com/archlinux/\$repo/os/\$arch
-
-  ## Ecuador
-  Server = http://mirror.cedia.org.ec/archlinux/\$repo/os/\$arch
-  Server = http://mirror.espoch.edu.ec/archlinux/\$repo/os/\$arch
-  Server = http://mirror.uta.edu.ec/archlinux/\$repo/os/\$arch
-
-  ## Finland
-  Server = http://arch.mirror.far.fi/\$repo/os/\$arch
-  Server = https://mirror.srv.fail/archlinux/\$repo/os/\$arch
-
-  ## France
-  Server = http://archlinux.de-labrusse.fr/\$repo/os/\$arch
-  Server = http://mirror.archlinux.ikoula.com/archlinux/\$repo/os/\$arch
-  Server = http://archlinux.vi-di.fr/\$repo/os/\$arch
-  Server = https://archlinux.vi-di.fr/\$repo/os/\$arch
-  Server = http://mirror.armbrust.me/archlinux/\$repo/os/\$arch
-  Server = https://mirror.armbrust.me/archlinux/\$repo/os/\$arch
-  Server = http://mirrors.arnoldthebat.co.uk/archlinux/\$repo/os/\$arch
-  Server = https://mirrors.arnoldthebat.co.uk/archlinux/\$repo/os/\$arch
-  Server = http://archlinux.mirrors.benatherton.com/\$repo/os/\$arch
-  Server = http://mirror.cyberbits.eu/archlinux/\$repo/os/\$arch
-  Server = https://mirror.cyberbits.eu/archlinux/\$repo/os/\$arch
-  Server = http://mirror.ibcp.fr/pub/archlinux/\$repo/os/\$arch
-  Server = http://mirror.lastmikoi.net/archlinux/\$repo/os/\$arch
-  Server = http://archlinux.mailtunnel.eu/\$repo/os/\$arch
-  Server = https://archlinux.mailtunnel.eu/\$repo/os/\$arch
-  Server = http://mir.archlinux.fr/\$repo/os/\$arch
-  Server = http://mirrors.celianvdb.fr/archlinux/\$repo/os/\$arch
-  Server = https://mirrors.celianvdb.fr/archlinux/\$repo/os/\$arch
-  Server = http://archlinux.mirrors.ovh.net/archlinux/\$repo/os/\$arch
-  Server = http://mirrors.phx.ms/arch/\$repo/os/\$arch
-  Server = https://mirrors.phx.ms/arch/\$repo/os/\$arch
-  Server = http://archlinux.mirror.pkern.at/\$repo/os/\$arch
-  Server = https://archlinux.mirror.pkern.at/\$repo/os/\$arch
-  Server = http://archlinux.polymorf.fr/\$repo/os/\$arch
-  Server = http://mirrors.standaloneinstaller.com/archlinux/\$repo/os/\$arch
-  Server = http://arch.tamcore.eu/\$repo/os/\$arch
-  Server = https://mirror.thekinrar.fr/archlinux/\$repo/os/\$arch
-  Server = http://ftp.u-strasbg.fr/linux/distributions/archlinux/\$repo/os/\$arch
-  Server = http://mirror.oldsql.cc/archlinux/\$repo/os/\$arch
-  Server = https://mirror.oldsql.cc/archlinux/\$repo/os/\$arch
-  Server = https://mirror.wormhole.eu/archlinux/\$repo/os/\$arch
-  Server = http://arch.yourlabs.org/\$repo/os/\$arch
-  Server = https://arch.yourlabs.org/\$repo/os/\$arch
-
-  ## Georgia
-  Server = http://archlinux.grena.ge/\$repo/os/\$arch
-  Server = https://archlinux.grena.ge/\$repo/os/\$arch
-
-  ## Germany
-  Server = http://mirror.23media.de/archlinux/\$repo/os/\$arch
-  Server = https://appuals.com/archlinux/\$repo/os/\$arch
-  Server = http://artfiles.org/archlinux.org/\$repo/os/\$arch
-  Server = https://mirror.bethselamin.de/\$repo/os/\$arch
-  Server = http://mirror.checkdomain.de/archlinux/\$repo/os/\$arch
-  Server = https://mirror.checkdomain.de/archlinux/\$repo/os/\$arch
-  Server = http://arch.eckner.net/archlinux/\$repo/os/\$arch
-  Server = https://arch.eckner.net/archlinux/\$repo/os/\$arch
-  Server = http://mirror.f4st.host/archlinux/\$repo/os/\$arch
-  Server = https://mirror.f4st.host/archlinux/\$repo/os/\$arch
-  Server = http://ftp.fau.de/archlinux/\$repo/os/\$arch
-  Server = https://ftp.fau.de/archlinux/\$repo/os/\$arch
-  Server = https://dist-mirror.fem.tu-ilmenau.de/archlinux/\$repo/os/\$arch
-  Server = https://mirror.gnomus.de/\$repo/os/\$arch
-  Server = http://www.gutscheindrache.com/mirror/archlinux/\$repo/os/\$arch
-  Server = http://ftp.gwdg.de/pub/linux/archlinux/\$repo/os/\$arch
-  Server = http://mirror.hactar.xyz/\$repo/os/\$arch
-  Server = https://mirror.hactar.xyz/\$repo/os/\$arch
-  Server = http://archlinux.honkgong.info/\$repo/os/\$arch
-  Server = http://ftp.hosteurope.de/mirror/ftp.archlinux.org/\$repo/os/\$arch
-  Server = http://ftp-stud.hs-esslingen.de/pub/Mirrors/archlinux/\$repo/os/\$arch
-  Server = http://archlinux.mirror.iphh.net/\$repo/os/\$arch
-  Server = http://repo.itmettke.de/archlinux/\$repo/os/\$arch
-  Server = https://repo.itmettke.de/archlinux/\$repo/os/\$arch
-  Server = http://arch.jensgutermuth.de/\$repo/os/\$arch
-  Server = https://arch.jensgutermuth.de/\$repo/os/\$arch
-  Server = http://k42.ch/mirror/archlinux/\$repo/os/\$arch
-  Server = https://k42.ch/mirror/archlinux/\$repo/os/\$arch
-  Server = https://archlinux.layer8.fail/\$repo/os/\$arch
-  Server = http://mirror.fra10.de.leaseweb.net/archlinux/\$repo/os/\$arch
-  Server = https://mirror.fra10.de.leaseweb.net/archlinux/\$repo/os/\$arch
-  Server = http://mirror.metalgamer.eu/archlinux/\$repo/os/\$arch
-  Server = https://mirror.metalgamer.eu/archlinux/\$repo/os/\$arch
-  Server = http://mirrors.n-ix.net/archlinux/\$repo/os/\$arch
-  Server = https://mirrors.n-ix.net/archlinux/\$repo/os/\$arch
-  Server = http://mirror.netcologne.de/archlinux/\$repo/os/\$arch
-  Server = https://mirror.netcologne.de/archlinux/\$repo/os/\$arch
-  Server = http://mirrors.niyawe.de/archlinux/\$repo/os/\$arch
-  Server = https://mirrors.niyawe.de/archlinux/\$repo/os/\$arch
-  Server = http://archlinux.nullpointer.io/\$repo/os/\$arch
-  Server = https://archlinux.nullpointer.io/\$repo/os/\$arch
-  Server = http://mirror.orbit-os.com/archlinux/\$repo/os/\$arch
-  Server = https://mirror.orbit-os.com/archlinux/\$repo/os/\$arch
-  Server = http://packages.oth-regensburg.de/archlinux/\$repo/os/\$arch
-  Server = https://packages.oth-regensburg.de/archlinux/\$repo/os/\$arch
-  Server = http://mirror.pseudoform.org/\$repo/os/\$arch
-  Server = https://mirror.pseudoform.org/\$repo/os/\$arch
-  Server = https://www.ratenzahlung.de/mirror/archlinux/\$repo/os/\$arch
-  Server = http://ftp.halifax.rwth-aachen.de/archlinux/\$repo/os/\$arch
-  Server = https://ftp.halifax.rwth-aachen.de/archlinux/\$repo/os/\$arch
-  Server = http://linux.rz.rub.de/archlinux/\$repo/os/\$arch
-  Server = http://mirror.selfnet.de/archlinux/\$repo/os/\$arch
-  Server = http://ftp.spline.inf.fu-berlin.de/mirrors/archlinux/\$repo/os/\$arch
-  Server = https://ftp.spline.inf.fu-berlin.de/mirrors/archlinux/\$repo/os/\$arch
-  Server = http://archlinux.thaller.ws/\$repo/os/\$arch
-  Server = https://archlinux.thaller.ws/\$repo/os/\$arch
-  Server = http://mirror.thomaskilian.net/archlinux/\$repo/os/\$arch
-  Server = https://mirror.thomaskilian.net/archlinux/\$repo/os/\$arch
-  Server = http://ftp.tu-chemnitz.de/pub/linux/archlinux/\$repo/os/\$arch
-  Server = http://mirror.ubrco.de/archlinux/\$repo/os/\$arch
-  Server = https://mirror.ubrco.de/archlinux/\$repo/os/\$arch
-  Server = http://ftp.uni-bayreuth.de/linux/archlinux/\$repo/os/\$arch
-  Server = http://ftp.uni-hannover.de/archlinux/\$repo/os/\$arch
-  Server = http://ftp.uni-kl.de/pub/linux/archlinux/\$repo/os/\$arch
-  Server = http://mirror.united-gameserver.de/archlinux/\$repo/os/\$arch
-  Server = http://arch.unixpeople.org/\$repo/os/\$arch
-  Server = http://ftp.wrz.de/pub/archlinux/\$repo/os/\$arch
-  Server = https://ftp.wrz.de/pub/archlinux/\$repo/os/\$arch
-
-  ## Greece
-  Server = http://ftp.cc.uoc.gr/mirrors/linux/archlinux/\$repo/os/\$arch
-  Server = http://foss.aueb.gr/mirrors/linux/archlinux/\$repo/os/\$arch
-  Server = https://foss.aueb.gr/mirrors/linux/archlinux/\$repo/os/\$arch
-  Server = http://mirrors.myaegean.gr/linux/archlinux/\$repo/os/\$arch
-  Server = http://ftp.ntua.gr/pub/linux/archlinux/\$repo/os/\$arch
-  Server = http://ftp.otenet.gr/linux/archlinux/\$repo/os/\$arch
-
-  ## Hong Kong
-  Server = http://mirror-hk.koddos.net/archlinux/\$repo/os/\$arch
-  Server = https://mirror-hk.koddos.net/archlinux/\$repo/os/\$arch
-  Server = http://mirrors.kurnode.com/archlinux/\$repo/os/\$arch
-  Server = https://mirrors.kurnode.com/archlinux/\$repo/os/\$arch
-  Server = https://arch-mirror.wtako.net/\$repo/os/\$arch
-  Server = http://mirror.xtom.com.hk/archlinux/\$repo/os/\$arch
-  Server = https://mirror.xtom.com.hk/archlinux/\$repo/os/\$arch
-
-  ## Hungary
-  Server = http://ftp.energia.mta.hu/pub/mirrors/ftp.archlinux.org/\$repo/os/\$arch
-  Server = http://archmirror.hbit.sztaki.hu/archlinux/\$repo/os/\$arch
-
-  ## Iceland
-  Server = http://mirror.system.is/arch/\$repo/os/\$arch
-  Server = https://mirror.system.is/arch/\$repo/os/\$arch
-
-  ## India
-  Server = http://mirror.cse.iitk.ac.in/archlinux/\$repo/os/\$arch
-  Server = http://ftp.iitm.ac.in/archlinux/\$repo/os/\$arch
-  Server = https://ind.mirror.pkgbuild.com/\$repo/os/\$arch
-
-  ## Indonesia
-  Server = http://mirror.poliwangi.ac.id/archlinux/\$repo/os/\$arch
-  Server = http://suro.ubaya.ac.id/archlinux/\$repo/os/\$arch
-
-  ## Iran
-  Server = http://repo.iut.ac.ir/repo/archlinux/\$repo/os/\$arch
-  Server = http://repo.sadjad.ac.ir/arch/\$repo/os/\$arch
-  Server = https://repo.sadjad.ac.ir/arch/\$repo/os/\$arch
-
-  ## Ireland
-  Server = http://ftp.heanet.ie/mirrors/ftp.archlinux.org/\$repo/os/\$arch
-  Server = https://ftp.heanet.ie/mirrors/ftp.archlinux.org/\$repo/os/\$arch
-
-  ## Israel
-  Server = http://mirror.isoc.org.il/pub/archlinux/\$repo/os/\$arch
-  Server = https://archlinux.mivzakim.net/\$repo/os/\$arch
-
-  ## Italy
-  Server = https://archlinux.beccacervello.it/archlinux/\$repo/os/\$arch
-  Server = http://archlinux.mirror.garr.it/archlinux/\$repo/os/\$arch
-  Server = http://mirrors.prometeus.net/archlinux/\$repo/os/\$arch
-
-  ## Japan
-  Server = http://mirrors.cat.net/archlinux/\$repo/os/\$arch
-  Server = https://mirrors.cat.net/archlinux/\$repo/os/\$arch
-  Server = http://ftp.tsukuba.wide.ad.jp/Linux/archlinux/\$repo/os/\$arch
-  Server = http://ftp.jaist.ac.jp/pub/Linux/ArchLinux/\$repo/os/\$arch
-  Server = https://ftp.jaist.ac.jp/pub/Linux/ArchLinux/\$repo/os/\$arch
-  Server = https://jpn.mirror.pkgbuild.com/\$repo/os/\$arch
-
-  ## Kazakhstan
-  Server = http://mirror.ps.kz/archlinux/\$repo/os/\$arch
-  Server = https://mirror.ps.kz/archlinux/\$repo/os/\$arch
-
-  ## Kenya
-  Server = http://archlinux.mirror.liquidtelecom.com/\$repo/os/\$arch
-  Server = https://archlinux.mirror.liquidtelecom.com/\$repo/os/\$arch
-
-  ## Latvia
-  Server = http://archlinux.koyanet.lv/archlinux/\$repo/os/\$arch
-
-  ## Lithuania
-  Server = http://mirrors.atviras.lt/archlinux/\$repo/os/\$arch
-  Server = https://mirrors.atviras.lt/archlinux/\$repo/os/\$arch
-
-  ## Luxembourg
-  Server = http://archlinux.mirror.root.lu/\$repo/os/\$arch
-
-  ## Macedonia
-  Server = http://arch.softver.org.mk/archlinux/\$repo/os/\$arch
-  Server = http://mirror.onevip.mk/archlinux/\$repo/os/\$arch
-  Server = http://mirror.t-home.mk/archlinux/\$repo/os/\$arch
-  Server = https://mirror.t-home.mk/archlinux/\$repo/os/\$arch
-
-  ## Mexico
-  Server = https://mex.mirror.pkgbuild.com/\$repo/os/\$arch
-
-  ## Netherlands
-  Server = http://mirror.i3d.net/pub/archlinux/\$repo/os/\$arch
-  Server = https://mirror.i3d.net/pub/archlinux/\$repo/os/\$arch
-  Server = http://mirror.koddos.net/archlinux/\$repo/os/\$arch
-  Server = https://mirror.koddos.net/archlinux/\$repo/os/\$arch
-  Server = http://archmirror.lavatech.top/\$repo/os/\$arch
-  Server = https://archmirror.lavatech.top/\$repo/os/\$arch
-  Server = http://mirror.ams1.nl.leaseweb.net/archlinux/\$repo/os/\$arch
-  Server = https://mirror.ams1.nl.leaseweb.net/archlinux/\$repo/os/\$arch
-  Server = http://mirror.neostrada.nl/archlinux/\$repo/os/\$arch
-  Server = https://mirror.neostrada.nl/archlinux/\$repo/os/\$arch
-  Server = http://mirror.netrouting.net/archlinux/\$repo/os/\$arch
-  Server = http://ftp.nluug.nl/os/Linux/distr/archlinux/\$repo/os/\$arch
-  Server = http://archlinux.mirror.pcextreme.nl/\$repo/os/\$arch
-  Server = https://archlinux.mirror.pcextreme.nl/\$repo/os/\$arch
-  Server = http://ftp.snt.utwente.nl/pub/os/linux/archlinux/\$repo/os/\$arch
-  Server = http://archlinux.mirror.wearetriple.com/\$repo/os/\$arch
-  Server = https://archlinux.mirror.wearetriple.com/\$repo/os/\$arch
-
-  ## New Caledonia
-  Server = http://mirror.lagoon.nc/pub/archlinux/\$repo/os/\$arch
-  Server = http://archlinux.nautile.nc/archlinux/\$repo/os/\$arch
-  Server = https://archlinux.nautile.nc/archlinux/\$repo/os/\$arch
-
-  ## New Zealand
-  Server = http://mirror.fsmg.org.nz/archlinux/\$repo/os/\$arch
-  Server = https://mirror.fsmg.org.nz/archlinux/\$repo/os/\$arch
-  Server = http://mirror.smith.geek.nz/archlinux/\$repo/os/\$arch
-  Server = https://mirror.smith.geek.nz/archlinux/\$repo/os/\$arch
-  Server = https://arch.mirrors.theom.nz/\$repo/os/\$arch
-
-  ## Norway
-  Server = http://mirror.archlinux.no/\$repo/os/\$arch
-  Server = http://archlinux.uib.no/\$repo/os/\$arch
-  Server = http://mirror.homelab.no/archlinux/\$repo/os/\$arch
-  Server = https://mirror.homelab.no/archlinux/\$repo/os/\$arch
-  Server = http://mirror.neuf.no/archlinux/\$repo/os/\$arch
-  Server = https://mirror.neuf.no/archlinux/\$repo/os/\$arch
-
-  ## Paraguay
-  Server = http://archlinux.mirror.py/archlinux/\$repo/os/\$arch
-
-  ## Philippines
-  Server = http://mirror.rise.ph/archlinux/\$repo/os/\$arch
-
-  ## Poland
-  Server = http://arch.midov.pl/arch/\$repo/os/\$arch
-  Server = http://mirror.onet.pl/pub/mirrors/archlinux/\$repo/os/\$arch
-  Server = http://piotrkosoft.net/pub/mirrors/ftp.archlinux.org/\$repo/os/\$arch
-  Server = http://ftp.vectranet.pl/archlinux/\$repo/os/\$arch
-
-  ## Portugal
-  Server = http://glua.ua.pt/pub/archlinux/\$repo/os/\$arch
-  Server = https://glua.ua.pt/pub/archlinux/\$repo/os/\$arch
-  Server = http://ftp.rnl.tecnico.ulisboa.pt/pub/archlinux/\$repo/os/\$arch
-  Server = https://ftp.rnl.tecnico.ulisboa.pt/pub/archlinux/\$repo/os/\$arch
-
-  ## Qatar
-  Server = http://mirror.qnren.qa/archlinux/\$repo/os/\$arch
-
-  ## Romania
-  Server = http://archlinux.mirrors.linux.ro/\$repo/os/\$arch
-  Server = http://mirrors.m247.ro/archlinux/\$repo/os/\$arch
-  Server = http://mirrors.nav.ro/archlinux/\$repo/os/\$arch
-  Server = http://mirrors.nxthost.com/archlinux/\$repo/os/\$arch
-  Server = https://mirrors.nxthost.com/archlinux/\$repo/os/\$arch
-  Server = http://mirrors.pidginhost.com/arch/\$repo/os/\$arch
-  Server = https://mirrors.pidginhost.com/arch/\$repo/os/\$arch
-
-  ## Russia
-  Server = http://mirror.aur.rocks/\$repo/os/\$arch
-  Server = https://mirror.aur.rocks/\$repo/os/\$arch
-  Server = http://mirror.rol.ru/archlinux/\$repo/os/\$arch
-  Server = https://mirror.rol.ru/archlinux/\$repo/os/\$arch
-  Server = http://mirror.truenetwork.ru/archlinux/\$repo/os/\$arch
-  Server = http://mirror.yandex.ru/archlinux/\$repo/os/\$arch
-  Server = https://mirror.yandex.ru/archlinux/\$repo/os/\$arch
-  Server = http://archlinux.zepto.cloud/\$repo/os/\$arch
-
-  ## Serbia
-  Server = http://arch.petarmaric.com/\$repo/os/\$arch
-  Server = http://mirror.pmf.kg.ac.rs/archlinux/\$repo/os/\$arch
-
-  ## Singapore
-  Server = http://mirror.0x.sg/archlinux/\$repo/os/\$arch
-  Server = https://mirror.0x.sg/archlinux/\$repo/os/\$arch
-  Server = https://sgp.mirror.pkgbuild.com/\$repo/os/\$arch
-  Server = http://mirror.nus.edu.sg/archlinux/\$repo/os/\$arch
-
-  ## Slovakia
-  Server = http://mirror.lnx.sk/pub/linux/archlinux/\$repo/os/\$arch
-  Server = https://mirror.lnx.sk/pub/linux/archlinux/\$repo/os/\$arch
-  Server = http://tux.rainside.sk/archlinux/\$repo/os/\$arch
-
-  ## Slovenia
-  Server = http://archimonde.ts.si/archlinux/\$repo/os/\$arch
-  Server = https://archimonde.ts.si/archlinux/\$repo/os/\$arch
-
-  ## South Africa
-  Server = http://za.mirror.archlinux-br.org/\$repo/os/\$arch
-  Server = http://mirror.is.co.za/mirror/archlinux.org/\$repo/os/\$arch
-
-  ## South Korea
-  Server = http://ftp.kaist.ac.kr/ArchLinux/\$repo/os/\$arch
-  Server = http://ftp.lanet.kr/pub/archlinux/\$repo/os/\$arch
-  Server = https://ftp.lanet.kr/pub/archlinux/\$repo/os/\$arch
-  Server = http://mirror.premi.st/archlinux/\$repo/os/\$arch
-
-  ## Spain
-  Server = http://osl.ugr.es/archlinux/\$repo/os/\$arch
-  Server = http://ftp.rediris.es/mirror/archlinux/\$repo/os/\$arch
-
-  ## Sweden
-  Server = http://ftp.acc.umu.se/mirror/archlinux/\$repo/os/\$arch
-  Server = https://ftp.acc.umu.se/mirror/archlinux/\$repo/os/\$arch
-  Server = http://archlinux.dynamict.se/\$repo/os/\$arch
-  Server = https://archlinux.dynamict.se/\$repo/os/\$arch
-  Server = http://ftp.lysator.liu.se/pub/archlinux/\$repo/os/\$arch
-  Server = https://ftp.lysator.liu.se/pub/archlinux/\$repo/os/\$arch
-  Server = http://ftp.myrveln.se/pub/linux/archlinux/\$repo/os/\$arch
-  Server = https://ftp.myrveln.se/pub/linux/archlinux/\$repo/os/\$arch
-  Server = https://mirror.osbeck.com/archlinux/\$repo/os/\$arch
-
-  ## Switzerland
-  Server = http://pkg.adfinis-sygroup.ch/archlinux/\$repo/os/\$arch
-  Server = https://pkg.adfinis-sygroup.ch/archlinux/\$repo/os/\$arch
-  Server = http://mirror.puzzle.ch/archlinux/\$repo/os/\$arch
-  Server = https://mirror.puzzle.ch/archlinux/\$repo/os/\$arch
-  Server = https://mirror.ungleich.ch/mirror/packages/archlinux/\$repo/os/\$arch
-
-  ## Taiwan
-  Server = http://archlinux.cs.nctu.edu.tw/\$repo/os/\$arch
-  Server = http://shadow.ind.ntou.edu.tw/archlinux/\$repo/os/\$arch
-  Server = http://ftp.tku.edu.tw/Linux/ArchLinux/\$repo/os/\$arch
-  Server = http://ftp.yzu.edu.tw/Linux/archlinux/\$repo/os/\$arch
-
-  ## Thailand
-  Server = http://mirror.kku.ac.th/archlinux/\$repo/os/\$arch
-  Server = https://mirror.kku.ac.th/archlinux/\$repo/os/\$arch
-  Server = http://mirror2.totbb.net/archlinux/\$repo/os/\$arch
-
-  ## Turkey
-  Server = http://ftp.linux.org.tr/archlinux/\$repo/os/\$arch
-  Server = http://mirror.veriteknik.net.tr/archlinux/\$repo/os/\$arch
-
-  ## Ukraine
-  Server = http://archlinux.ip-connect.vn.ua/\$repo/os/\$arch
-  Server = https://archlinux.ip-connect.vn.ua/\$repo/os/\$arch
-  Server = http://mirrors.nix.org.ua/linux/archlinux/\$repo/os/\$arch
-  Server = https://mirrors.nix.org.ua/linux/archlinux/\$repo/os/\$arch
-
-  ## United Kingdom
-  Server = http://mirror.bytemark.co.uk/archlinux/\$repo/os/\$arch
-  Server = https://mirror.bytemark.co.uk/archlinux/\$repo/os/\$arch
-  Server = http://mirrors.manchester.m247.com/arch-linux/\$repo/os/\$arch
-  Server = http://www.mirrorservice.org/sites/ftp.archlinux.org/\$repo/os/\$arch
-  Server = https://www.mirrorservice.org/sites/ftp.archlinux.org/\$repo/os/\$arch
-  Server = http://arch.serverspace.co.uk/arch/\$repo/os/\$arch
-  Server = http://archlinux.mirrors.uk2.net/\$repo/os/\$arch
-  Server = http://mirrors.ukfast.co.uk/sites/archlinux.org/\$repo/os/\$arch
-  Server = https://mirrors.ukfast.co.uk/sites/archlinux.org/\$repo/os/\$arch
-
-  ## United States
-  Server = http://mirrors.acm.wpi.edu/archlinux/\$repo/os/\$arch
-  Server = http://mirrors.advancedhosters.com/archlinux/\$repo/os/\$arch
-  Server = http://mirrors.aggregate.org/archlinux/\$repo/os/\$arch
-  Server = http://ca.us.mirror.archlinux-br.org/\$repo/os/\$arch
-  Server = http://il.us.mirror.archlinux-br.org/\$repo/os/\$arch
-  Server = http://archlinux.surlyjake.com/archlinux/\$repo/os/\$arch
-  Server = https://archlinux.surlyjake.com/archlinux/\$repo/os/\$arch
-  Server = http://arlm.tyzoid.com/\$repo/os/\$arch
-  Server = https://arlm.tyzoid.com/\$repo/os/\$arch
-  Server = http://mirror.as65535.net/archlinux/\$repo/os/\$arch
-  Server = http://mirrors.cat.pdx.edu/archlinux/\$repo/os/\$arch
-  Server = http://arch.mirror.constant.com/\$repo/os/\$arch
-  Server = https://arch.mirror.constant.com/\$repo/os/\$arch
-  Server = http://mirror.cs.pitt.edu/archlinux/\$repo/os/\$arch
-  Server = http://mirror.cs.vt.edu/pub/ArchLinux/\$repo/os/\$arch
-  Server = http://distro.ibiblio.org/archlinux/\$repo/os/\$arch
-  Server = http://mirror.es.its.nyu.edu/archlinux/\$repo/os/\$arch
-  Server = http://mirrors.gigenet.com/archlinux/\$repo/os/\$arch
-  Server = http://mirror.grig.io/archlinux/\$repo/os/\$arch
-  Server = https://mirror.grig.io/archlinux/\$repo/os/\$arch
-  Server = http://www.gtlib.gatech.edu/pub/archlinux/\$repo/os/\$arch
-  Server = http://mirror.dc02.hackingand.coffee/arch/\$repo/os/\$arch
-  Server = http://mirror.hackingand.coffee/arch/\$repo/os/\$arch
-  Server = https://mirror.dc02.hackingand.coffee/arch/\$repo/os/\$arch
-  Server = https://mirror.hackingand.coffee/arch/\$repo/os/\$arch
-  Server = http://repo.ialab.dsu.edu/archlinux/\$repo/os/\$arch
-  Server = http://mirrors.kernel.org/archlinux/\$repo/os/\$arch
-  Server = https://mirrors.kernel.org/archlinux/\$repo/os/\$arch
-  Server = http://mirror.dal10.us.leaseweb.net/archlinux/\$repo/os/\$arch
-  Server = http://mirror.sfo12.us.leaseweb.net/archlinux/\$repo/os/\$arch
-  Server = http://mirror.wdc1.us.leaseweb.net/archlinux/\$repo/os/\$arch
-  Server = https://mirror.dal10.us.leaseweb.net/archlinux/\$repo/os/\$arch
-  Server = https://mirror.sfo12.us.leaseweb.net/archlinux/\$repo/os/\$arch
-  Server = https://mirror.wdc1.us.leaseweb.net/archlinux/\$repo/os/\$arch
-  Server = http://mirrors.liquidweb.com/archlinux/\$repo/os/\$arch
-  Server = http://mirror.lty.me/archlinux/\$repo/os/\$arch
-  Server = https://mirror.lty.me/archlinux/\$repo/os/\$arch
-  Server = http://mirrors.lug.mtu.edu/archlinux/\$repo/os/\$arch
-  Server = https://mirrors.lug.mtu.edu/archlinux/\$repo/os/\$arch
-  Server = http://mirror.math.princeton.edu/pub/archlinux/\$repo/os/\$arch
-  Server = http://mirror.metrocast.net/archlinux/\$repo/os/\$arch
-  Server = http://mirror.kaminski.io/archlinux/\$repo/os/\$arch
-  Server = https://mirror.kaminski.io/archlinux/\$repo/os/\$arch
-  Server = http://repo.miserver.it.umich.edu/archlinux/\$repo/os/\$arch
-  Server = http://mirrors.ocf.berkeley.edu/archlinux/\$repo/os/\$arch
-  Server = https://mirrors.ocf.berkeley.edu/archlinux/\$repo/os/\$arch
-  Server = http://ftp.osuosl.org/pub/archlinux/\$repo/os/\$arch
-  Server = http://arch.mirrors.pair.com/\$repo/os/\$arch
-  Server = http://mirrors.rit.edu/archlinux/\$repo/os/\$arch
-  Server = https://mirrors.rit.edu/archlinux/\$repo/os/\$arch
-  Server = http://mirrors.rutgers.edu/archlinux/\$repo/os/\$arch
-  Server = https://mirrors.rutgers.edu/archlinux/\$repo/os/\$arch
-  Server = http://mirror.siena.edu/archlinux/\$repo/os/\$arch
-  Server = http://mirrors.sonic.net/archlinux/\$repo/os/\$arch
-  Server = https://mirrors.sonic.net/archlinux/\$repo/os/\$arch
-  Server = http://mirrors.sorengard.com/archlinux/\$repo/os/\$arch
-  Server = https://mirrors.sorengard.com/archlinux/\$repo/os/\$arch
-  Server = http://arch.mirror.square-r00t.net/\$repo/os/\$arch
-  Server = https://arch.mirror.square-r00t.net/\$repo/os/\$arch
-  Server = http://mirror.stephen304.com/archlinux/\$repo/os/\$arch
-  Server = https://mirror.stephen304.com/archlinux/\$repo/os/\$arch
-  Server = http://mirror.umd.edu/archlinux/\$repo/os/\$arch
-  Server = http://mirror.vtti.vt.edu/archlinux/\$repo/os/\$arch
-  Server = http://mirrors.xmission.com/archlinux/\$repo/os/\$arch
-  Server = http://mirrors.xtom.com/archlinux/\$repo/os/\$arch
-  Server = https://mirrors.xtom.com/archlinux/\$repo/os/\$arch
-  ## Vietnam
-  Server = http://f.archlinuxvn.org/archlinux/\$repo/os/\$arch
-EOF
-
-fi
+# Setting up Repository
+# Port Archlinux to Alpine : Since the apk doesnt have an issues on each of architecture therefore it is better to not include specific apk configuration
 
 # When doing a huge EOF do not forget that each EOF token do not insert and indentation or it will read as invalid
 # Reference https://stackoverflow.com/questions/18660798/here-document-gives-unexpected-end-of-file-error
 
 
 
-
-
 echo "${pbadge} 🧳 Doing some initial Setup"
 echo "Cleaning Lists"
-sed -i "s/^[[:space:]]*\(CheckSpace\)/# \1/" "${folder}/etc/pacman.conf"
 export installmode=1 #this flag is to disable env before updating the glibc
 threadGPG=$(bash ${bin} "pacman-key --init" > ${logs}/gpgInit 2>&1 ) &
 echo "Waiting for 55 seconds"
@@ -2937,13 +1991,7 @@ echo "${pbadge} Forcefully Refreshing repo"
 bash ${bin} "pacman -Syy --noconfirm --overwrite * "
 bash ${bin} "pacman -Syy libidn2 libpsl gnutls systemd curl gpgme gnupg --noconfirm --overwrite * " 
 bash ${bin} "pacman -Syyu busybox awk which screenfetch perl fish --noconfirm --overwrite * "
-#bash ${bin} "rm -rf /tmp/*;apt-get clean ; mv /var/lib/apt/lists /tmp; mkdir -p /var/lib/apt/lists/partial; apt-get clean;chown -R root:root /var/lib/apt/lists/partial"
-#bash ${bin} "apt-get update --allow-insecure-repositories"
-#bash ${bin} "apt-get update --allow-insecure-repositories --allow-unauthenticated"
-#bash ${bin} "apt-get -o Debug::Acquire::gpgv=1 install --allow-unauthenticated gnupg -y"
-#echo "Recovering Keys"
-#bash ${bin} "apt-key adv -v --keyserver keyserver.bootstrap.com --recv-keys"
-#bash ${bin} "apt-get -o Debug::Acquire::gpgv=1 install --allow-unauthenticated dialog gnupg busybox screenfetch perl fish -y"
+
 if [ -f ${maindir}/NOPTRACE ]; then
 bash ${bin} "pacman-key --populate archlinux${specialarchtype}" # fixing at least one signature invalidation prolem
 # the reason is still unknown why chroot butchered the permission or make the gpg inavlid
@@ -3194,112 +2242,6 @@ fi
 
 
 
-
-
-APIcall(){
-  dummyResponse(){
-  echo "${pbadge} Current version of API Abstraction Layer is unsupported for your current environment"
-  }
-  #This function is basically like a API abstraction layer
-  #red
-  #echo "${pbadge} Function is not implemented"
-  #echo '[DEBUG] APIcall() function only supported for termux '
-  #yellow
-  #echo "${pbadge} Detecting available API"
-  #echo '[WARN] Wakelock, Notification, Humain interface input, Sensors may not work on current version'#
-
-  #____________________________
-  #Hardware Acceleration Setup
-  #OpenCL
-  opencl_forward(){
-    echo "${pbadge} Function is not yet implemented"
-  }
-  #__________________________
-  if [ ${distro} == "termux" ]; then
-    #systemUI calls
-    #echo "Using Termux API"
-    systemUI_notifysend(){ termux-notification "${1}" "${2}" "${3}" "${4}" ;}
-    systemUI_directNotification(){ termux-toast "${1}" "${2}" "${3}" "${4}" ;}
-    systemUI_nativeDownload(){ termux-download "${1}" "${2}" "${3}" "${4}" ;}
-    systemUI_clipboard_get(){ termux-clipboard-get; }
-    systemUI_clipboard_set(){ termux-clipboard-set; }
-    systemUI_authFingerprint(){ termux-fingerprint; }
-    #Power management calls
-    pwmCall_batterystat(){ termux-battery-status; }
-    pwmCall_enable_wakelockcall(){ termux-wake-lock; }
-    pwmCall_disable_wakelockcall(){ termux-wake-unlock; }
-    pwmCall_brightnessAdjust(){ termux-brightness; }
-    #Sensors call
-    sense_Retrievesensor(){ termux-sensor; }
-    #radiocall
-    tele_sms_read(){ termux-sms-list; }
-    tele_sms_send(){ termux-sms-send; }
-    tele_voice_call(){ termux-telephony-call ${1} ${2} ${3} ;}
-    #hardware access
-    hw_usb(){ termux-usb ${1} ${2} ${3} ;}
-  fi
-  if [ ${distro} == "debianGNU" ] || [ ${distro} == "iSH" ] || [ ${distro} == "debian" ] || [ ${distro} == "archlinux" ]; then
-    #systemUI calls
-    #echo "Using Generic GNU/Linux calls"
-    systemUI_notifysend(){ echo [INFO] ${pbadge}; }
-    if [ ! -z $(which xmessage) ]; then
-    systemUI_directNotification(){ xmessage; }
-  else
-    systemUI_directNotification(){ echo [INFO] ${pbadge}; }
-  fi
-  if [ ${WSLenv} == "1" ] && [ ! -z ${WSLenv} ]; then
-    #echo "Using WSL specific calls"
-  systemUI_directNotification(){ powershell.exe New-BurntToastNotification -Text "${1}" "${2}" "${3}" "${4}" ; }
-  systemUI_notifysend(){ powershell.exe New-BurntToastNotification -Text "${1}" "${2}" "${3}" "${4}"; }
-fi
-    alias systemUI_sensorpoll="dummyResponse"
-    if [ ! -z $(which aria2c) ]; then
-    systemUI_nativeDownload(){ aria2c; }
-  else
-    systemUI_nativeDownload(){ wget; }
-  fi
-    if [ ! -z $(which xclip) ]; then
-    systemUI_clipboard_get(){ xclip; }
-    systemUI_clipboard_set(){ xclip -selection c; }
-  else
-    alias systemUI_clipboard_get="dummyResponse"
-    alias systemUI_clipboard_set="dummyResponse"
-  fi
-    alias systemUI_authFingerprint="dummyResponse"
-    #Power management calls
-    if [ ! -d /proc/acpi ]; then
-    alias pwmCall_batterystat="termux-battery-status"
-    alias pwmCall_enable_wakelockcall="termux-wake-lock"
-    alias pwmCall_disable_wakelockcall="termux-wake-unlock"
-    alias pwmCall_brightnessAdjust="termux-brightness"
-  else
-    alias pwmCall_batterystat="dummyResponse"
-    alias pwmCall_enable_wakelockcall="dummyResponse"
-    alias pwmCall_disable_wakelockcall="dummyResponse"
-    alias pwmCall_brightnessAdjust="dummyResponse"
-  fi
-    #Sensors call
-    export sense_Retrievesensor="dummyResponse"
-    #radiocall
-    alias tele_sms_read="dummyResponse"
-    alias tele_sms_send="dummyResponse"
-    alias tele_voice_call="dummyResponse"
-    #hardware access
-    hw_usb(){ lsusb ; }
-  fi
-  # use distroDetection to determine its API usage
-  # API that is need to be implemented are but not limited
-  # Wakelock, Notification, Humain interface input, Sensors
-
-#125
-#https://unix.stackexchange.com/questions/1496/why-doesnt-my-bash-script-recognize-aliases
-#First of all, as ddeimeke said, aliases by default are not expanded in non-interactive shells.
-#Second, .bashrc is not read by non-interactive shells unless you set the BASH_ENV environment variable.
-#But most importantly: don't do that! Please? One day you will move that script somewhere where the necessary aliases are not set and it will break again.
-#Instead set and use environment variables as shortcuts in your script:
-  "${1}" "${2}" "${3}" "${4}" &
-}
-
 envTroubleShooting(){
 yellow
 echo "${pbadge} Experimental Troubleshooter"
@@ -3365,156 +2307,10 @@ fi
 
 }
 
-#https://stackoverflow.com/questions/4013947/how-to-use-pastebin-from-shell-script
-sendLog() {
-  if [[ $1 ]]; then
-    curl -F 'sprunge=<-' "http://sprunge.us" <"$1"
-  else
-    curl -F 'sprunge=<-' "http://sprunge.us"
-  fi
-}
-
-clearlog(){
-rm -rf ${logs}/*.log
-}
-
-diagnosticsRun(){
-clear
-confirmation
-folderInit # we need to do folderInit due to the fact that we skipped the boot sequence so the folder and other variable does not initialize unless we do folderInit
-dependencies
-#clearlog
-#How about we send the full diagnostics? so we see what does the person did wrong?
-clear
-yellow
-echo "================================================="
-green
-echo "UnifyServer Rapid Analysis and Compatibility test"
-yellow
-echo "================================================="
-red
-echo "Recording UnifyServer Behaviour for 10 minutes"
-green
-echo "While waiting for next instructions you can leave this program in the background"
-echo "and get cup of green tea while murmuring about the rain"
-yellow
-echo "================================================="
-
-functionTests(){
-yellow
-echo "=================="
-export NOBOOT="" # we neeed to unset NOBOOT due to the fact NOBOOT parameter was exported globally caused a chaos while testing
-green
-export diagnosticTrigger=1
-echo "Triggering Install"  >> ${logs}/diagnostics.log 2>&1
-date >> ${logs}/diagnostics.log 2>&1
-bash ${0} help all >> ${logs}/diagnostics.log  2>&1
-yellow
-echo "refresh"  >> ${logs}/diagnostics.log 2>&1
-date >> ${logs}/diagnostics.log 2>&1
-bash ${0} refresh yes >> ${logs}/diagnostics.log  2>&1
-yellow
-echo "import" >> ${logs}/diagnostics.log 2>&1
-green
-bash ${0} import 'https://github.com/Questandachievement7Developer/container_importExample' >> ${logs}/diagnostics.log  2>&1
-yellow
-echo "list" >> ${logs}/diagnostics.log 2>&1
-green
-bash ${0} list all >> ${logs}/diagnostics.log  2>&1
-yellow
-echo "refresh" >> ${logs}/diagnostics.log 2>&1
-green
-env SCRIPTCALL=1 bash ${0} reset ContainerImportTestfromGithub  >> ${logs}/diagnostics.log  2>&1
-yellow
-echo "Setup" >> ${logs}/diagnostics.log 2>&1
-green
-recoveryEnvironment >> ${logs}/diagnostics.log  2>&1
-yellow
-echo "remove"
-green
-env SCRIPTCALL=1 bash ${0} remove ContainerImportTestfromGithub  >> ${logs}/diagnostics.log  2>&1
-yellow
-echo "=================="
-}
-sendDiagnostics(){
-    # Send diagnostics timeout is when the diagnostic are taking too long so it will interrupt and send the logs or diagnostic data without waiting for the diagnostic to finish
-if [ $TIMEOUTWAIT == 1 ]; then
-yellow
-echo "${pbadge} [sendDiagnostics()] I have been launched! "
-echo "${pbadge} [sendDiagnostics()] Dont worry we will be done in the next 10 Minutes "
-sleep 100
-echo "${pbadge} [sendDiagnostics()] journalizing it "
-sleep 100
-echo "${pbadge} [sendDiagnostics()] Intresting "
-sleep 100
-echo "${pbadge} [sendDiagnostics()] GNU/Linux are great "
-sleep 100
-echo "${pbadge} [sendDiagnostics()] I see the finish line "
-sleep 100
-echo "${pbadge} [sendDiagnostics()] We are almost done ! "
-sleep 100
-
-#http://morningcoffee.io/killing-a-process-and-all-of-its-descendants.html
-echo "${pbadge} [sendDiagnostics()] 10 Minutes Tracing Done!"
-kill -9 -- -${diagnosticThreadPID}
-kill $(ps -s $diagnosticThreadPID -o pid=)
-else
-echo "Finished!"
-kill -9 -- -${sendDiagnosticsTimeoutThreadPID}
-fi
-echo Compiling Logs and adding headers
-echo "++++++unifySERVER DIAGNOSTIC LOG++++++" > ${origindir}/diagnostic_result.txt
-echo "++++++DO NOT SHARE TO ANYONE IN ORDER TO PRESERVE YOUR PRIVACY TO THE FULLEST++++++" >> ${origindir}/diagnostic_result.txt
-date >> ${origindir}/diagnostic_result.txt
-uname -a >> ${origindir}/diagnostic_result.txt
-echo "++++++++++MountPoint+++++++++++" >> ${origindir}/diagnostic_result.txt
-mount >> ${origindir}/diagnostic_result.txt
-echo "MOUNTPOINTEND+++++++++++++-----------" >> ${origindir}/diagnostic_result.txt
-
-echo "Commmit Version $(git log -1 --format=%cd)" >> ${origindir}/diagnostic_result.txt
-for a in $(ls ${logs}) ; do
-echo "++++++++FILE_${a}++++++++" >> ${origindir}/diagnostic_result.txt
-cat ${a} >> ${origindir}/diagnostic_result.txt
-echo "=======END FILE_${a}=======" >> ${origindir}/diagnostic_result.txt
-done
-cat ${logs}/*.log >> ${origindir}/diagnostic_result.txt
-clear
-green
-echo "Thank you for joining the survey Your contribution will help unifyServer!"
-yellow
-echo "========[Send this link to the developer]========="
-green
-sendLog "${origindir}/diagnostic_result.txt"
-yellow
-echo "=================================================="
-
-}
-#testing through debug mode
-if [ ! -z $@ ]; then
-${1} ${2} ${3} ${4}
-else
-
-sleep 1
-green
-echo "${pbadge} [THREAD] Experiment Started!"
-functionTests >> ${logs}/diagnostics.log 2>&1 & #mutes any error that occours and save for later
-export diagnosticThreadPID=$!
-# Launch sendDiagnostics with TIMEOUTWAIT TO wait functiontests to finish
-export TIMEOUTWAIT=1
-yellow
-echo "${pbadge} handing over to diagnostic timeout timer sendDiagnostics() ..."
-yellow
-sendDiagnostics
-exit
-
-fi
-
-
-}
 
 
 
-
+# ---------------------- Preparation for the Main Functions
 #Checks if there is a diagnostic mode invoked
 # or what we called is a DGM
 if [ ! -z ${PrimaryParam} ] && [ ${PrimaryParam} == "diagnostic" ]; then
