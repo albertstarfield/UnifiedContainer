@@ -1,0 +1,8 @@
+Installing Busybox!
+'/mnt/g/Users/albertstarfield/Documents/QuestandachievementFolder/studio/Projects/UnifiedContainer/test/containersys/rootfsprootRepoCache/busybox/busybox-x86_64' -> '/mnt/g/Users/albertstarfield/Documents/QuestandachievementFolder/studio/Projects/UnifiedContainer/test/containersys/portabletoolbox/busybox'
+Installed
+proot not available?
+Detected Architecture  with the detection of unsupported environment of termux 0 
+Loading The appropriate Proot
+Loading Portable Binary proot
+'/mnt/g/Users/albertstarfield/Documents/QuestandachievementFolder/studio/Projects/UnifiedContainer/test/containersys/rootfsprootRepoCache/proot/universal/proot-x86_64' -> '/mnt/g/Users/albertstarfield/Documents/QuestandachievementFolder/studio/Projects/UnifiedContainer/test/containersys/rootfsprootRepoCache/proot/universal/proot'

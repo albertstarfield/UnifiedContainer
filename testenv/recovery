@@ -1,0 +1,12 @@
+#!/bin/bash
+clear
+echo "Recovering unifyServer!"
+cp -r "/mnt/g/Users/albertstarfield/Documents/QuestandachievementFolder/studio/Projects/UnifiedContainer/test/managerbackup/*" "/mnt/g/Users/albertstarfield/Documents/QuestandachievementFolder/studio/Projects/UnifiedContainer/test"
+echo "Updating UnifyServer"
+git reset --hard
+git pull
+echo "Recovering All containers"
+for a in $(cat /mnt/g/Users/albertstarfield/Documents/QuestandachievementFolder/studio/Projects/UnifiedContainer/test/containers.txt ); do
+bay fix ${a}
+done
+echo "Finished Recovery"

@@ -1,0 +1,4 @@
+## This is a installation Verifier which will test multiple dependencies
+if [ ! -z $(which fish) ] && [ ! -z $(which busybox) ] && [ ! -z $(which screenfetch) ]; then
+echo 1 > /installationSuccessfull
+fi
