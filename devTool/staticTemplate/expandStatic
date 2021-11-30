@@ -15,35 +15,33 @@ busybox which $1
 }
 
 ########################################################## Install Logic ############################################33
-
-#if [ $(whoami) != root ]; then
-#echo Please re run this compile script with root
-#echo Thank you
-#exit
-#fi
 if [ ! -d containersys ] || [ $(cat empiresservercontainer/buildnumber) -lt 6969696 ] ; then
-lineno=86 #This line is the position of the md5hash stored #Please Change this Number to successfully compiles +2 from last line
+lineno=48 #This line is the position of the md5hash stored #Please Change this Number to successfully compiles +1 from last line
 initorigindir=$(pwd)
 integrity=$(sed -n "${lineno}p" "$0") #https://stackoverflow.com/questions/21651310/reading-a-particular-line-from-a-file-in-bash-script-using-variable-as-line-numb
 echo "${integrity}" > hash
-echo Preparing package empires-server
+echo Preparing bin
 echo Pulling Package from the script
-if [ -z $(which busybox) ]; then echo no busybox detected toybox unsupported ; exit ;fi
+if [ -z $(which busybox) ]; then echo no busybox detected toybox unsupported ; echo "Bypassing! Limitation" ;fi
 echo 'Preparing For installation'
-tail -n +51 $0 > unifiedContainer-package #Please Change this Number to successfully compiles +3 from last line IF 87 Line then 89
+tail -n +49 $0 > bin #Please Change this Number to successfully compiles +2 from last line IF 87 Line then 89
 if md5sum -c hash ; then
 echo Archive Integrity Verified
 rm hash
 else
-echo It is altered or ruined thus installation is aborted
-rm hash
+echo "Modified Program!, Exiting"
+rm hash ; exit
 fi
-tar -xf unifiedContainer-package
-rm -rf unifiedContainer-package ; echo Installation Successfull
+tar -xf bin
+rm -rf bin ; echo Installation Successful
 fi
 #####################################################################################################################
-
-
-
+echo "#!/bin/sh" > launcher
+echo "sh $(pwd)/bashloader \$@" >> launcher
+echo "#!/bin/sh" > $0
+echo "sh $(pwd)/bashloader \$@" >> $0
+chmod +x launcher; chmod +x $0
+# leave a blank space after the EOF line to make sure the md5hash does not merge with EOF ( empires-server compiler issue )
+./launcher
 exit
-EOF
+EOF #################################################################################################################

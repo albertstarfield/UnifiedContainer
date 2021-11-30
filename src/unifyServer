@@ -1,15 +1,21 @@
 #!/bin/bash
 
 # ------------------[Important NOTE!]-----------------------------
-# ⌛ Note : Tidying up required for the reboot of Unified Container
-# ⌛ TODO : Convert UnifiedContainer from Arch Linux to Alpine for Maximum Compatibility with iOS
-# ✅ TODO : Design UnifiedContainer To make sure it doesnt require Termux or any Repository for its first run for four architechture x86_64 x86 armv7l arm64
+# ✅ DONE : Tidying up required for the reboot of Unified Container
+# ✅ DONE : Convert UnifiedContainer from Arch Linux to Alpine for Maximum Compatibility with Android, Pure GNU/Linux, WSL, and iOS
+# ✅ DONE : Design UnifiedContainer To make sure it doesnt require Termux or any Repository for its first run for four architechture x86_64 x86 armv7l arm64
 # ⌛ TODO : Do a paper on this Project, because of this Tidying up the code and trimming the unecessary code is required!!
-# ⌛ TODO : Divide the code section to groups
-# ⌛ TODO : Change the license to GPL V2 for compatibility 
-# ✅ TODO : Implement portable Static Bash Binary Alert its MIT license Resolve : MIT compatible with GPL v2
-# ⌛ TODO : Make a compiler from Raise The Empires to combine with the Tarball of the portable binary
-# Progress State : apk package install at making the template container
+# ⌛ TODO : Make pdf that have the guide on how to use this product : from the commands to the demo of the real screenshot
+# ✅ DONE : Divide the code section to groups
+# ✅ DONE : Change the license to GPL V2 for compatibility 
+# ✅ DONE : Implement portable Static Bash Binary Alert its MIT license Resolve : MIT compatible with GPL v2
+# ✅ DONE : Make a compiler from Raise The Empires to combine with the Tarball of the portable binary
+# ⌛ TODO : Make git container import be stub first but then for future port it become scp or ssh for universal imports
+# ✅ DONE : Fix the reset routines of the unifyServer into "rm -rf managerbackup recovery containersys"
+# ✅ DONE : Optimize the package download speed ( right now its only feels like 5 KB/s )
+# ✅ DONE : WSL Known has a disk speed issues using 9pfs, Is there any optimization option?
+# ✅ DONE : Implement Seccomp Acceleration if the flag exist and user defined it to
+# Progress State : Testing
 # ----------------------------------------------------------------
 
 
@@ -97,16 +103,15 @@ echo DEBUG PARAM CHECK ${PrimaryParam} ${SecondaryParam}
 fi
 export managerGitlink="https://github.com/Questandachievement7Developer/UnifiedContainer"
 export PATH="$PATH:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/mnt/c/Windows/system32:/mnt/c/Windows:/mnt/c/Windows/System32/Wbem:/mnt/c/Windows/System32/WindowsPowerShell/v1.0/:/mnt/c/Windows/System32/OpenSSH/:/mnt/c/ProgramData/chocolatey/bin"
-#proot Seccomp Acceleration SEGFAULT CRASHES FIX SIGNAL 11 TERMINATION
-export PROOT_NO_SECCOMP=1
+
 export newInstall=0
 
 paramCheck(){
 #echo DEBUG PARAM CHECK ${PrimaryParam} ${SecondaryParam}
 if [ -z ${PrimaryParam} ]; then
   red
-  echo "${pbadge} 🤔 No command detected Redirecting to MENU UI 🤷"
-  menuUI
+  echo "${pbadge} 🤔 No command detected Redirecting to help page for basic functions 🤷"
+  help_unifyServer
   exit
 fi
 
@@ -400,6 +405,21 @@ fi
   "${1}" "${2}" "${3}" "${4}" &
 }
 
+#----A routine where it checks whether SECCOMP acceleration is available or not
+SECCOMP_Acceleration_Availability_detection(){
+#proot Seccomp Acceleration SEGFAULT CRASHES FIX SIGNAL 11 TERMINATION
+#On new UnifiedContainer the program have to detects whether it is supports SECCOMP or not
+export PROOT_NO_SECCOMP=0 #Enforce by default that it uses seccomp acceleration
+echo "Checking Acceleration!"
+${userspacebackend} ${symlinkfix} touch ${maindir}/acceleration_available # if its segfault then no acceleration and the file wont be created
+if [ ! -f ${maindir}/acceleration_available ]; then
+echo "Kernel or Environment is not stable to do acceleration, Disabling!"
+uname -a
+export PROOT_NO_SECCOMP=1
+else
+echo "Acceleration is Available!"
+fi
+}
 
 #----Auto Debugging Functions
 #https://stackoverflow.com/questions/4013947/how-to-use-pastebin-from-shell-script
@@ -738,55 +758,6 @@ esac
 
 # bash does not recognize this function
 
-menuUI(){
-  HEIGHT=15
-  WIDTH=80
-  CHOICE_HEIGHT=18
-  BACKTITLE="unifyServer"
-  TITLE="unifyServer Menu"
-  OPTIONS=(
-  "launch" "Launch a container as a daemon"
-  "launchfg" "Launch a container in foreground"
-  "stop" "Stop a container daemon"
-  "add" "Add a container"
-  "remove" "remove a container"
-  "reset" "reset a container"
-  "fix" "Fix a container (only for Remote imported container)"
-  "list all" "List and the status of contaieners"
-  "shell" "Enters the container shell"
-  "exportCont" "export container configuration into containersys/ExportedContainer"
-  "nuke yes" "Reset the whole installation"
-  "exitUI" "exits the UI manager")
-
-  mission=$(dialog --clear \
-                  --backtitle "$BACKTITLE" \
-                  --title "Select Action" \
-                  --menu "$MENU" \
-                  $HEIGHT $WIDTH $CHOICE_HEIGHT \
-                  "${OPTIONS[@]}" \
-                  2>&1 >/dev/tty)
-
-echo "if you are stuck do ctrl+c it wont damage anything"
-  commandExecutor(){
-    if [ ! -z $2 ]; then
-    secondParam=${1}
-  fi
-    if [ -z $2 ]; then
-      secondParam=$(dialog --title "Insert the second parameter" \
-      --backtitle "$BACKTITLE" \
-      --inputbox "Enter the second parameter" 8 60 )
-    fi
-    echo Processing ${1}
-    ${1} ${secondParam} ${3} ${4} ${5}
-  }
-commandExecutor "${mission}"
-exit
-}
-
-
-exitUI(){
-  exit
-}
 #-------------------------
 
 
@@ -888,7 +859,7 @@ executeContainerCMD ${name} "pacman -Qqe > /packages"
 packages=$(cat ${containersLair}/${SecondaryParam}/rootfs/packages)
 init=$(cat ${containersLair}/${SecondaryParam}/rootfs/init)
 echo '# You can edit the setup runtime in here (This installation happens post package installation)' > ${containerExport}/${name}/setup
-executeContainerCMD ${name} "fish -c history" >> ${containerExport}/${name}/setup
+executeContainerCMD ${name} "history" >> ${containerExport}/${name}/setup
 nano ${containerExport}/${name}/setup
 mkdir ${containerExport}/${name}
 echo "${name}" > ${containerExport}/${name}/name
@@ -919,13 +890,13 @@ containerManagerAdd(){
     echo "${pbadge} 📦 Creating Container"
   if [ ! -d ${unasignedContainer} ] || [ ! -f ${unasignedContainer}/cacheSuccess ]; then
     if [ -f ${containersLair}/defaultSeq ] && [ -f ${containersLair}/guranteedSeqIntegrity ]; then
-    #echo "Optimization Enabled"
+    echo "Optimization Enabled"
       mkdir ${containersLair}/${SecondaryParam}
       ${userspacebackend} ${symlinkfix} tar -C "${containersLair}/${SecondaryParam}" -xf "${containersLair}/defaultSeq" >> ${logs}/rootfsOptimizedCopyOperation.log 2>&1
       #mv ${containersLair}/${SecondaryParam}/default/* ${containersLair}/${SecondaryParam} #this is unused since the tar compressed directly from the directory
       #rm -rf ${containersLair}/${SecondaryParam}/default
   else
-    #echo "Optimization Disabled"
+    echo "Optimization Disabled"
       ${userspacebackend} ${symlinkfix} cp -raH "${defaultContainer}" "${containersLair}/${SecondaryParam}" >> ${logs}/rootfsCopyOperation.log 2>&1
   fi
 else
@@ -1315,7 +1286,7 @@ launchcontainerSHELL(){
   green
   echo "${pbadge} 🌟 Have fun 🌟"
   #bash start-bootstrap.sh screenfetch
-  bash start-bootstrap.sh "fish --login"
+  bash start-bootstrap.sh "bash --login"
   exit
 }
 
@@ -1507,60 +1478,7 @@ case ${PrimaryParam} in
     menuUI ;;
 esac
 }
-# if the bash is recognized this one rather the real one
-# then it have a big problem
 
-# bash does not recognize this function
-
-menuUI(){
-  HEIGHT=15
-  WIDTH=80
-  CHOICE_HEIGHT=18
-  BACKTITLE="unifyServer"
-  TITLE="unifyServer Menu"
-  OPTIONS=(
-  "launch" "Launch a container as a daemon"
-  "launchfg" "Launch a container in foreground"
-  "stop" "Stop a container daemon"
-  "add" "Add a container"
-  "remove" "remove a container"
-  "reset" "reset a container"
-  "fix" "Fix a container (only for Remote imported container)"
-  "list all" "List and the status of contaieners"
-  "shell" "Enters the container shell"
-  "exportCont" "export container configuration into containersys/ExportedContainer"
-  "nuke yes" "Reset the whole installation"
-  "exitUI" "exits the UI manager")
-
-  mission=$(dialog --clear \
-                  --backtitle "$BACKTITLE" \
-                  --title "Select Action" \
-                  --menu "$MENU" \
-                  $HEIGHT $WIDTH $CHOICE_HEIGHT \
-                  "${OPTIONS[@]}" \
-                  2>&1 >/dev/tty)
-
-echo "if you are stuck do ctrl+c it wont damage anything"
-  commandExecutor(){
-    if [ ! -z $2 ]; then
-    secondParam=${1}
-  fi
-    if [ -z $2 ]; then
-      secondParam=$(dialog --title "Insert the second parameter" \
-      --backtitle "$BACKTITLE" \
-      --inputbox "Enter the second parameter" 8 60 )
-    fi
-    echo Processing ${1}
-    ${1} ${secondParam} ${3} ${4} ${5}
-  }
-commandExecutor "${mission}"
-exit
-}
-
-
-exitUI(){
-  exit
-}
 
 linkManagerPath(){
 if [ ! -z "${PREFIX}" ]; then
@@ -1632,36 +1550,8 @@ fi
 }
 
 
-
-dependencies(){
-if [ ${newInstall} == "1" ]; then
-  #Detect the Distro
-  distroDetection
-
-  #Installing Portable Busybox
-  # We need to install busybox first because it is the core of all operations! that's why we called it a loader
-  # This also make sure that the behaviour stay consistent on all environment with different binaries 
-  if [ -z "$(ls "${loader}")" ]; then
-  case $(checkArch) in
-		aarch64)
-			archfile_busybox="armv7l" ;;
-		arm)
-			archfile_busybox="armv7l" ;;
-		amd64)
-			archfile_busybox="x86_64";;
-		i*86)
-			archfile_busybox="i486";;
-		*86_64)
-			archfile_busybox="x86_64" ;;
-		*)
-			echo "unknown architecture"; exit 1 ;;
-		esac
-    echo "Installing Busybox!"
-    cp -v ${rootfsprootRepoCache}/busybox/busybox-${archfile_busybox} ${loader}/busybox
-    chmod +x ${loader}/busybox
-    ${loader}/busybox --install -s ${loader}
-    echo "Installed"
-  fi
+prootinitialization(){
+#its need to be initialized even tho its not newinstall
 #Load and install Proot from the $rootfsprootRepoCache
   if [ -z $(which proot) ]; then
     echo "proot not available?"
@@ -1684,15 +1574,51 @@ if [ ${newInstall} == "1" ]; then
   echo "Loading The appropriate Proot"
   if [ ${termuxenv} == 1 ]; then #because termux loves to do its own way we need to install it into the environment
   echo "Installing Termux Special Proot"
+  if [ -z $(which proot) ]; then
   dpkg -i ${rootfsprootRepoCache}/proot/termux/proot_${archfile_termux}.deb
+  fi
   else
   echo "Loading Portable Binary proot"
+  if [ ! -f ${rootfsprootRepoCache}/proot/universal/proot ]; then
   cp -v ${rootfsprootRepoCache}/proot/universal/proot-${archfile_universal} ${rootfsprootRepoCache}/proot/universal/proot
+  fi
   chmod +x ${rootfsprootRepoCache}/proot/universal/proot
   export PATH=${PATH}:${rootfsprootRepoCache}/proot/universal/
   fi
-  
-fi
+}
+busyboxinitialization(){
+if [ -z "$(ls "${loader}")" ]; then
+  case $(checkArch) in
+		aarch64)
+			archfile_busybox="armv7l" ;;
+		arm)
+			archfile_busybox="armv7l" ;;
+		amd64)
+			archfile_busybox="x86_64";;
+		i*86)
+			archfile_busybox="i486";;
+		*86_64)
+			archfile_busybox="x86_64" ;;
+		*)
+			echo "unknown architecture"; exit 1 ;;
+		esac
+    echo "Installing Busybox!"
+    cp -v ${rootfsprootRepoCache}/busybox/busybox-${archfile_busybox} ${loader}/busybox
+    chmod +x ${loader}/busybox
+    ${loader}/busybox --install -s ${loader}
+    echo "Installed"
+  fi
+}
+
+dependencies(){
+#Detect the Distro
+distroDetection
+#Installing Portable Busybox
+# We need to install busybox first because it is the core of all operations! that's why we called it a loader
+# This also make sure that the behaviour stay consistent on all environment with different binaries 
+busyboxinitialization #initialize and load Busybox Toolbox
+prootinitialization #initialize and load proot binary if the system supports it
+
 
 
 
@@ -1798,10 +1724,7 @@ fi
   rm -rf etc/resolv.conf
 	echo "nameserver 1.1.1.1" > etc/resolv.conf
   echo "nameserver 8.8.8.8" >> etc/resolv.conf
-  echo "nameserver 103.215.177.203" >> etc/resolv.conf
   echo "nameserver 58.185.133.2" >> etc/resolv.conf
-  echo "nameserver 194.170.223.73" >> etc/resolv.conf
-  echo "nameserver 103.112.19.245" >> etc/resolv.conf
   printf "⌛ Creating Mount Points \n"
   mkdir exposed data presistent_storage dev sys proc InstallCache
 	cd "$cur"
@@ -1811,7 +1734,8 @@ bin=start-bootstrap.sh
 echo "${pbadge} 🚀 writing launch script"
 cat > $bin <<- EOM
 #!/bin/bash
-echo BOOTLOADER revision 027
+export folder=rootfs #rootfs folder configuration
+
 containerID=\$(cat containerID)
 cd \$(dirname \$0)
 ## unset LD_PRELOAD in case termux-exec is installed
@@ -1830,7 +1754,7 @@ if [ \${BLINDBOOT} == "1" ]; then
 echo "WARNING THIS IS USING BAREBONE BLIND BOOTING METHOD!"
 echo "YOUR PROGRAM WILL NOT WORK PROPERLY!"
 command="chroot"
-command+=" ${folder}"
+command+=" \${folder}"
 command+=" /bin/env -i"
 command+=" PATH=/usr/local/sbin:/usr/local/bin:/bin:/usr/bin:/sbin:/usr/sbin:/usr/games:/usr/local/games"
 command+=" HOME=/root"
@@ -1842,36 +1766,36 @@ if [ -f \${maindir}/NOPTRACE ] && [ \${BLINDBOOT} == "0" ] ; then
 #chroot version
 echo "[Progress] Sanitizing Mount points"
 echo "system control fs"
-mount --bind /dev ${folder}/dev
-mount --bind /proc ${folder}/proc
-mount --bind /sys ${folder}/sys
+mount --bind /dev \${folder}/dev
+mount --bind /proc \${folder}/proc
+mount --bind /sys \${folder}/sys
 echo "[Progress] system storage Cachemount"
 mount --bind ${apkTMPFolder} ${folder}/InstallCache
 echo "[Progress] manager storage Expose"
 if [ -d /sdcard ] && [ -f grantStorage ]; then
-mount --bind /sdcard ${folder}/exposed"
+mount --bind /sdcard \${folder}/exposed"
 fi
 if [ -d /home ] && [ -f grantStorage ]; then
-mount --bind /home ${folder}/exposed"
+mount --bind /home \${folder}/exposed"
 fi
 echo "[Progress] System Library Expose"
 if [ -d /system ] && [ -f grantSystemLibrary ]; then
-mount --bind /system ${folder}/systemfs"
+mount --bind /system \${folder}/systemfs"
 fi
 if [ -d /usr/lib ] && [ -f grantSystemLibrary ]; then
-mount --bind / ${folder}/systemfs"
+mount --bind / \${folder}/systemfs"
 fi
 
 echo "chrootdefine"
 command="chroot"
-command+=" ${folder}"
+command+=" \${folder}"
 command+=" /bin/env -i"
 command+=" HOME=/root"
 command+=" TERM=\$TERM"
 command+=" PATH=/usr/local/sbin:/usr/local/bin:/bin:/usr/bin:/sbin:/usr/sbin:/usr/games:/usr/local/games"
 command+=" LANG=C.UTF-8"
 command+=" HOME=/root"
-command+=" /bin/ash --login"
+command+=" /bin/ash"
 fi
 if [ ! -f \${maindir}/NOPTRACE ]  && [ \${BLINDBOOT} == "0" ] ; then
   echo "prootdefine"
@@ -1879,7 +1803,7 @@ if [ ! -f \${maindir}/NOPTRACE ]  && [ \${BLINDBOOT} == "0" ] ; then
 command="proot"
 command+=" ${symlinkfix}"
 command+=" -0"
-command+=" -r $folder"
+command+=" -r \$folder"
 if [ -n "\$(ls -A binds)" ]; then
     for f in binds/* ;do
       . \$f
@@ -1905,42 +1829,48 @@ command+=" -b /proc"
 #command+=" -b /data/data/com.termux/files/home:/root"
 ############ uncomment the following line to mount /sdcard directly to /
 #command+=" -b /sdcard"
-command+=" -b ${apkTMPFolder}:${folder}/InstallCache"
+command+=" -b ${apkTMPFolder}:\${folder}/InstallCache"
 command+=" -w /root"
+command+=" -k UnifiedContainer-IsolationKernelLauncher-rev30"
 command+=" /bin/env -i"
 command+=" HOME=/root"
 command+=" PATH=/usr/local/sbin:/usr/local/bin:/bin:/usr/bin:/sbin:/usr/sbin:/usr/games:/usr/local/games"
 command+=" TERM=\$TERM"
 command+=" LANG=C.UTF-8"
-command+=" /bin/ash --login"
+command+=" PS1=\$(cat containerID)\\$"
+command+=" /bin/ash"
 fi
 
 ###################################ROOT MANAGER #######################################
-echo "[Progress] Check Param"
+#echo "[Progress] Check Param"
 com="\$@"
-echo "[Progress] Init check"
+#echo "[Progress] Init check"
 if [ "\$2" == "/init" ]; then
-echo a > boot
+touch boot
 fi
 
 
-echo EXEC
+#echo EXEC
 if [ -z "\$1" ];then
     exec \$command
 else
-    \$command -c "\$com"
+    #We need to write a commandqueue to the rootfs then execute as script due to the ash from busybox doesnt intrepret additional parameter ex: "/bin/ash -c apk add a" the ash only recognize as $apk rather than $ apk add a command
+    echo "\$com" | \${userspacebackend} \${symlinkfix} tee \${folder}/manualcommandqueue
+    chmod 777 \${folder}/manualcommandqueue
+    \$command -c "/manualcommandqueue" #execute the manual command queue
+    rm \${folder}/manualcommandqueue # clean out the command queue afterwards
 fi
 if [ "\$2" == "/init" ]; then
 rm boot
 fi
 #unmounting for non ptrace version
 if [ -f \${maindir}/NOPTRACE ]; then
-umount -lf ${folder}/dev
-umount -lf ${folder}/sys
-umount -lf ${folder}/proc
-umount -lf ${folder}/InstallCache
+umount -lf \${folder}/dev
+umount -lf \${folder}/sys
+umount -lf \${folder}/proc
+umount -lf \${folder}/InstallCache
 if [ -f grantStorage ]; then
-umount -lf ${folder}/exposed
+umount -lf \${folder}/exposed
 fi
 fi
 echo Removing container Bootup flag
@@ -1955,7 +1885,7 @@ echo "${pbadge} Creating rootfs Success Test "
 verifyInstallation=${folder}/verifier
 cat > "${verifyInstallation}" <<- EOM
 ## This is a installation Verifier which will test multiple dependencies
-if [ ! -z \$(which fish) ] && [ ! -z \$(which busybox) ] && [ ! -z \$(which screenfetch) ]; then
+if [ ! -z \$(which busybox) ] && [ ! -z \$(which bash) ]; then
 echo 1 > /installationSuccessfull
 fi
 EOM
@@ -2006,12 +1936,11 @@ echo "${pbadge} 🧳 Doing some initial Setup"
 echo "Cleaning Lists"
 export installmode=1 #this flag is to disable env before updating the glibc
 
-# Update the pacman libraries first
 
+bash ${bin} "apk upgrade"
+bash ${bin} "apk add bash"
 
-bash ${bin} "apk add fish perl"
-
-bash ${bin} "sh /verifier"
+bash ${bin} "bash /verifier"
 #replacing symlinks perl into real perl
 echo "fixing shebang of $bin"
 if [ ${packmanager} == "pkg" ]; then
@@ -2317,7 +2246,6 @@ chmod +x ${origindir}/recovery
 else
 echo "${pbadge} Recovery environment Present! Do no harm!"
 fi
-
 }
 
 
@@ -2349,36 +2277,40 @@ fi
 
 
 #_________Main_________
-if [ -z ${NOBOOT} ]; then #whether skip checks or not
+if [ -z ${NOBOOT} ]; then #whether skip checks or not, this NOBOOT only uses when the UnifyServer Program recall the program with a parameters that require to invoke the internal program routines using Bash script parameter
 #only if it is used for nonmodular purposes
 intro
 yellow
-echo "${pbadge} 📁 [1/8] Checking Folders"
+echo "${pbadge} 📁 [1/9] Checking Folders"
 folderInit
 recoveryEnvironment  >> ${logs}/recoveryEnvironment.log 2>&1 #creating recovery environment
 intro
 yellow
-echo "${pbadge} 🚒 [2/8] Checking and installing dependencies"
+echo "${pbadge} 🚒 [2/9] Checking and installing dependencies"
 dependencies >> ${logs}/dependenciesCheck.log 2>&1
 yellow
-echo "${pbadge} 🌳 [3/8] Checking ptrace compatibility"
+echo "${pbadge} 🌳 [3/9] Checking ptrace compatibility"
 ptraceCompatibilityPolice
 yellow
-echo "${pbadge} 💽 [4/8] Checking symlinks compatibility"
+echo "${pbadge} 🚀 [4/9] Checking for Acceleration Availability"
+SECCOMP_Acceleration_Availability_detection >> ${logs}/AccelerationAvailablity.log 2>&1 #Checking whether the acceleration mode is available
+yellow
+echo "${pbadge} 💽 [5/9] Checking symlinks compatibility"
 symlinksFix >> ${logs}/symlinksCheck.log 2>&1
-echo "${pbadge} 💽 [5/8] Updating Manager"
+echo "${pbadge} 💽 [6/9] Updating Manager"
 fetchUpdateManager >> ${logs}/ManagerUpdate.log 2>&1
 yellow
-echo "${pbadge} 💽 [6/8] Checking Default Container"
+echo "${pbadge} 💽 [7/9] Checking Default Container"
 export errorcount=0
 defaultContainerSetup
 yellow
-echo "${pbadge} 💽 [7/8] Cache validation Check"
+echo "${pbadge} 💽 [8/9] Cache validation Check"
 cacheExpireCheck >> ${logs}/CacherefreshCheck.log 2>&1
 yellow
-echo "${pbadge} 💽 [8/8] Caching Sequential rootfs"
+echo "${pbadge} 💽 [9/9] Caching Sequential rootfs" #Check if there is unasigned rootfs to speedup the creation of container
 sequentialOptimizationCache >> ${logs}/CacheMakeCheck.log 2>&1
 fi
+#for the program to relaunch the ./unifyServer to execute other routines it doesnt need to reinitialize other thing because the variable were global thus it is able to handed over to the next bash session
 paramCheck
 paramintrepreter
 exit
