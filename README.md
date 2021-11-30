@@ -26,10 +26,11 @@
 4. Archlinux
 5. Manjaro
 6. CentOS
+7. WSL2 Distro
+
 ### :gear: NON PTRACE Machines
-1. WSL Distro
-2. ~~iSH ( iOS shell )~~ ( Doesnt work due to the missing instruction set  )
-3. Darwin x86_64 (macOS) (UNTESTED!)
+1. WSL1 Distro (Untested) 
+2. iSH ( iOS shell ) ( Currently Testing )
 
 ### :camera: Tech demo screenshot
 > Using blender Container
@@ -69,13 +70,8 @@ you can clone it and modify to get started quickly
 
 | Device | Status | 
 | ------- | ------ | 
-| Samsung Galaxy Tab S2  (Termux) (armv7l) | Manager runs but pacman return 404 | 
-| Samsung Galaxy Note 8 (Termux) (aarch64) | Works really well |
-| Asus X505Z Windows 10 Ubuntu WSL (x86_64) (NOPTRACE) | Works and crashed the whole system ( Because its windows ) |
-| ASROCK DESKTOP Windows 10 Ubuntu WSL (x86_64) (NOPTRACE) | Works stable  |
-| Asus A442UR  Windows 10 Ubuntu 18.04 WSL (Ubuntu 18.04) (NOPTRACE)      |  Works but crashes the system randomly |
-| Samsung Galaxy A50 (aarch64) (Termux) | Works well |
-| ASROCK Desktop Manjaro (x86_64) | Works Well |
+| ASUS X505ZA WSL2 Ubuntu | Runs Well with no Problem | 
+
 
 ## Feels confused about the installation setup or anything wanted to implemented in this version?
 Feel free to contact to these: <br>
