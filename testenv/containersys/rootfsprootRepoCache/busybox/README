@@ -1,0 +1,2 @@
+Busybox defconfig build for 1.21.1, statically linked against uClibc.
+Built using Aboriginal Linux 1.2.4.1 from http://landley.net/aboriginal

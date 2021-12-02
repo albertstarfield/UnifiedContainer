@@ -1,0 +1,4 @@
+[debug] Checking TMP FOLDER
+/mnt/c/tmp/UnifiedContainer/testenv/unifyServer: line 2001: /mnt/c/tmp/UnifiedContainer/testenv/containersys/containers/unasigned/runningCacheOP: No such file or directory
+/mnt/c/tmp/UnifiedContainer/testenv/unifyServer: line 2006: /mnt/c/tmp/UnifiedContainer/testenv/containersys/tmp/unasigned/cacheSuccess: No such file or directory
+rm: can't remove '/mnt/c/tmp/UnifiedContainer/testenv/containersys/containers/unasigned/runningCacheOP': No such file or directory

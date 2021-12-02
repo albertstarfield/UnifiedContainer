@@ -1,0 +1,2 @@
+#!/bin/sh
+sh /mnt/c/tmp/UnifiedContainer/testenv/bashloader $@

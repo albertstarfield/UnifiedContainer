@@ -1,0 +1,4 @@
+## This is a execution Routines that changes how the container behaves
+## you can start a script or anything you want in here
+echo "Hello world"
+uname -a
