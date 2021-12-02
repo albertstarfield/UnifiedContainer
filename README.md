@@ -73,11 +73,10 @@ you can clone it and modify to get started quickly
 
 | Device | Status | 
 | ------- | ------ | 
-| ASUS X505ZA WSL2 Ubuntu | Runs Well with no Problem | 
-| Pixel 4 Android Emulator Android 9 Playstore Termux | Testing |
-| Apple iPhone XS iSH | Under Development |
-| Lenovo 81N4 WSL2 Ubuntu | Testing |
-| Pixel 5 Android Emulator Android 7 Playstore Termux | Testing |
+| ASUS X505ZA WSL2 Ubuntu | ✅ Runs Well with no Problem | 
+| Pixel 4 Android Emulator Android 9 Outdated Playstore Termux | ✅ Runs Well with no Problem (i686) |
+| Apple iPhone XS iSH | ❌Failed and Immediately destroys the iSH |
+| Pixel 5 Android Emulator Android 7 Playstore Termux | ✅ (i686) |
 | Bluestacks Termux | Testing | 
 
 
