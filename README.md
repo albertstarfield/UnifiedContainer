@@ -74,11 +74,19 @@ you can clone it and modify to get started quickly
 | Device | Status | 
 | ------- | ------ | 
 | ASUS X505ZA WSL2 Ubuntu | ✅ Runs Well with no Problem | 
-| Pixel 4 Android Emulator Android 9 Outdated Playstore Termux | ✅ Runs Well with no Problem (i686) |
+| Pixel 3 Android Emulator Android 9 Outdated Playstore Termux | ✅ Runs Well with no Problem (i686) |
 | Apple iPhone XS iSH | ❌Failed and Immediately destroys the iSH |
-| Pixel 5 Android Emulator Android 7 Playstore Termux | ✅ (i686) |
+| Pixel 4 Android Emulator Android 7 Playstore Termux | ✅ (i686) |
 | Bluestacks Termux | Testing | 
 
+## :clipboard: Compatiblity Matrix
+| OS | x86_64 (amd64) | i386 or x86 32 Bit | arm7l | aarch64/arm64 |
+| -- | -------------- | ------------------ | ----- | ------------- |
+| Android (Termux) |✅|✅|❔|❔|
+| Linux (Kernel 3.15 >) |✅|❔|❔|❔|
+| iOS/iPadOS (iSH) |🚫|🚫|❌|❌|
+| Windows (NTKernel Like) WSL2 |✅|🚫|🚫|❔|
+| Windows WSL1 |✅|🚫|🚫|❔|
 
 ## Feels confused about the installation setup or anything wanted to implemented in this version?
 Feel free to contact to these: <br>
