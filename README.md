@@ -1,4 +1,3 @@
-# Warning UnifiedContainer is undergoing massive rebuild please wait for the release package
 ![Screenshot](Graphic_Material/BannerLogo.png "logo")
 
 [![Gitpod Ready-to-Code](https://img.shields.io/badge/Gitpod-Ready--to--Code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/Questandachievement7Developer/UnifiedContainer) 
@@ -12,6 +11,9 @@
 [Neo Oli Ubuntu](https://github.com/Neo-Oli/termux-ubuntu) <br>
 [Multipass](https://github.com/canonical/multipass) <br>
 [Docker](https://github.com/docker) <br>
+
+## A note for a long time user of this program : This program or UnifiedContainer has migrated from Arch Linux to Alpine Linux as its main distro due to its compatibility and small rootfs footprint, for migration please refer to alpine linux package alternatives and alpine linux manuals for more info
+
 ## :white_check_mark: What its use and its advantages ?
 1. It can be used for anything really build a desktop, do a portable sharable reasearch container etc
 2. Its architechture is simple yet effective so system delivery is more efficient
