@@ -1,3 +1,0 @@
-#!/bin/sh
-echo "Emulated Sudo revision 1"
-su -c "$@"

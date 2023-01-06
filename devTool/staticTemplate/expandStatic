@@ -40,7 +40,7 @@ echo "#!/bin/sh" > launcher
 echo "sh $(pwd)/bashloader \$@" >> launcher
 echo "#!/bin/sh" > $0
 echo "sh $(pwd)/bashloader \$@" >> $0
-chmod +x launcher; chmod +x $0
+chmod +x launcher; chmod +x $0; chmod +x unifyServer
 # leave a blank space after the EOF line to make sure the md5hash does not merge with EOF ( empires-server compiler issue )
 ./launcher
 exit

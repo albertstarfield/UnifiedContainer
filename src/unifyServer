@@ -154,12 +154,13 @@ export installParameter="install -y"
 export distro="debianGNU"
 fi
     if [ ! -z $(which pkg) ]; then
-    export packmanager=pkg
+    export packmanager="pkg"
     export installParameter="install -y"
     export linktosymlinkActivated=1
     echo Termux Detected
     export distro="termux"
     export termuxenv="1"
+    unset LD_PRELOAD #to preload dependencies issues as describe when you have LD_PRELOAD set in the proot (termux) program
 
     fi
 
@@ -396,7 +397,7 @@ fi
   fi
   # use distroDetection to determine its API usage
   # API that is need to be implemented are but not limited
-  # Wakelock, Notification, Humain interface input, Sensors
+  # Wakelock, Notification, Human interface input, Sensors
 
 #125
 #https://unix.stackexchange.com/questions/1496/why-doesnt-my-bash-script-recognize-aliases
@@ -411,6 +412,9 @@ fi
 SECCOMP_Acceleration_Availability_detection(){
 #proot Seccomp Acceleration SEGFAULT CRASHES FIX SIGNAL 11 TERMINATION
 #On new UnifiedContainer the program have to detects whether it is supports SECCOMP or not
+unset PROOT_NO_SECCOMP
+echo "ALERT : Setting PROOT_NO_SECCOMP variable will cause havoc on the proot system for Unified Container, its best to permanently unset it and deprecate on later version"
+functiondisable(){
 export PROOT_NO_SECCOMP=0 #Enforce by default that it uses seccomp acceleration
 echo "Checking Acceleration!"
 ${userspacebackend} ${symlinkfix} touch ${maindir}/acceleration_available # if its segfault then no acceleration and the file wont be created
@@ -421,6 +425,7 @@ export PROOT_NO_SECCOMP=1
 else
 echo "Acceleration is Available!"
 fi
+}
 }
 
 #----Auto Debugging Functions
@@ -618,6 +623,9 @@ fi
 }
 
 help_unifyServer(){
+reset
+echo "======="
+echo "Unknown Parameter ${@}"
 yellow
 echo "${pbadge} Here are the commands"
 echo "To launch container"
@@ -694,6 +702,7 @@ echo "${0} remove <containerName>"
 echo .
 echo "To edit exec Routines container"
 echo "${0} edit_routines <containerName>"
+echo "======="
 exit
 }
 
@@ -1287,8 +1296,11 @@ launchcontainerSHELL(){
   echo Launching container ${SecondaryParam}
   green
   echo "${pbadge} 🌟 Have fun 🌟"
+  reset
   #bash start-bootstrap.sh screenfetch
-  bash start-bootstrap.sh "bash --login"
+  bash start-bootstrap.sh "neofetch"
+  bash start-bootstrap.sh "echo Welcome to ${SecondaryParam} Container Shell!"
+  bash start-bootstrap.sh "fish --login"
   exit
 }
 
@@ -1577,8 +1589,10 @@ prootinitialization(){
   if [ ${termuxenv} == 1 ]; then #because termux loves to do its own way we need to install it into the environment
   echo "Installing Termux Special Proot"
   if [ -z $(which proot) ]; then
-  dpkg -i ${rootfsprootRepoCache}/proot/termux/libtalloc_${archfile_termux}.deb
-  dpkg -i ${rootfsprootRepoCache}/proot/termux/proot_${archfile_termux}.deb
+  #outdated
+  #dpkg -i ${rootfsprootRepoCache}/proot/termux/libtalloc_${archfile_termux}.deb
+  #dpkg -i ${rootfsprootRepoCache}/proot/termux/proot_${archfile_termux}.deb
+  ${packmanager} ${installParameter} proot 
   fi
   else
   echo "Loading Portable Binary proot"
@@ -1645,7 +1659,7 @@ ptraceCompatibilityPolice(){
   echo "${pbadge} ❌ This UnifiedContainer currently running on a non ptrace kernel ❌"
   echo a > ${maindir}/NOPTRACE
     if [ $(whoami) != "root" ]; then
-      echo "${pbadge} ❌ Non ptrace kernel need to launch the manager using superuser previledges ❌"
+      echo "${pbadge} ❌ Non ptrace kernel need to launch the manager using superuser previleges ❌"
       exit
     fi
   else
@@ -1919,7 +1933,7 @@ chmod +x ${folder}/bin/sudo
 bashemu=${folder}/bin/bash
 ##### Bash Emulation FIX ####
 cat > "$bashemu" <<- EOM
-#!/bin/sh
+#!/bin/ash
 busybox ash \$@
 EOM
 chmod +x ${folder}/bin/bash
@@ -1932,6 +1946,26 @@ busybox env \$@
 EOM
 chmod +x ${folder}/bin/env
 
+aptguide=${folder}/bin/apt
+##### apt migration guide Emulation FIX ####
+cat > "$aptguide" <<- EOM
+#!/bin/sh
+echo "This version of unifyServer isnt using debian based distro but instead using alpine linux"
+echo "to install program do # apk add <yourprogramhere> "
+echo "please refer to the alpine linux manual and repo packages for further instructions"
+EOM
+chmod +x $aptguide
+
+pacmanguide=${folder}/bin/pacman
+##### pacman migration guide Emulation FIX ####
+cat > "$pacmanguide" <<- EOM
+#!/bin/sh
+echo "This version of unifyServer isnt using debian based distro but instead using alpine linux"
+echo "to install program do # apk add <yourprogramhere> "
+echo "please refer to the alpine linux manual repo packages for further instructions"
+EOM
+chmod +x $pacmanguide
+
 # Setting up Repository
 # Port Archlinux to Alpine : Since the apk doesnt have an issues on each of architecture therefore it is better to not include specific apk configuration
 
@@ -1943,11 +1977,8 @@ chmod +x ${folder}/bin/env
 echo "${pbadge} 🧳 Doing some initial Setup"
 echo "Cleaning Lists"
 export installmode=1 #this flag is to disable env before updating the glibc
-
-
 bash ${bin} "apk upgrade"
-bash ${bin} "apk add bash"
-
+bash ${bin} "apk add bash fish neofetch alpine-sdk python3"
 bash ${bin} "bash /verifier"
 #replacing symlinks perl into real perl
 echo "fixing shebang of $bin"
@@ -1958,6 +1989,7 @@ echo "${pbadge} Checking whether the installation is successful"
 if [ -f ${folder}/installationSuccessfull ]; then
 green
 echo "${pbadge} 😄Yippie yay your installation is successfull😄"
+sleep 2
 echo a > success
 echo "${pbadge} Trimming installation"
 rm -rf ${folder}/usr/lib/firmware/*
@@ -1971,8 +2003,9 @@ errorcount=$(( $errorcount + 1 ))
 if [ $errorcount -gt 3 ]; then
 red
 echo Halt!
-echo "Infinite loop detected"
+echo "Unresolveable loop detected"
 echo "Please investigate the operation above!"
+echo "Note : if you are running on a confined space like flatpak or snap shell protected by apparmor you could try to use standard environment terminal instead"
 sleep 69696969696
 exit
 fi
@@ -1990,7 +2023,7 @@ chmod +x $bin
 }
 
 #This is basically the same as creating one container ahead of the request so later on it can be simply renamed it giving it a instant access
-# I recommend to run this service in the background to give it the sense of super fast but rather a clever optimization
+# I recommend to run this service in the background to give it the sense of super fast but rather a slightly "smrat" optimization (yes i intentionally type in smart as smrat to give a sense of false genuity)
 #containerAheadOptimizationCache > ${logs}/containerAheadOptimizationCache.log 2>&1 &
 ##echo $! > ${maindir}/containerOptimizationPID
 containerAheadOptimizationCache(){
@@ -2082,25 +2115,10 @@ fi
 unifyServerD_vm(){
 echo "${pbadge} Function is not implemented"
 echo "[DEBUG]: unifyServer vm daemon"
+# TODO : use this function for later use of unifyServer Virtual Machine
+# This is useful for running on Windows without running additional virtualbox vmware or something but instead use internal qemu
 }
 
-
-cacheExpireCheck(){
-if [ ! -f ${containersLair}/expireCount ]; then
-  echo "${pbadge} Cache is invalid deleting cache"
-  APIcall systemUI_notifysend "Cache_is_invalid_refreshing_Cache"
-  ${userspacebackend} ${symlinkfix} rm -rf ${containersLair}/defaultSeq
-  ${userspacebackend} ${symlinkfix} rm -rf ${unasignedContainer}
-  echo 0 > ${containersLair}/expireCount
-else
-expireCount=$(cat ${containersLair}/expireCount)
-expireCount=$((expireCount + 1))
-echo "${expireCount}" > ${containersLair}/expireCount
-if [ ${expireCount} -gt "16" ]; then
-rm -rf ${containersLair}/expireCount
-fi
-fi
-}
 
 
 
@@ -2168,20 +2186,15 @@ ${1} ${2} ${3}
 makeObfuscation(){
 if [ ${DEVELMODE} == "1" ] && [ ! -z ${DEVELMODE} ]; then
 convertedcode=$(base64 ${0})
-
-
 output="bay_mana"
 cat > "${output}" <<- EOM
 #!/bin/sh
 capsule=$( echo "${convertedcode}" \| base64 \--decode)
 ash - \${1} \${2} \${3} \${4} < \${capsule}
 EOM
-
-
-
 else
 red
-echo "Wait thats illegal access"
+echo "Wait that is an illegal access"
 exit
 fi
 
@@ -2189,8 +2202,24 @@ fi
 
 
 
+#______________________________________________________ Function for Fixing Issues ______________________________________________________
 
-
+cacheExpireCheck(){
+if [ ! -f ${containersLair}/expireCount ]; then
+  echo "${pbadge} Cache is invalid deleting cache"
+  APIcall systemUI_notifysend "Cache_is_invalid_refreshing_Cache"
+  ${userspacebackend} ${symlinkfix} rm -rf ${containersLair}/defaultSeq
+  ${userspacebackend} ${symlinkfix} rm -rf ${unasignedContainer}
+  echo 0 > ${containersLair}/expireCount
+else
+expireCount=$(cat ${containersLair}/expireCount)
+expireCount=$((expireCount + 1))
+echo "${expireCount}" > ${containersLair}/expireCount
+if [ ${expireCount} -gt "16" ]; then
+rm -rf ${containersLair}/expireCount
+fi
+fi
+}
 
 envTroubleShooting(){
 yellow
@@ -2199,8 +2228,6 @@ echo "Fixing Partial Sleep"
 partialSleepandroid9fix(){
   pkglist=$(pm list packages -f | sed -e 's/.*=//' | sort | grep term )
 #echo ${pkglist}
-
-
 if [ $1 == 'restore' ]; then
 for a in ${pkglist}; do
 echo "Deoptimizing ${a}"
@@ -2226,6 +2253,10 @@ else
 fi
 }
 
+phantomProcessFix(){
+  echo "stub"
+  # TODO : adb installation process, add method to keep polling wireless debugging 
+}
 
 recoveryEnvironment(){
 if [ ! -d ${recoveryEnvironmentDir}/.git ] || [ ! -f ${recoveryEnvironmentDir}/unifyServer ]; then
@@ -2256,10 +2287,10 @@ echo "${pbadge} Recovery environment Present! Do no harm!"
 fi
 }
 
+# ____________________________________________________________________________________________________________
 
 
-
-# ---------------------- Preparation for the Main Functions
+# __________________ Preparation for the Main Functions
 #Checks if there is a diagnostic mode invoked
 # or what we called is a DGM
 if [ ! -z ${PrimaryParam} ] && [ ${PrimaryParam} == "diagnostic" ]; then

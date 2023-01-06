@@ -1,9 +1,0 @@
-Installing Busybox!
-'/mnt/c/tmp/UnifiedContainer/testenv/containersys/rootfsprootRepoCache/busybox/busybox-x86_64' -> '/mnt/c/tmp/UnifiedContainer/testenv/containersys/portabletoolbox/busybox'
-Removing dpkg because we don't need it for now, and not all Distro going to support Busybox dpkg for instance: Termux, ArchLinux, Alpine Linux, Slackware, fedora , and etc
-Installed
-proot not available?
-Detected Architecture  with the detection of unsupported environment of termux 0 
-Loading The appropriate Proot
-Loading Portable Binary proot
-'/mnt/c/tmp/UnifiedContainer/testenv/containersys/rootfsprootRepoCache/proot/universal/proot-x86_64' -> '/mnt/c/tmp/UnifiedContainer/testenv/containersys/rootfsprootRepoCache/proot/universal/proot'

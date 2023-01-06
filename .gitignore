@@ -1,1 +1,4 @@
-./testenv/**
+testenv/**
+build/**
+testenv/
+testenv/bashloader

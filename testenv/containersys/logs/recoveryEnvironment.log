@@ -1,6 +1,0 @@
-[Unified Container Manager]: Recovery Files not found This is a dangerous thing!
-[Unified Container Manager]: Please wait... while we creating current version recovery
-'/mnt/c/tmp/UnifiedContainer/testenv/unifyServer' -> '/mnt/c/tmp/UnifiedContainer/testenv/managerbackup/unifyServer'
-cp: cannot stat '/mnt/c/tmp/UnifiedContainer/testenv/.git': No such file or directory
-[Unified Container Manager]: Critical core has been backed up!
-[Unified Container Manager]: Creating Recovery Wizard
