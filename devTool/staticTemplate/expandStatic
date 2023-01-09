@@ -1,6 +1,5 @@
 #!/bin/sh
 #The template for compiling 
-
 #https://github.com/Neo-Oli/termux-ubuntu References # EMPIRESSERVERHEADER
 echo PARAM DEBUG ${currdir} ${currentexecfile}
 if [ -z ${currdir} ] ;then
@@ -13,28 +12,25 @@ fi
 which(){
 busybox which $1
 }
-
 ########################################################## Install Logic ############################################33
-if [ ! -d containersys ] || [ $(cat empiresservercontainer/buildnumber) -lt 6969696 ] ; then
-lineno=48 #This line is the position of the md5hash stored #Please Change this Number to successfully compiles +1 from last line
+HashStorageLine=44 #This line is the position of the md5hash stored #Please Change this Number to successfully compiles +1 from last line
+archiveStartingLine=45 # this is the storage where the archive started
 initorigindir=$(pwd)
-integrity=$(sed -n "${lineno}p" "$0") #https://stackoverflow.com/questions/21651310/reading-a-particular-line-from-a-file-in-bash-script-using-variable-as-line-numb
+integrity=$(sed -n "${HashStorageLine}p" "$0") #https://stackoverflow.com/questions/21651310/reading-a-particular-line-from-a-file-in-bash-script-using-variable-as-line-numb
 echo "${integrity}" > hash
 echo Preparing bin
 echo Pulling Package from the script
-if [ -z $(which busybox) ]; then echo no busybox detected toybox unsupported ; echo "Bypassing! Limitation" ;fi
 echo 'Preparing For installation'
-tail -n +49 $0 > bin #Please Change this Number to successfully compiles +2 from last line IF 87 Line then 89
+tail -n +${archiveStartingLine} $0 > bin #Please Change this Number to successfully compiles +2 from last line IF 87 Line then 89
 if md5sum -c hash ; then
 echo Archive Integrity Verified
 rm hash
 else
-echo "Modified Program!, Exiting"
+echo "Modified Program!, Exiting" 
 rm hash ; exit
 fi
 tar -xf bin
-rm -rf bin ; echo Installation Successful
-fi
+rm -rf bin ; chmod +x unifyServer ; chmod +x launcher ; chmod +x UnifiedContainer ; echo Installation Successful ; echo "if you wanted to install the bin to the PATH do"; echo "$ sudo bash unifyServer install yes"
 #####################################################################################################################
 echo "#!/bin/sh" > launcher
 echo "sh $(pwd)/bashloader \$@" >> launcher

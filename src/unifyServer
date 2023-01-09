@@ -6,6 +6,7 @@
 # ✅ DONE : Design UnifiedContainer To make sure it doesnt require Termux or any Repository for its first run for four architechture x86_64 x86 armv7l arm64
 # ⌛ TODO : Do a paper on this Project, because of this Tidying up the code and trimming the unecessary code is required!!
 # ⌛ TODO : Make pdf that have the guide on how to use this product : from the commands to the demo of the real screenshot
+# ⌛ TODO : Enable x86 Docker into UnifiedContainer due to industry standard
 # ✅ DONE : Divide the code section to groups
 # ✅ DONE : Change the license to GPL V2 for compatibility 
 # ✅ DONE : Implement portable Static Bash Binary Alert its MIT license Resolve : MIT compatible with GPL v2
@@ -112,14 +113,14 @@ paramCheck(){
 #echo DEBUG PARAM CHECK ${PrimaryParam} ${SecondaryParam}
 if [ -z ${PrimaryParam} ]; then
   red
-  echo "${pbadge} 🤔 No command detected Redirecting to help page for basic functions 🤷"
+  echo "[$(date +"%r")] ${pbadge} 🤔 No command detected Redirecting to help page for basic functions 🤷"
   help_unifyServer
   exit
 fi
 
 if [ -z ${SecondaryParam} ]; then
   red
-  echo "${pbadge} 🤔 no parameter detected please refer help for manual 🤷"
+  echo "[$(date +"%r")] ${pbadge} 🤔 no parameter detected please refer help for manual 🤷"
   help_unifyServer
   exit
 fi
@@ -127,7 +128,7 @@ fi
 if [ ${SecondaryParam} == "default" ]; then
   clear
   red
-  echo "${pbadge} Welco.. wait thats illegal! "
+  echo "[$(date +"%r")] ${pbadge} Welco.. wait thats illegal! "
   exit
 fi
 }
@@ -301,26 +302,36 @@ fi
 }
 #------
 
+#Environment Required Fixes
+environmentAdjustment(){
+# todo list
+# 1. implement ctrl+c blocker
+# 2. implement Phantom Process fixes for Android 12 and above
+# 3. implement other thing that we don't know yet
+trap '' 2 #https://www.cyberciti.biz/faq/unix-linux-shell-scripting-disable-controlc/
+}
+
+
 
 #Environment Compatible API Calls detection
 
 APIcall(){
   dummyResponse(){
-  echo "${pbadge} Current version of API Abstraction Layer is unsupported for your current environment"
+  echo "[$(date +"%r")] ${pbadge} Current version of API Abstraction Layer is unsupported for your current environment"
   }
   #This function is basically like a API abstraction layer
   #red
-  #echo "${pbadge} Function is not implemented"
+  #echo "[$(date +"%r")] ${pbadge} Function is not implemented"
   #echo '[DEBUG] APIcall() function only supported for termux '
   #yellow
-  #echo "${pbadge} Detecting available API"
+  #echo "[$(date +"%r")] ${pbadge} Detecting available API"
   #echo '[WARN] Wakelock, Notification, Humain interface input, Sensors may not work on current version'#
 
   #____________________________
   #Hardware Acceleration Setup
   #OpenCL
   opencl_forward(){
-    echo "${pbadge} Function is not yet implemented"
+    echo "[$(date +"%r")] ${pbadge} Function is not yet implemented"
   }
   #__________________________
   if [ ${distro} == "termux" ]; then
@@ -349,11 +360,11 @@ APIcall(){
   if [ ${distro} == "debianGNU" ] || [ ${distro} == "iSH" ] || [ ${distro} == "debian" ] || [ ${distro} == "archlinux" ]; then
     #systemUI calls
     #echo "Using Generic GNU/Linux calls"
-    systemUI_notifysend(){ echo [INFO] ${pbadge}; }
+    systemUI_notifysend(){ echo [INFO] [$(date +"%r")] ${pbadge}; }
     if [ ! -z $(which xmessage) ]; then
     systemUI_directNotification(){ xmessage; }
   else
-    systemUI_directNotification(){ echo [INFO] ${pbadge}; }
+    systemUI_directNotification(){ echo [INFO] [$(date +"%r")] ${pbadge}; }
   fi
   if [ ${WSLenv} == "1" ] && [ ! -z ${WSLenv} ]; then
     #echo "Using WSL specific calls"
@@ -504,22 +515,22 @@ sendDiagnostics(){
     # Send diagnostics timeout is when the diagnostic are taking too long so it will interrupt and send the logs or diagnostic data without waiting for the diagnostic to finish
 if [ $TIMEOUTWAIT == 1 ]; then
 yellow
-echo "${pbadge} [sendDiagnostics()] I have been launched! "
-echo "${pbadge} [sendDiagnostics()] Dont worry we will be done in the next 10 Minutes "
+echo "[$(date +"%r")] ${pbadge} [sendDiagnostics()] I have been launched! "
+echo "[$(date +"%r")] ${pbadge} [sendDiagnostics()] Dont worry we will be done in the next 10 Minutes "
 sleep 100
-echo "${pbadge} [sendDiagnostics()] journalizing it "
+echo "[$(date +"%r")] ${pbadge} [sendDiagnostics()] journalizing it "
 sleep 100
-echo "${pbadge} [sendDiagnostics()] Intresting "
+echo "[$(date +"%r")] ${pbadge} [sendDiagnostics()] Intresting "
 sleep 100
-echo "${pbadge} [sendDiagnostics()] GNU/Linux are great "
+echo "[$(date +"%r")] ${pbadge} [sendDiagnostics()] GNU/Linux are great "
 sleep 100
-echo "${pbadge} [sendDiagnostics()] I see the finish line "
+echo "[$(date +"%r")] ${pbadge} [sendDiagnostics()] I see the finish line "
 sleep 100
-echo "${pbadge} [sendDiagnostics()] We are almost done ! "
+echo "[$(date +"%r")] ${pbadge} [sendDiagnostics()] We are almost done ! "
 sleep 100
 
 #http://morningcoffee.io/killing-a-process-and-all-of-its-descendants.html
-echo "${pbadge} [sendDiagnostics()] 10 Minutes Tracing Done!"
+echo "[$(date +"%r")] ${pbadge} [sendDiagnostics()] 10 Minutes Tracing Done!"
 kill -9 -- -${diagnosticThreadPID}
 kill $(ps -s $diagnosticThreadPID -o pid=)
 else
@@ -560,13 +571,13 @@ else
 
 sleep 1
 green
-echo "${pbadge} [THREAD] Experiment Started!"
+echo "[$(date +"%r")] ${pbadge} [THREAD] Experiment Started!"
 functionTests >> ${logs}/diagnostics.log 2>&1 & #mutes any error that occours and save for later
 export diagnosticThreadPID=$!
 # Launch sendDiagnostics with TIMEOUTWAIT TO wait functiontests to finish
 export TIMEOUTWAIT=1
 yellow
-echo "${pbadge} handing over to diagnostic timeout timer sendDiagnostics() ..."
+echo "[$(date +"%r")] ${pbadge} handing over to diagnostic timeout timer sendDiagnostics() ..."
 yellow
 sendDiagnostics
 exit
@@ -587,7 +598,7 @@ echo "================================================================="
 red
 echo " Do it at your own risk! You are on your own"
 echo " Please refer to the code when calling a function "
-echo "${pbadge} DEBUG MODE !"
+echo "[$(date +"%r")] ${pbadge} DEBUG MODE !"
 echo
 green
 console(){
@@ -605,8 +616,8 @@ confirmation(){
   randcode="iwilltaketheresponsibilityofmyaction"
   yellow
   if [ -z ${SCRIPTCALL} ]; then
-  echo "${pbadge} ⚠️ Are you sure that you want to do this ?⚠️"
-  echo "${pbadge} if you do please type this token"
+  echo "[$(date +"%r")] ${pbadge} ⚠️ Are you sure that you want to do this ?⚠️"
+  echo "[$(date +"%r")] ${pbadge} if you do please type this token"
   echo "${randcode}"
   echo "Your input: "
   read input
@@ -614,10 +625,10 @@ confirmation(){
   fi
   if [ $input == $randcode ] || [ ! -z ${SCRIPTCALL} ] ; then #SCRIPTCALL VARIABLE IS FOR WHEN YOU CALL THIS SCRIPT THRROUGH A SCRIPT AND YOU WANTED TO HAVE no CONFIRMATION
     yellow
-    echo "${pbadge} 🚀 Initiating dangerous code"
+    echo "[$(date +"%r")] ${pbadge} 🚀 Initiating dangerous code"
   else
     red
-    echo "${pbadge} ❌ WRONG CODE CANCELLING ❌"
+    echo "[$(date +"%r")] ${pbadge} ❌ WRONG CODE CANCELLING ❌"
   exit
 fi
 }
@@ -627,7 +638,7 @@ reset
 echo "======="
 echo "Unknown Parameter ${@}"
 yellow
-echo "${pbadge} Here are the commands"
+echo "[$(date +"%r")] ${pbadge} Here are the commands"
 echo "To launch container"
 echo "${0} launch <containerName>"
 echo "To Launch container in foreground"
@@ -783,14 +794,14 @@ containerManagerImport(){
     SecondaryParam=${1}
     TertiaryParam=${2}
   fi
-APIcall systemUI_notifysend "⌛Importing_container⌛"
-echo "${pbadge} ⌛Importing container configuration ⌛"
+APIcall systemUI_notifysend "⌛Importing_container⌛" >> ${logs}/APICall.log 2>&1 
+echo "[$(date +"%r")] ${pbadge} ⌛Importing container configuration ⌛"
 containerID=$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 32 | head -n 1)
 export importedcontainer="${TMPFolder}/${containerID}"
 git clone ${SecondaryParam} ${TMPFolder}/${containerID} > ${logs}/${containerID}_gitcloneLog.log 2>&1
 if [ ! -d "${TMPFolder}/${containerID}" ]; then
   red
-  echo "${pbadge} ❌ Imported Container does not exists ❌"
+  echo "[$(date +"%r")] ${pbadge} ❌ Imported Container does not exists ❌"
   exit
 fi
 export GITSOURCE="${SecondaryParam}"
@@ -805,7 +816,7 @@ containerManagerAdd ${name}
 fi
 
 ImportedContainerPackageManager(){
-APIcall pwmCall_enable_wakelockcall
+APIcall pwmCall_enable_wakelockcall >> ${logs}/APICall.log 2>&1 
 echo "${GITSOURCE}" > ${containersLair}/${name}/origin #add the source link first so if the installs fails user can easily reset the container
 echo "${packages}" > ${containersLair}/${name}/rootfs/packages
 export totalpackage=0
@@ -819,7 +830,7 @@ percentage=$((currentpackage * 100 / totalpackage))
 #ash ${0} exec ${name} "apt install -y < /packages"
 yellow
 export SecondaryParamOld="${SecondaryParam}"
-echo "${pbadge} ⌛ Installing Dependencies ${percentage} %"
+echo "[$(date +"%r")] ${pbadge} ⌛ Installing Dependencies ${percentage} %"
 export NOBOOT=1 # to prevent any Uncessary checks when reexecuting
 ash ${0} exec ${name} "apk update" >> ${logs}/unifyServerPackageInstaller.log 2>&1
 ash ${0} exec ${name} "apk add ${a}" >> ${logs}/unifyServerPackageInstaller.log 2>&1
@@ -828,7 +839,7 @@ ash ${0} exec ${name} "apk add ${a}" >> ${logs}/unifyServerPackageInstaller.log 
 #executeContainerCMD ${name} "pacman -S --needed --noconfirm ${a}" >> ${logs}/unifyServerPackageInstaller.log 2>&1
 #executeContainerCMD ${name} "pacman -S --needed --noconfirm ${a}"
 green
-echo "${pbadge} ✔️ Done Installing ${a} "
+echo "[$(date +"%r")] ${pbadge} ✔️ Done Installing ${a} "
 done
 
 
@@ -839,8 +850,8 @@ ImportedContainerPackageManager
 echo "${GITSOURCE}" > ${containersLair}/${name}/origin
 echo "${init}" > ${containersLair}/${name}/rootfs/init
 echo "${setuproutines}" > ${containersLair}/${name}/rootfs/setup
-echo "${pbadge} ✨Container Finishing touch✨"
-echo "${pbadge} Checking rootfs cache"
+echo "[$(date +"%r")] ${pbadge} ✨Container Finishing touch✨"
+echo "[$(date +"%r")] ${pbadge} Checking rootfs cache"
 if [ -d ${rootfsConfig} ]; then
   ${userspacebackend} ${symlinkfix} cp -raH ${rootfsConfig}/* ${containersLair}/${name}/rootfs
 fi
@@ -848,19 +859,19 @@ fi
 echo "${GITSOURCE}" > ${containersLair}/${name}/origin
 ash ${0} exec ${name} "bash /setup"
 green
-APIcall systemUI_notifysend "✨Container_${SecondaryParam}_Successfully_Installed✨"
+APIcall systemUI_notifysend "✨Container_${SecondaryParam}_Successfully_Installed✨" >> ${logs}/APICall.log 2>&1 
 echo "${GITSOURCE}" > ${containersLair}/${name}/origin
-echo "${pbadge} ✨import done✨"
-APIcall pwmCall_disable_wakelockcall
+echo "[$(date +"%r")] ${pbadge} ✨import done✨"
+APIcall pwmCall_disable_wakelockcall >> ${logs}/APICall.log 2>&1 
 exit
 }
 
 #Export Container
 containerManagerExport(){
-APIcall pwmCall_enable_wakelockcall
+APIcall pwmCall_enable_wakelockcall >> ${logs}/APICall.log 2>&1 
   if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
     red
-    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
+    echo "[$(date +"%r")] ${pbadge} ❌ Container does not exists please create the container first ❌"
     exit
   fi
 name=${SecondaryParam}
@@ -881,8 +892,8 @@ nano ${containerExport}/${name}/init
 #echo "apt-get update; apt-get upgrade; echo Default setup done" > ${containerExport}/${name}/setup
 #echo "pacman -Syu --noconfirm ; echo Default setup done" > ${containerExport}/${name}/setup
 green
-echo "${pbadge} ✨export done✨"
-APIcall pwmCall_disable_wakelockcall
+echo "[$(date +"%r")] ${pbadge} ✨export done✨"
+APIcall pwmCall_disable_wakelockcall >> ${logs}/APICall.log 2>&1 
 exit
 }
 
@@ -894,11 +905,11 @@ containerManagerAdd(){
   fi
   if [ -d "${containersLair}/${SecondaryParam}" ]; then
     red
-    echo "${pbadge} Container Exists"
+    echo "[$(date +"%r")] ${pbadge} Container Exists"
     exit
   else
     yellow
-    echo "${pbadge} 📦 Creating Container"
+    echo "[$(date +"%r")] ${pbadge} 📦 Creating Container"
   if [ ! -d ${unasignedContainer} ] || [ ! -f ${unasignedContainer}/cacheSuccess ]; then
     if [ -f ${containersLair}/defaultSeq ] && [ -f ${containersLair}/guranteedSeqIntegrity ]; then
     echo "Optimization Enabled"
@@ -911,17 +922,17 @@ containerManagerAdd(){
       ${userspacebackend} ${symlinkfix} cp -raH "${defaultContainer}" "${containersLair}/${SecondaryParam}" >> ${logs}/rootfsCopyOperation.log 2>&1
   fi
 else
-echo "${pbadge} Super Optimization Available"
+echo "[$(date +"%r")] ${pbadge} Super Optimization Available"
 mv -v ${unasignedContainer} ${containersLair}/${SecondaryParam} >> ${logs}/containerAheadOptimizationCacheMove.log 2>&1
 containerAheadOptimizationCache > ${logs}/containerAheadOptimizationCache.log 2>&1 & #This will trigger the creation of additional unasigned container
 #echo $! > ${maindir}/containerOptimizationPID
 fi
     echo "$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 32 | head -n 1)" > ${containersLair}/${SecondaryParam}/containerID
-    echo "${pbadge} 📦 Creating Presistent data"
+    echo "[$(date +"%r")] ${pbadge} 📦 Creating Presistent data"
     mkdir "${presistentStorage}/$(cat ${containersLair}/${SecondaryParam}/containerID)"
     green
-    APIcall systemUI_notifysend "✔️_Container_${SecondaryParam}_Successfully_Created"
-    echo "${pbadge} ${SecondaryParam} ✔️ Container done"
+    APIcall systemUI_notifysend "✔️_Container_${SecondaryParam}_Successfully_Created" >> ${logs}/APICall.log 2>&1 
+    echo "[$(date +"%r")] ${pbadge} ${SecondaryParam} ✔️ Container done"
     echo "${SecondaryParam}" >> ${containerFilesList}
     if [ -z $@ ] ; then
       exit
@@ -934,26 +945,26 @@ fi
 containerManagerReset(){
   if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
     red
-    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
+    echo "[$(date +"%r")] ${pbadge} ❌ Container does not exists please create the container first ❌"
     exit
   else
     confirmation
     yellow
-    echo "${pbadge} 📦 Resetting Container"
+    echo "[$(date +"%r")] ${pbadge} 📦 Resetting Container"
     if [ -f "${containersLair}/${SecondaryParam}/origin" ]; then
-      echo "${pbadge} 📦 Resetting Remote Container"
+      echo "[$(date +"%r")] ${pbadge} 📦 Resetting Remote Container"
       originLink="$(cat ${containersLair}/${SecondaryParam}/origin)"
       echo "${originLink}"
       cd ${origindir}
       ${userspacebackend} ${symlinkfix} rm -rf "${containersLair}/${SecondaryParam}"
       ash ${0} import "${originLink}"
     else
-      echo "${pbadge} 📦 Resetting Local Container"
+      echo "[$(date +"%r")] ${pbadge} 📦 Resetting Local Container"
     ${userspacebackend} ${symlinkfix} rm -rf "${containersLair}/${SecondaryParam}"
     ${userspacebackend} ${symlinkfix} cp -raH "${defaultContainer}" "${containersLair}/${SecondaryParam}" >> ${logs}/rootfsCopyOperation.log  2>&1
   fi
     green
-    echo "${pbadge} ${SecondaryParam} ✔️ Container done"
+    echo "[$(date +"%r")] ${pbadge} ${SecondaryParam} ✔️ Container done"
     exit
   fi
 
@@ -966,24 +977,24 @@ containerManagerrm(){
 fi
   if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
     red
-    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
+    echo "[$(date +"%r")] ${pbadge} ❌ Container does not exists please create the container first ❌"
     exit
   else
     yellow
-    echo "${pbadge} 🗑️ Removing Container ${SecondaryParam}"
+    echo "[$(date +"%r")] ${pbadge} 🗑️ Removing Container ${SecondaryParam}"
     if [ -f ${maindir}/NOPTRACE ]; then
       umount -lf ${containersLair}/${SecondaryParam}/rootfs/dev ${containersLair}/${SecondaryParam}/rootfs/sys ${containersLair}/${SecondaryParam}/rootfs/InstallCache ${containersLair}/${SecondaryParam}/rootfs/proc ${containersLair}/${SecondaryParam}/rootfs/exposed >> ${logs}/chrootmountbindRemoval 2>&1
     fi
     ${userspacebackend} ${symlinkfix} rm -rf "${containersLair}/${SecondaryParam}"
     if [ -d "${containersLair}/${SecondaryParam}" ]; then
       red
-      echo "${pbadge} ❌ Container Removal failed retrying ❌"
+      echo "[$(date +"%r")] ${pbadge} ❌ Container Removal failed retrying ❌"
       export removalretry=1
       containerManagerrm
     fi
     green
-    APIcall systemUI_notifysend "✔️_Container_${SecondaryParam}_Removal_Successfull"
-    echo "${pbadge} ✔️ Removing Finished"
+    APIcall systemUI_notifysend "✔️_Container_${SecondaryParam}_Removal_Successfull" >> ${logs}/APICall.log 2>&1 
+    echo "[$(date +"%r")] ${pbadge} ✔️ Removing Finished"
     sed "s/${SecondaryParam}//" ${containerFilesList} > "${containersFilesList}_tmp"
     rm -rf ${containersFilesList}
     mv ${containersFilesList}_tmp ${containerFilesList}
@@ -997,17 +1008,17 @@ nuke(){
 confirmation
 fi
 red
-APIcall systemUI_notifysend "💣_Your_instlalation_is_being_nuked_💣"
-echo "${pbadge} 💣 Nuking the installation 💣"
+APIcall systemUI_notifysend "💣_Your_instlalation_is_being_nuked_💣" >> ${logs}/APICall.log 2>&1 
+echo "[$(date +"%r")] ${pbadge} 💣 Nuking the installation 💣"
 ${userspacebackend} ${symlinkfix} rm -rf ${maindir}
 if [ -d "${maindir}" ]; then
   red
-  echo "${pbadge} ❌ Container Nuking failure Retrying! ❌"
+  echo "[$(date +"%r")] ${pbadge} ❌ Container Nuking failure Retrying! ❌"
   export removalretry=1
   nuke
 fi
 green
-echo "${pbadge} ✔️  Nuking complete ✔️ "
+echo "[$(date +"%r")] ${pbadge} ✔️  Nuking complete ✔️ "
 exit
 }
 
@@ -1015,7 +1026,7 @@ exit
 editroutinesContainer(){ 
 if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
     red
-    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
+    echo "[$(date +"%r")] ${pbadge} ❌ Container does not exists please create the container first ❌"
     exit
 else
     nano ${containersLair}/${SecondaryParam}/rootfs/init
@@ -1027,7 +1038,7 @@ fi
 containerManagerLogs(){
 if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
     red
-    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
+    echo "[$(date +"%r")] ${pbadge} ❌ Container does not exists please create the container first ❌"
     exit
 else
     less "${logs}/containers_${SecondaryParam}.log"
@@ -1038,12 +1049,12 @@ fi
 sysFileExchangeExport(){
 if [ -z ${quadtiaryParam}] || [ -z ${TertiaryParam} ]; then
     red
-    echo "${pbadge} ❌ You forgot to put source or destination ❌"
+    echo "[$(date +"%r")] ${pbadge} ❌ You forgot to put source or destination ❌"
     exit
 fi
 if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
     red
-    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
+    echo "[$(date +"%r")] ${pbadge} ❌ Container does not exists please create the container first ❌"
     exit
 else
 ${userspacebackend} ${symlinkfix} cp -ravH "${TertiaryParam}" "${containersLair}/${SecondaryParam}/rootfs/${quadtiaryParam}"
@@ -1055,12 +1066,12 @@ fi
 sysFileExchangeImport(){
 if [ -z ${quadtiaryParam}] || [ -z ${TertiaryParam} ]; then
     red
-    echo "${pbadge} ❌ You forgot to put source or destination ❌"
+    echo "[$(date +"%r")] ${pbadge} ❌ You forgot to put source or destination ❌"
     exit
 fi
 if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
     red
-    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
+    echo "[$(date +"%r")] ${pbadge} ❌ Container does not exists please create the container first ❌"
     exit
 else
 ${userspacebackend} ${symlinkfix} cp -ravH "${quadtiaryParam}" "${containersLair}/${SecondaryParam}/rootfs/${quadtiaryParam}"
@@ -1079,15 +1090,15 @@ defaultContainerSetup
 containerManagerUpgrade(){
   if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
     red
-    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
+    echo "[$(date +"%r")] ${pbadge} ❌ Container does not exists please create the container first ❌"
     exit
   else
 cd ${containersLair}/${SecondaryParam}
 yellow
-echo "${pbadge} ⌛ Upgrading container"
+echo "[$(date +"%r")] ${pbadge} ⌛ Upgrading container"
 ${userspacebackend} ${symlinkfix} cp -raH "${defaultContainer}/*" "${containersLair}/${SecondaryParam}" >> ${logs}/rootfsCopyOperation.log 2>&1
 green
-echo "${pbadge} ✔️ Container has been upgraded "
+echo "[$(date +"%r")] ${pbadge} ✔️ Container has been upgraded "
 exit
   fi
 }
@@ -1096,12 +1107,12 @@ exit
 containerManagerDeExposeStorage(){
   if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
     red
-    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
+    echo "[$(date +"%r")] ${pbadge} ❌ Container does not exists please create the container first ❌"
     exit
   else
 rm ${containersLair}/${SecondaryParam}/grantStorage
 green
-echo "${pbadge} ✔️ Local Storage Denied "
+echo "[$(date +"%r")] ${pbadge} ✔️ Local Storage Denied "
 exit
 fi
 }
@@ -1110,12 +1121,12 @@ fi
 containerManagerDeExposeSystemLibrary(){
   if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
     red
-    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
+    echo "[$(date +"%r")] ${pbadge} ❌ Container does not exists please create the container first ❌"
     exit
   else
 rm ${containersLair}/${SecondaryParam}/grantSystemLibrary
 green
-echo "${pbadge} ✔️ System Library Blocked "
+echo "[$(date +"%r")] ${pbadge} ✔️ System Library Blocked "
 exit
 fi
 
@@ -1124,12 +1135,12 @@ fi
 containerManagerExposeSystemLibrary(){
   if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
     red
-    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
+    echo "[$(date +"%r")] ${pbadge} ❌ Container does not exists please create the container first ❌"
     exit
   else
 echo 1 > ${containersLair}/${SecondaryParam}/grantSystemLibrary
 green
-echo "${pbadge} ✔️ System Library Granted "
+echo "[$(date +"%r")] ${pbadge} ✔️ System Library Granted "
 exit
 fi
 
@@ -1142,17 +1153,17 @@ containerManagerUpdate(){
   fi
   if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
     red
-    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
+    echo "[$(date +"%r")] ${pbadge} ❌ Container does not exists please create the container first ❌"
     exit
   else
     export updateContainer=1
     if [ ! -f "${containersLair}/${SecondaryParam}/origin" ]; then
       red
-      echo "${pbadge} ❌ This feature is not available for locally created container ❌"
+      echo "[$(date +"%r")] ${pbadge} ❌ This feature is not available for locally created container ❌"
       exit
     fi
 containerManagerImport "$(cat ${containersLair}/${SecondaryParam}/origin)"
-echo "${pbadge} ✔️ Container Updated "
+echo "[$(date +"%r")] ${pbadge} ✔️ Container Updated "
 fi
 if [ -z $@ ]; then
 exit
@@ -1163,12 +1174,12 @@ fi
 containerManagerExposeStorage(){
   if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
     red
-    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
+    echo "[$(date +"%r")] ${pbadge} ❌ Container does not exists please create the container first ❌"
     exit
   else
 echo a > ${containersLair}/${SecondaryParam}/grantStorage
 green
-echo "${pbadge} ✔️ Local Storage Granted "
+echo "[$(date +"%r")] ${pbadge} ✔️ Local Storage Granted "
 exit
 fi
 
@@ -1239,7 +1250,7 @@ exit
 launchcontainerSvcFG(){
   if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
     red
-    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
+    echo "[$(date +"%r")] ${pbadge} ❌ Container does not exists please create the container first ❌"
     exit
   fi
   cd "${containersLair}/${SecondaryParam}"
@@ -1249,7 +1260,7 @@ launchcontainerSvcFG(){
   bash start-bootstrap.sh ash /init
 else
   red
-  echo "${pbadge} ❌ Container currently is running if you believe that the container is not running ❌"
+  echo "[$(date +"%r")] ${pbadge} ❌ Container currently is running if you believe that the container is not running ❌"
   echo "${0} stop ${SecondaryParam}"
 fi
   exit
@@ -1258,7 +1269,7 @@ fi
 launchcontainerSvc(){
   if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
     red
-    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
+    echo "[$(date +"%r")] ${pbadge} ❌ Container does not exists please create the container first ❌"
     exit
   fi
   cd "${containersLair}/${SecondaryParam}"
@@ -1267,36 +1278,35 @@ launchcontainerSvc(){
   bash start-bootstrap.sh ash /init > "${logs}/containers_${SecondaryParam}.log" 2>&1 &
   echo $! > svcID
   cat "${logs}/containers_${SecondaryParam}.log"
-  APIcall systemUI_notifysend "Container_${SecondaryParam}_Successfully_Launched"
+  APIcall systemUI_notifysend "Container_${SecondaryParam}_Successfully_Launched" >> ${logs}/APICall.log 2>&1 
   exit
 }
 #Kill Container init process service from the background
 launchcontainerKill(){
   if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
     red
-    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
+    echo "[$(date +"%r")] ${pbadge} ❌ Container does not exists please create the container first ❌"
     exit
   fi
   yellow
-  echo "${pbadge} 🛑 Stopping Container"
+  echo "[$(date +"%r")] ${pbadge} 🛑 Stopping Container"
   kill -9 $(cat ${containersLair}/${SecondaryParam}/svcID)
   green
-  APIcall systemUI_notifysend "Container_${SecondaryParam}_Successfully_Stopped"
-  echo "${pbadge} ✔️ Container Stopped"
+  APIcall systemUI_notifysend "Container_${SecondaryParam}_Successfully_Stopped" >> ${logs}/APICall.log 2>&1 
+  echo "[$(date +"%r")] ${pbadge} ✔️ Container Stopped"
   exit
 }
 #Launch Container Shell
 launchcontainerSHELL(){
   if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
     red
-    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
+    echo "[$(date +"%r")] ${pbadge} ❌ Container does not exists please create the container first ❌"
     exit
   fi
   cd "${containersLair}/${SecondaryParam}"
   echo Launching container ${SecondaryParam}
   green
-  echo "${pbadge} 🌟 Have fun 🌟"
-  reset
+  echo "[$(date +"%r")] ${pbadge} 🌟 Have fun 🌟"
   #bash start-bootstrap.sh screenfetch
   bash start-bootstrap.sh "neofetch"
   bash start-bootstrap.sh "echo Welcome to ${SecondaryParam} Container Shell!"
@@ -1312,12 +1322,12 @@ executeContainerCMD(){
   fi
   if [ ! -d "${containersLair}/${SecondaryParam}" ]; then
     red
-    echo "${pbadge} ❌ Container does not exists please create the container first ❌"
+    echo "[$(date +"%r")] ${pbadge} ❌ Container does not exists please create the container first ❌"
     exit
   fi
   cd "${containersLair}/${SecondaryParam}"
   yellow
-  echo "${pbadge} 🏃‍ Executing ${TertiaryParam} on ${SecondaryParam}"
+  echo "[$(date +"%r")] ${pbadge} 🏃‍ Executing ${TertiaryParam} on ${SecondaryParam}"
   bash start-bootstrap.sh "${TertiaryParam}"
   if [ -z $@ ] ; then
   exit
@@ -1328,7 +1338,7 @@ fi
 
 installBin(){
 echo ${PATH}
-echo "${pbadge}stub"
+echo "[$(date +"%r")] ${pbadge}stub"
 #if [ ]
 bayd="${maindir}/bay"
 cat > "$bayd" <<- EOM
@@ -1340,7 +1350,7 @@ EOM
 }
 
 daemonCreate(){
-echo "${pbadge}stub"
+echo "[$(date +"%r")] ${pbadge}stub"
 bayd="${maindir}/bayd"
 cat > "$bayd" <<- EOM
 ## This is a execution Routines that changes how the container behaves
@@ -1356,7 +1366,7 @@ EOM
 
 help_unifyServer(){
 yellow
-echo "${pbadge} Here are the commands"
+echo "[$(date +"%r")] ${pbadge} Here are the commands"
 echo "To launch container"
 echo "${0} launch <containerName>"
 echo "To Launch container in foreground"
@@ -1496,7 +1506,7 @@ esac
 
 linkManagerPath(){
 if [ ! -z "${PREFIX}" ]; then
-echo "${pbadge} PREFIX VARIABLE IS DETECTED WE ARE GOING TO INSTALL THERE"
+echo "[$(date +"%r")] ${pbadge} PREFIX VARIABLE IS DETECTED WE ARE GOING TO INSTALL THERE"
 installTarget="${PREFIX}/bin"
 else
 if [ ${WSLenv} == "1" ] && [ ! -z ${WSLenv} ]; then
@@ -1656,10 +1666,10 @@ ptraceCompatibilityPolice(){
   if [ ${ptracecompat} == '0' ]; then
   userspacebackend=''
     red
-  echo "${pbadge} ❌ This UnifiedContainer currently running on a non ptrace kernel ❌"
+  echo "[$(date +"%r")] ${pbadge} ❌ This UnifiedContainer currently running on a non ptrace kernel ❌"
   echo a > ${maindir}/NOPTRACE
     if [ $(whoami) != "root" ]; then
-      echo "${pbadge} ❌ Non ptrace kernel need to launch the manager using superuser previleges ❌"
+      echo "[$(date +"%r")] ${pbadge} ❌ Non ptrace kernel need to launch the manager using superuser previleges ❌"
       exit
     fi
   else
@@ -1672,8 +1682,9 @@ ptraceCompatibilityPolice(){
 
 
 bootstrapSetup(){
-APIcall pwmCall_enable_wakelockcall
+APIcall pwmCall_enable_wakelockcall >> ${logs}/APICall.log 2>&1 
 folder=rootfs
+setupbadge="[initSetup]"
 tarball="bootstrap.tar.gz"
 if [ "$first" != 1 ];then
 #NOTE :
@@ -1682,7 +1693,7 @@ if [ "$first" != 1 ];then
 
 	if [  ${tarball} == $tarball ]; then
     yellow
-		echo "${pbadge} ⌛ downloading bootstrap-image"
+		echo "[$(date +"%r")] ${pbadge} ⌛ downloading bootstrap-image"
 		#case `dpkg --print-architecture` in
     #wget -r --no-parent -A 'bar.*.tar.gz' http://url/dir/ #https://unix.stackexchange.com/questions/117988/wget-with-wildcards-in-http-downloads
     case `checkArch` in #since Archlinux have a variable download link so we have to define each download link for each architechture
@@ -1693,17 +1704,16 @@ if [ "$first" != 1 ];then
     armv7*)
   		archurl="armhf" ; specialarchtype="arm" ; downloadcompass="rootfs-arm32" ;;
 		amd64)
-			archurl="amd64" ; specialarchtype="x86_64"  ; subfolder="root.x86_64" ; downloadcompass="rootfs-x86_64" ;;
+			archurl="amd64" ; specialarchtype="x86_64" ; downloadcompass="rootfs-x86_64" ;;
 		*86_64)
-			archurl="amd64" ; specialarchtype="x86_64" ; subfolder="root.x86_64" ; downloadcompass='rootfs-x86_64' ;;
+			archurl="amd64" ; specialarchtype="x86_64" ; downloadcompass='rootfs-x86_64' ;;
     i*86)
   		archurl="i386" ; specialarchtype="i386" ; downloadcompass='rootfs-x86' ;;
 		*)
 			echo "❌ Unsupported architecture ❌"; exit 1 ;;
 		esac
-    echo exec
     #Since it is locally stored now and doesnt need package manager nor a rootfs download repo it just need to handle it
-    echo "offloading from Cache"
+    echo "[$(date +"%r")] ${pbadge} ${setupbadge} offloading from Cache"
     cp -v ${rootfsprootRepoCache}/${downloadcompass}.tar.gz ${tarball}
     # make sure the Handler knows to extract the required tarball and rename it to ${tarball}
   fi
@@ -1711,15 +1721,14 @@ if [ "$first" != 1 ];then
 	mkdir -p "$folder"
 	cd "$folder"
   green
-	echo "${pbadge} 🗜️ decompressing bootstrap image"
+	echo "[$(date +"%r")] ${pbadge} ${setupbadge} 🗜️ decompressing bootstrap image"
   yellow
-  echo "${pbadge} This may take 10 minutes or more depending on the environment that is being installed"
 	${userspacebackend} ${symlinkfix} tar -vxf ${cur}/${tarball} --exclude='dev' --exclude='firmware' --exclude='kernel' >> ${logs}/rootfsExtract.log 2>&1
   if [ ! -z ${subfolder} ]; then
   ${userspacebackend} ${symlinkfix} cp -ra ${subfolder}*/* .
   rm -rf *${subfolder}*
 fi
-  echo "${pbadge} Cleaning Downloaded Archive"
+  echo "[$(date +"%r")] ${pbadge} ${setupbadge} Cleaning Downloaded Archive"
   rm -rf bootstrap.tar.gz
   stubs=()
   # These stubs patches are no longer needed
@@ -1732,23 +1741,35 @@ fi
   #done
   #proot ${symlinkfix} tar -xf ${cur}/${tarball} --exclude='dev'||:
   yellow
-	echo "${pbadge} 🌐 fixing nameserver, otherwise it can't connect to the internet \n "
+	echo "[$(date +"%r")] ${pbadge} ${setupbadge} 🌐 Adding DNS Nameserver"
   rm -rf etc/resolv.conf
 	echo "nameserver 1.1.1.1" > etc/resolv.conf
   echo "nameserver 8.8.8.8" >> etc/resolv.conf
+  echo "nameserver 1.0.0.1" >> etc/resolv.conf
+  echo "nameserver 1.0.0.2" >> etc/resolv.conf
+  echo "nameserver 1.0.0.3" >> etc/resolv.conf
+  echo "nameserver 1.1.1.2" >> etc/resolv.conf
+  echo "nameserver 1.1.1.3" >> etc/resolv.conf
   echo "nameserver 58.185.133.2" >> etc/resolv.conf
-  printf "⌛ Creating Mount Points \n"
-  mkdir exposed data presistent_storage dev sys proc InstallCache
+  echo "[$(date +"%r")] ${pbadge} ${setupbadge} ⌛ Creating Mount Points"
+  if [ ! -d exposed ]; then mkdir exposed; fi
+  if [ ! -d data ]; then mkdir data ; fi
+  if [ ! -d presistent_storage ]; then mkdir presistent_storage ; fi
+  if [ ! -d dev ]; then mkdir dev ; fi
+  if [ ! -d sys ]; then mkdir sys ; fi
+  if [ ! -d proc ]; then mkdir proc ; fi
+  if [ ! -d InstallCache ]; then mkdir InstallCache ; fi
 	cd "$cur"
 fi
 mkdir -p binds
 bin=start-bootstrap.sh
-echo "${pbadge} 🚀 writing launch script"
+echo "[$(date +"%r")] ${pbadge} ${setupbadge} 🚀 writing launch script"
 cat > $bin <<- EOM
 #!/bin/bash
 export folder=rootfs #rootfs folder configuration
-
+if [ -f containerID ]; then
 containerID=\$(cat containerID)
+fi
 cd \$(dirname \$0)
 ## unset LD_PRELOAD in case termux-exec is installed
 unset LD_PRELOAD
@@ -1803,7 +1824,7 @@ fi
 
 fi
 
-echo "chrootdefine"
+#echo "chrootdefine"
 command="chroot"
 command+=" \${folder}"
 command+=" /bin/busybox env -i"
@@ -1815,7 +1836,7 @@ command+=" HOME=/root"
 command+=" /bin/ash"
 fi
 if [ ! -f \${maindir}/NOPTRACE ]  && [ \${BLINDBOOT} == "0" ] ; then
-  echo "prootdefine"
+  #echo "prootdefine"
   #proot version
 command="proot"
 command+=" -0"
@@ -1834,7 +1855,7 @@ fi
 if [ -d /home ] && [ -f grantStorage ]; then
   command+=" -b /home:/exposed"
 fi
-echo Exposing systemLib
+#echo Exposing systemLib
 if [ -d /system ] && [ -f grantSystemLibrary ]; then
   command+=" -b /system:/systemfs"
 fi
@@ -1854,7 +1875,7 @@ command+=" HOME=/root"
 command+=" PATH=/usr/local/sbin:/usr/local/bin:/bin:/usr/bin:/sbin:/usr/sbin:/usr/games:/usr/local/games"
 command+=" TERM=\$TERM"
 command+=" LANG=C.UTF-8"
-command+=" PS1=\$(cat containerID)\\$"
+command+=" PS1=\$containerID\\$"
 command+=" /bin/ash"
 fi
 
@@ -1875,7 +1896,8 @@ else
     if [ -f \${maindir}/NOPTRACE ]; then
     echo "\$command" "\$com" 
     fi
-    echo "\$com" | tee \${folder}/manualcommandqueue
+    #echo "\$com" | tee \${folder}/manualcommandqueue
+    echo "\$com" > \${folder}/manualcommandqueue
     chmod 777 \${folder}/manualcommandqueue
     \$command -c "/manualcommandqueue" #execute the manual command queue
     rm \${folder}/manualcommandqueue # clean out the command queue afterwards
@@ -1895,13 +1917,15 @@ echo "unmount operations on non proot mode will be deprecated due to the potenti
 #umount -lf \${folder}/exposed
 fi
 fi
-echo Removing container Bootup flag
+#echo Removing container Bootup flag
+if [ -f svcID ]; then
 rm svcID
+fi
 
 EOM
-echo "${pbadge} Writing done"
+echo "[$(date +"%r")] ${pbadge} ${setupbadge} Writing done"
 
-echo "${pbadge} Creating rootfs Success Test "
+echo "[$(date +"%r")] ${pbadge} ${setupbadge} Creating rootfs Success Test "
 # This is used for testing installation rootfs whether the packages were installed successfully or not
 # by chacking if the variable is available or none
 verifyInstallation=${folder}/verifier
@@ -1911,6 +1935,8 @@ if [ ! -z \$(which busybox) ] && [ ! -z \$(which bash) ]; then
 echo 1 > /installationSuccessfull
 fi
 EOM
+
+echo "[$(date +"%r")] ${pbadge} ${setupbadge} Replacing root access required binary with the compatible version"
 
 execroutines=${folder}/init
 ##### INITIAL INIT EXEC ROUTINES ####
@@ -1946,6 +1972,16 @@ busybox env \$@
 EOM
 chmod +x ${folder}/bin/env
 
+dmesgemu=${folder}/bin/dmesg
+##### dmesg Emulation FIX ####
+# dmesg need to be written as a "root" priveledges, it can be circumvented by using the selected userspacebackend
+rm ${dmesgemu}
+${userspacebackend} ${symlinkfix} cat > "$dmesgemu" <<- EOM 
+#!/bin/sh
+find /var -name *.log -exec cat {} \;
+EOM
+chmod +x ${dmesgemu}
+
 aptguide=${folder}/bin/apt
 ##### apt migration guide Emulation FIX ####
 cat > "$aptguide" <<- EOM
@@ -1974,51 +2010,51 @@ chmod +x $pacmanguide
 
 
 
-echo "${pbadge} 🧳 Doing some initial Setup"
-echo "Cleaning Lists"
+echo "[$(date +"%r")] ${pbadge} ${setupbadge} 🧳 Doing some Initial Dependencies Setup"
+echo "[$(date +"%r")] ${pbadge} ${setupbadge} This process depends on your internet speed"
 export installmode=1 #this flag is to disable env before updating the glibc
-bash ${bin} "apk upgrade"
-bash ${bin} "apk add bash fish neofetch alpine-sdk python3"
-bash ${bin} "bash /verifier"
+bash ${bin} "apk upgrade" 2>&1 > ${logs}/InitialSetupinstallationDependenciesLog.log 
+bash ${bin} "apk add bash fish neofetch alpine-sdk python3" 2>&1 >> ${logs}/InitialSetupinstallationDependenciesLog.log 
+bash ${bin} "bash /verifier" 2>&1 >> ${logs}/InitialSetupinstallationDependenciesLog.log 
 #replacing symlinks perl into real perl
-echo "fixing shebang of $bin"
+echo "[$(date +"%r")] ${pbadge} ${setupbadge} fixing shebang of $bin"
 if [ ${packmanager} == "pkg" ]; then
 termux-fix-shebang $bin
 fi
-echo "${pbadge} Checking whether the installation is successful"
+echo "[$(date +"%r")] ${pbadge} ${setupbadge} Checking whether the installation is successful"
 if [ -f ${folder}/installationSuccessfull ]; then
 green
-echo "${pbadge} 😄Yippie yay your installation is successfull😄"
+echo "[$(date +"%r")] ${pbadge} ${setupbadge} 😄Installation Successful😄"
 sleep 2
 echo a > success
-echo "${pbadge} Trimming installation"
+echo "[$(date +"%r")] ${pbadge} ${setupbadge} Trimming installation"
 rm -rf ${folder}/usr/lib/firmware/*
-APIcall pwmCall_disable_wakelockcall
+APIcall pwmCall_disable_wakelockcall  >> ${logs}/APICall.log 2>&1 
 else
   red
 echo "============================================================================"
-echo "${pbadge} 🥺THE CONTAINER FAILED DURING INSTALL AND VERIFICATION🥺"
+echo "[$(date +"%r")] ${pbadge} ${setupbadge} 🥺THE CONTAINER FAILED DURING INSTALL AND VERIFICATION🥺"
 echo "============================================================================"
 errorcount=$(( $errorcount + 1 ))
 if [ $errorcount -gt 3 ]; then
 red
 echo Halt!
-echo "Unresolveable loop detected"
-echo "Please investigate the operation above!"
-echo "Note : if you are running on a confined space like flatpak or snap shell protected by apparmor you could try to use standard environment terminal instead"
+echo "[$(date +"%r")] ${pbadge} ${setupbadge} Unresolveable loop detected"
+echo "[$(date +"%r")] ${pbadge} ${setupbadge} Please investigate the logs!"
+echo "[$(date +"%r")] ${pbadge} ${setupbadge} Note : if you are running on a confined space like flatpak or snap shell protected by apparmor you could try to use standard environment terminal instead"
 sleep 69696969696
 exit
 fi
 if [ ${DEVELMODE} == "1" ] && [ ! -z ${DEVELMODE} ]; then
   # IF YOU RUN ON SUDO PLEASE MAKE SURE TO USE $ sudo env DEVELMODE=1 ./unifyServer
-echo "${pbadge} Dropping into shell mode"
+echo "[$(date +"%r")] ${pbadge} ${setupbadge} Dropping into shell mode"
 bash ${bin} sh
 fi
 yellow
 defaultContainerSetup
 fi
 
-echo "${pbadge} 🧳 making $bin executable"
+echo "[$(date +"%r")] ${pbadge} ${setupbadge} 🧳 making $bin executable"
 chmod +x $bin
 }
 
@@ -2048,12 +2084,12 @@ sequentialOptimizationCache(){
 cd ${origindir}
 if [ ! -f ${containersLair}/defaultSeq ] || [ ! -f ${containersLair}/guranteedSeqIntegrity ]; then
 cd ${defaultContainer}
-echo "${pbadge} 🧳 Optimizing System "
+echo "[$(date +"%r")] ${pbadge} 🧳 Optimizing System "
 tar cvzf ${containersLair}/defaultSeq . >> ${logs}/rootfsOptimization.log 2>&1
 echo 1 > ${containersLair}/guranteedSeqIntegrity # flag for integrity if it finishes compressing
-echo "${pbadge} 🧳 Optimizing System Done "
+echo "[$(date +"%r")] ${pbadge} 🧳 Optimizing System Done "
 else
-echo "${pbadge} 🧳 System has been optimized"
+echo "[$(date +"%r")] ${pbadge} 🧳 System has been optimized"
 fi
 containerAheadOptimizationCache   > ${logs}/containerAheadOptimizationCache.log 2>&1 &
 #echo $! > ${maindir}/containerOptimizationPID
@@ -2064,7 +2100,7 @@ cd ${origindir}
 notifyBusIOd(){
   svcstart_notifyBusIOThread(){
 red
-echo "${pbadge} Function is not implemented"
+echo "[$(date +"%r")] ${pbadge} Function is not implemented"
 echo "[debug] notifyBusIOd() function is a stub code"
 }
 svcstart_notifyBusIOThread &
@@ -2082,22 +2118,22 @@ cd ${defaultContainer}
 bootstrapSetup
 else
   red
-echo "${pbadge} FATAL ERROR wowza What happened to the default container folder??"
-echo "${pbadge} Try to relaunch the manager it might be fixed in the next boot"
+echo "[$(date +"%r")] ${pbadge} FATAL ERROR wowza What happened to the default container folder??"
+echo "[$(date +"%r")] ${pbadge} Try to relaunch the manager it might be fixed in the next boot"
 exit
 fi
 else
   red
 if [ -f ${defaultContainer}/success ]; then
 green
-APIcall systemUI_notifysend "✔️_defaultContainer_integrity_check_success"
-echo "${pbadge} default container is installed"
+APIcall systemUI_notifysend "✔️_defaultContainer_integrity_check_success" >> ${logs}/APICall.log 2>&1 
+echo "[$(date +"%r")] ${pbadge} default container is installed"
 rm -rf ${defaultContainer}/bootstrap.tar.gz
 else
 red
-APIcall systemUI_notifysend "❌_defaultContainer_failure"
-echo "${pbadge} resetting Install due to the corrupted install"
-echo "${pbadge} Automatic Resolve Enabled"
+APIcall systemUI_notifysend "❌_defaultContainer_failure" >> ${logs}/APICall.log 2>&1 
+echo "[$(date +"%r")] ${pbadge} resetting Install due to the corrupted install"
+echo "[$(date +"%r")] ${pbadge} Automatic Resolve Enabled"
 envTroubleShooting
 export newInstall=1
 # This will forces the program to retry until the program output the flag ( success flag ) from the verifier test ( See bootstrapSetup verifier test )
@@ -2113,7 +2149,7 @@ fi
 
 
 unifyServerD_vm(){
-echo "${pbadge} Function is not implemented"
+echo "[$(date +"%r")] ${pbadge} Function is not implemented"
 echo "[DEBUG]: unifyServer vm daemon"
 # TODO : use this function for later use of unifyServer Virtual Machine
 # This is useful for running on Windows without running additional virtualbox vmware or something but instead use internal qemu
@@ -2156,10 +2192,10 @@ flushmem(){
 
 
 red
-echo "${pbadge} Warning this is a experimental feature use with caution"
+echo "[$(date +"%r")] ${pbadge} Warning this is a experimental feature use with caution"
 
 store(){
-echo "${pbadge} [debug] ${storedmem} address_${1} "
+echo "[$(date +"%r")] ${pbadge} [debug] ${storedmem} address_${1} "
 
 export address_${1}="$(busybox tar -cf - "${2}" | base64)"
 export storedmem="${storedmem} address_${2}"
@@ -2176,7 +2212,7 @@ export address_${2}="null"
 }
 
 cachememd(){
-echo "${pbadge} function is not implemented"
+echo "[$(date +"%r")] ${pbadge} function is not implemented"
 }
 
 ${1} ${2} ${3}
@@ -2206,8 +2242,8 @@ fi
 
 cacheExpireCheck(){
 if [ ! -f ${containersLair}/expireCount ]; then
-  echo "${pbadge} Cache is invalid deleting cache"
-  APIcall systemUI_notifysend "Cache_is_invalid_refreshing_Cache"
+  echo "[$(date +"%r")] ${pbadge} Cache is invalid deleting cache"
+  APIcall systemUI_notifysend "Cache_is_invalid_refreshing_Cache" >> ${logs}/APICall.log 2>&1 
   ${userspacebackend} ${symlinkfix} rm -rf ${containersLair}/defaultSeq
   ${userspacebackend} ${symlinkfix} rm -rf ${unasignedContainer}
   echo 0 > ${containersLair}/expireCount
@@ -2223,7 +2259,7 @@ fi
 
 envTroubleShooting(){
 yellow
-echo "${pbadge} Experimental Troubleshooter"
+echo "[$(date +"%r")] ${pbadge} Experimental Troubleshooter"
 echo "Fixing Partial Sleep"
 partialSleepandroid9fix(){
   pkglist=$(pm list packages -f | sed -e 's/.*=//' | sort | grep term )
@@ -2260,12 +2296,12 @@ phantomProcessFix(){
 
 recoveryEnvironment(){
 if [ ! -d ${recoveryEnvironmentDir}/.git ] || [ ! -f ${recoveryEnvironmentDir}/unifyServer ]; then
-echo "${pbadge} Recovery Files not found This is a dangerous thing!"
-echo "${pbadge} Please wait... while we creating current version recovery"
+echo "[$(date +"%r")] ${pbadge} Recovery Files not found This is a dangerous thing!"
+echo "[$(date +"%r")] ${pbadge} Please wait... while we creating current version recovery"
 cp -v ${origindir}/unifyServer ${recoveryEnvironmentDir}
 cp -rv ${origindir}/.git ${recoveryEnvironmentDir}
-echo "${pbadge} Critical core has been backed up!"
-echo "${pbadge} Creating Recovery Wizard"
+echo "[$(date +"%r")] ${pbadge} Critical core has been backed up!"
+echo "[$(date +"%r")] ${pbadge} Creating Recovery Wizard"
 output="${origindir}/recovery"
 cat > "${output}" <<- EOM
 #!/bin/bash
@@ -2283,7 +2319,7 @@ echo "Finished Recovery"
 EOM
 chmod +x ${origindir}/recovery
 else
-echo "${pbadge} Recovery environment Present! Do no harm!"
+echo "[$(date +"%r")] ${pbadge} Recovery environment Present! Do no harm!"
 fi
 }
 
@@ -2320,33 +2356,38 @@ if [ -z ${NOBOOT} ]; then #whether skip checks or not, this NOBOOT only uses whe
 #only if it is used for nonmodular purposes
 intro
 yellow
-echo "${pbadge} 📁 [1/9] Checking Folders"
+
+
+echo "[$(date +"%r")] ${pbadge} 📁 [1/10] Checking Folders"
 folderInit
 recoveryEnvironment  >> ${logs}/recoveryEnvironment.log 2>&1 #creating recovery environment
-intro
 yellow
-echo "${pbadge} 🚒 [2/9] Checking and installing dependencies"
+echo "[$(date +"%r")] ${pbadge} [2/10] adjusting required platform Fixes"
+environmentAdjustment  >> ${logs}/environmentAdjustment.log 2>&1
+yellow
+
+echo "[$(date +"%r")] ${pbadge} 🚒 [3/10] Checking and installing dependencies"
 dependencies >> ${logs}/dependenciesCheck.log 2>&1
 yellow
-echo "${pbadge} 🌳 [3/9] Checking ptrace compatibility"
+echo "[$(date +"%r")] ${pbadge} 🌳 [4/10] Checking ptrace compatibility"
 ptraceCompatibilityPolice
 yellow
-echo "${pbadge} 🚀 [4/9] Checking for Acceleration Availability"
+echo "[$(date +"%r")] ${pbadge} 🚀 [5/10] Checking for Acceleration Availability"
 SECCOMP_Acceleration_Availability_detection >> ${logs}/AccelerationAvailablity.log 2>&1 #Checking whether the acceleration mode is available
 yellow
-echo "${pbadge} 💽 [5/9] Checking symlinks compatibility"
+echo "[$(date +"%r")] ${pbadge} 💽 [6/10] Checking symlinks compatibility"
 symlinksFix >> ${logs}/symlinksCheck.log 2>&1
-echo "${pbadge} 💽 [6/9] Updating Manager"
+echo "[$(date +"%r")] ${pbadge} 💽 [7/10] Updating Manager"
 fetchUpdateManager >> ${logs}/ManagerUpdate.log 2>&1
 yellow
-echo "${pbadge} 💽 [7/9] Checking Default Container"
+echo "[$(date +"%r")] ${pbadge} 💽 [8/10] Checking Default Container"
 export errorcount=0
 defaultContainerSetup
 yellow
-echo "${pbadge} 💽 [8/9] Cache validation Check"
+echo "[$(date +"%r")] ${pbadge} 💽 [9/10] Cache validation Check"
 cacheExpireCheck >> ${logs}/CacherefreshCheck.log 2>&1
 yellow
-echo "${pbadge} 💽 [9/9] Caching Sequential rootfs" #Check if there is unasigned rootfs to speedup the creation of container
+echo "[$(date +"%r")] ${pbadge} 💽 [10/10] Caching Sequential rootfs" #Check if there is unasigned rootfs to speedup the creation of container
 sequentialOptimizationCache >> ${logs}/CacheMakeCheck.log 2>&1
 fi
 #for the program to relaunch the ./unifyServer to execute other routines it doesnt need to reinitialize other thing because the variable were global thus it is able to handed over to the next bash session
